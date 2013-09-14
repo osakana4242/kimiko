@@ -1,13 +1,13 @@
 declare var enchant: any;
 
 module jp.osakana4242.kimiko.scenes {
-	
+
 	var Class = enchant.Class;
 	var Core = enchant.Core;
 	var Scene = enchant.Scene;
 	var Label = enchant.Label;
 	var Event = enchant.Event;
-	
+
 	module sprites {
 		/** 拡張Sprite */
 		export var Sprite: any = Class.create(enchant.Sprite, {
@@ -31,7 +31,7 @@ module jp.osakana4242.kimiko.scenes {
 				}
 			},
 		});
-		
+
 		/** 敵弾 */
 		export var EnemyBullet: any = Class.create(Sprite, {
 			initialize: function () {
@@ -268,6 +268,80 @@ module jp.osakana4242.kimiko.scenes {
 			},
 		});
 		
+		class WeaponA {
+			fireCounter: number;
+			fireCount: number;
+			fireIntervalCounter: number;
+			fireInterval: number;
+			reloadFrameCounter: number;
+			reloadFrameCount: number;
+			parent: any;
+
+			state: () => void;
+
+			constructor(sprite: any) {
+				this.parent = sprite;
+				this.state = this.stateNeutral;
+				this.fireCount = 3;
+				this.fireInterval = kimiko.secToFrame(0.1);
+				this.reloadFrameCount = kimiko.secToFrame(3.0);
+			}
+
+			public step(): void {
+				this.state();
+				
+			}
+			
+			private stateNeutral(): void {
+			}
+
+			private stateFire(): void {
+				if (this.reloadFrameCount < this.reloadFrameCounter) {
+					 ++this.reloadFrameCounter;
+					 this.state = this.stateNeutral;
+					 return;
+				}
+				if (this.fireIntervalCounter < this.fireInterval) {
+					 ++this.fireIntervalCounter;
+					 return;
+				}
+				this.fireIntervalCounter = 0;
+				if (this.fireCounter < this.fireCount ) {
+					 this.fire();
+					 ++this.fireCounter;
+					 return;
+				}
+				this.fireCounter = 0;
+				this.reloadFrameCounter = 0;
+			}
+
+			private fire(): void {
+				console.log("fire");
+
+				var parent = this.parent;
+				var bullet = parent.scene.newEnemyBullet();
+				bullet.vx = parent.dirX * kimiko.secToPx(40);
+				bullet.vy = 0;
+				bullet.cx = parent.cx;
+				bullet.cy = parent.cy;
+
+
+
+			}
+
+			public startFire(): void {
+				this.fireCounter = 0;
+				this.fireIntervalCounter = this.fireInterval;
+				this.reloadFrameCounter = this.reloadFrameCount;
+				this.state = this.stateFire;
+			}
+
+			public isStateFire(): bool {
+				return this.state === this.stateFire;
+			}
+
+		}
+
 		class EnemySinBrain {
 			constructor(
 				public sprite: any,
@@ -283,6 +357,10 @@ module jp.osakana4242.kimiko.scenes {
 				this.sprite.useGravity = false;
 				var ty = this.anchor.y + ( Math.sin( this.sprite.age * Math.PI * 2 / cycle) * 32 );
 				this.sprite.vy = ty - this.sprite.y;
+				var body = this.sprite;
+				if ( !body.weapon.isStateFire() ) {
+					 body.weapon.startFire();
+				}
 			}
 			
 		}
@@ -355,10 +433,22 @@ module jp.osakana4242.kimiko.scenes {
 				this.colorAttack = DF.ENEMY_ATTACK_COLOR;
 				this.backgroundColor = this.colorNeutral;
 				this.anchor = anchor;
-				//new EnemySinBrain(this, anchor);
-				new EnemyBrain(this, anchor);
+				this.brain = null;
+				this.weapon = new WeaponA(this);
+			},
+			initType: function (typeId) {
+				switch ( typeId ) {
+				case Enemy.ID_A:
+						this.brain = new EnemyBrain(this, this.anchor);
+						break;
+				case Enemy.ID_B:
+						this.brain = new EnemySinBrain(this, this.anchor);
+						break;
+				}
 			},
 		});
+		Enemy.ID_A = 1;
+		Enemy.ID_B = 2;
 	}
 	
 	export var Act: any = Class.create(Scene, {
@@ -415,6 +505,10 @@ module jp.osakana4242.kimiko.scenes {
 					y: -64,
 				};
 				sprite = new sprites.Enemy(anchor);
+				var enemyTypeId = ((i & 0x1) == 0)
+					? sprites.Enemy.ID_A
+					: sprites.Enemy.ID_B;
+				sprite.initType(enemyTypeId);
 				this.enemys.push(sprite);
 				group.addChild(sprite);
 			}
@@ -548,6 +642,7 @@ module jp.osakana4242.kimiko.scenes {
 			this.labels[0].text = (<any[]>["touch end diff", Math.floor(touch.diffX), Math.floor(touch.diffY)]).join();
 			
 			var player = this.player;
+
 			//player.vx += NumUtil.trim(touch.diffX * 0.05, -16, 16);
 			
 			if (Math.abs(touch.diffX) + Math.abs(touch.diffY) < 16) {
@@ -559,7 +654,8 @@ module jp.osakana4242.kimiko.scenes {
 			var player = this.player;
 			//
 			if ((player.age % kimiko.secToFrame(0.2)) === 0) {
-				var nearEnemy = this.getNearEnemy(player, 64 * 64);
+
+					var nearEnemy = this.getNearEnemy( player, 64 * 64 );
 				if ( nearEnemy !== null ) {
 					player.attack();
 				}

@@ -76,7 +76,7 @@ module jp.osakana4242.kimiko {
 		export var SC2_Y1: number = 240;
 		export var SC2_X2: number = SC2_X1 + SC2_W;
 		export var SC2_Y2: number = SC2_Y1 + SC2_H;
-		export var IMAGE_PLAYER = "http://jsrun.it/assets/5/8/E/1/58E1Q.png";
+		export var IMAGE_PLAYER = "./assets/images/chara001.png";
 		export var PLAYER_COLOR: string = "rgb(240, 240, 240)";
 		export var PLAYER_DAMAGE_COLOR: string = "rgb(240, 240, 120)";
 		export var PLAYER_ATTACK_COLOR: string = "rgb(160, 160, 240)";

@@ -1,0 +1,2 @@
+/Users/osakana4242/prj/kimiko/project/kimiko/ts/kimiko.ts
+/Users/osakana4242/prj/kimiko/project/kimiko/ts/scenes/act.ts

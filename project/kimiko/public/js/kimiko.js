@@ -278,6 +278,58 @@ var jp;
                             bullet.cy = this.cy;
                         }
                     });
+                    var WeaponA = (function () {
+                        function WeaponA(sprite) {
+                            this.parent = sprite;
+                            this.state = this.stateNeutral;
+                            this.fireCount = 3;
+                            this.fireInterval = kimiko.kimiko.secToFrame(0.1);
+                            this.reloadFrameCount = kimiko.kimiko.secToFrame(3.0);
+                        }
+                        WeaponA.prototype.step = function () {
+                            this.state();
+                        };
+                        WeaponA.prototype.stateNeutral = function () {
+                        };
+                        WeaponA.prototype.stateFire = function () {
+                            if(this.reloadFrameCount < this.reloadFrameCounter) {
+                                ++this.reloadFrameCounter;
+                                this.state = this.stateNeutral;
+                                return;
+                            }
+                            if(this.fireIntervalCounter < this.fireInterval) {
+                                ++this.fireIntervalCounter;
+                                return;
+                            }
+                            this.fireIntervalCounter = 0;
+                            if(this.fireCounter < this.fireCount) {
+                                this.fire();
+                                ++this.fireCounter;
+                                return;
+                            }
+                            this.fireCounter = 0;
+                            this.reloadFrameCounter = 0;
+                        };
+                        WeaponA.prototype.fire = function () {
+                            console.log("fire");
+                            var parent = this.parent;
+                            var bullet = parent.scene.newEnemyBullet();
+                            bullet.vx = parent.dirX * kimiko.kimiko.secToPx(40);
+                            bullet.vy = 0;
+                            bullet.cx = parent.cx;
+                            bullet.cy = parent.cy;
+                        };
+                        WeaponA.prototype.startFire = function () {
+                            this.fireCounter = 0;
+                            this.fireIntervalCounter = this.fireInterval;
+                            this.reloadFrameCounter = this.reloadFrameCount;
+                            this.state = this.stateFire;
+                        };
+                        WeaponA.prototype.isStateFire = function () {
+                            return this.state === this.stateFire;
+                        };
+                        return WeaponA;
+                    })();                    
                     var EnemySinBrain = (function () {
                         function EnemySinBrain(sprite, anchor) {
                             this.sprite = sprite;
@@ -294,6 +346,10 @@ var jp;
                             this.sprite.useGravity = false;
                             var ty = this.anchor.y + (Math.sin(this.sprite.age * Math.PI * 2 / cycle) * 32);
                             this.sprite.vy = ty - this.sprite.y;
+                            var body = this.sprite;
+                            if(!body.weapon.isStateFire()) {
+                                body.weapon.startFire();
+                            }
                         };
                         return EnemySinBrain;
                     })();                    
@@ -362,9 +418,22 @@ var jp;
                             this.colorAttack = kimiko.DF.ENEMY_ATTACK_COLOR;
                             this.backgroundColor = this.colorNeutral;
                             this.anchor = anchor;
-                            new EnemyBrain(this, anchor);
+                            this.brain = null;
+                            this.weapon = new WeaponA(this);
+                        },
+                        initType: function (typeId) {
+                            switch(typeId) {
+                                case sprites.Enemy.ID_A:
+                                    this.brain = new EnemyBrain(this, this.anchor);
+                                    break;
+                                case sprites.Enemy.ID_B:
+                                    this.brain = new EnemySinBrain(this, this.anchor);
+                                    break;
+                            }
                         }
                     });
+                    sprites.Enemy.ID_A = 1;
+                    sprites.Enemy.ID_B = 2;
                 })(sprites || (sprites = {}));
                 scenes.Act = Class.create(Scene, {
                     initialize: function () {
@@ -404,6 +473,8 @@ var jp;
                                 y: -64
                             };
                             sprite = new sprites.Enemy(anchor);
+                            var enemyTypeId = ((i & 0x1) == 0) ? sprites.Enemy.ID_A : sprites.Enemy.ID_B;
+                            sprite.initType(enemyTypeId);
                             this.enemys.push(sprite);
                             group.addChild(sprite);
                         }
@@ -714,7 +785,7 @@ var jp;
                 DF.SC2_Y1 = 240;
                 DF.SC2_X2 = DF.SC2_X1 + DF.SC2_W;
                 DF.SC2_Y2 = DF.SC2_Y1 + DF.SC2_H;
-                DF.IMAGE_PLAYER = "http://jsrun.it/assets/5/8/E/1/58E1Q.png";
+                DF.IMAGE_PLAYER = "./assets/images/chara001.png";
                 DF.PLAYER_COLOR = "rgb(240, 240, 240)";
                 DF.PLAYER_DAMAGE_COLOR = "rgb(240, 240, 120)";
                 DF.PLAYER_ATTACK_COLOR = "rgb(160, 160, 240)";
