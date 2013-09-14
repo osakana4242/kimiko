@@ -3,11 +3,43 @@
 declare var enchant: any;
 
 module jp.osakana4242.utils {
+
 	export interface IVector2D {
 		x: number;
 		y: number;
 	}
-	
+
+	export class Vector2D {
+		public static copyFrom(dest: IVector2D, src: IVector2D): void {
+			dest.x = src.x;
+			dest.y = src.y;
+		}
+
+		public static add(dest: IVector2D, src: IVector2D): void {
+			dest.x += src.x;
+			dest.y += src.y;
+		}
+
+		public static sqrMagnitude(a: IVector2D): number {
+			return (a.x * a.x) + (a.y * a.y);
+		}
+
+		public static magnitude(a: IVector2D): number {
+			return Math.sqrt(Vector2D.sqrMagnitude(a));
+		}
+
+		public static normalize(a: IVector2D): void {
+			var m = Vector2D.magnitude(a);
+			if (m === 0) {
+				return;
+			}
+			a.x = a.x / m;
+			a.y = a.y / m;
+		}
+
+	}
+
+
 	export class Touch {
 		startX: number;
 		startY: number;

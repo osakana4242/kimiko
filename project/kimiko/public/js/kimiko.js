@@ -8,6 +8,7 @@ var jp;
                 var Scene = enchant.Scene;
                 var Label = enchant.Label;
                 var Event = enchant.Event;
+                var Easing = enchant.Easing;
                 var sprites;
                 (function (sprites) {
                     sprites.Sprite = Class.create(enchant.Sprite, {
@@ -37,7 +38,7 @@ var jp;
                             this.vx = 0;
                             this.vy = 0;
                             this.backgroundColor = 'rgb(255, 64, 64)';
-                            this.tl.scaleTo(1.25, kimiko.kimiko.core.fps * 0.1).scaleTo(1.0, kimiko.kimiko.core.fps * 0.1).loop();
+                            this.tl.scaleTo(1.0, kimiko.kimiko.core.fps * 0.1).scaleTo(0.75, kimiko.kimiko.core.fps * 0.1).loop();
                         },
                         onenterframe: function () {
                             if(!this.visible) {
@@ -78,21 +79,52 @@ var jp;
                             }
                         }
                     });
+                    var Life = (function () {
+                        function Life() {
+                            this.hpMax = 100;
+                            this.hp = this.hpMax;
+                            this.damageFrameMax = kimiko.kimiko.secToFrame(1.0);
+                            this.damageFrameCounter = this.damageFrameMax;
+                        }
+                        Life.prototype.step = function () {
+                            if(this.hasDamage()) {
+                                ++this.damageFrameCounter;
+                            }
+                        };
+                        Life.prototype.isAlive = function () {
+                            return 0 < this.hp;
+                        };
+                        Life.prototype.isDead = function () {
+                            return !this.isAlive();
+                        };
+                        Life.prototype.hasDamage = function () {
+                            return this.damageFrameCounter < this.damageFrameMax;
+                        };
+                        Life.prototype.damage = function (v) {
+                            this.hp -= v;
+                            if(this.damageListener) {
+                                this.damageListener();
+                            }
+                        };
+                        return Life;
+                    })();
+                    sprites.Life = Life;                    
                     sprites.Attacker = Class.create(sprites.Sprite, {
                         initialize: function () {
+                            var _this = this;
                             sprites.Sprite.call(this);
                             this.dirX = 1;
                             this.vx = 0;
                             this.vy = 0;
-                            this.damageCnt = 0;
                             this.attackCnt = 0;
-                            this.colorNeutral = kimiko.DF.ENEMY_COLOR;
-                            this.colorDamage = kimiko.DF.ENEMY_DAMAGE_COLOR;
-                            this.colorAttack = kimiko.DF.ENEMY_ATTACK_COLOR;
-                            this.hp = 100;
                             this.useGravity = true;
+                            this.life = new Life();
                             this.stateNeutral.stateName = "neutral";
                             this.state = this.stateNeutral;
+                            this.addEventListener(Event.ENTER_FRAME, function () {
+                                _this.state();
+                                _this.life.step();
+                            });
                         },
                         stateToString: function () {
                             var dir = 0 <= this.dirX ? '>' : '<';
@@ -105,47 +137,10 @@ var jp;
                                 Math.round(this.cy)
                             ]).join();
                         },
-                        onenterframe: function () {
-                            this.stepMove();
-                            this.stepState();
-                            if(this.step) {
-                                this.step();
-                            }
-                        },
-                        stepMove: function () {
-                            if(this.useGravity) {
-                                this.vy += kimiko.DF.GRAVITY;
-                            }
-                            if(this.cx < kimiko.DF.SC_X1) {
-                                this.cx = kimiko.DF.SC_X1;
-                                this.vx = 0;
-                            }
-                            if(kimiko.DF.SC_X2 < this.cx) {
-                            }
-                            if(kimiko.DF.GROUND_Y < this.cy) {
-                                this.cy = kimiko.DF.GROUND_Y;
-                                this.vy = 0;
-                            }
-                            this.x += this.vx;
-                            this.y += this.vy;
-                            var hoge = 0.98;
-                            this.vx *= hoge;
-                            this.vy *= hoge;
-                        },
-                        stepState: function () {
-                            this.state();
-                        },
                         stateNeutral: function () {
                         },
                         stateDamage: function () {
-                            --this.damageCnt;
-                            if(this.damageCnt <= 0) {
-                                this.neutral();
-                            }
-                        },
-                        stateAttack: function () {
-                            --this.attackCnt;
-                            if(this.attackCnt <= 0) {
+                            if(!this.life.hasDamage()) {
                                 this.neutral();
                             }
                         },
@@ -159,10 +154,8 @@ var jp;
                                 this.vx += attacker.vx;
                                 this.vy += -1;
                             }
-                            this.hp -= 50;
-                            if(0 < this.hp) {
-                                this.damageCnt = kimiko.DF.DAMAGE_TIME;
-                                this.attackCnt = 0;
+                            this.life.damage(10);
+                            if(this.life.isAlive()) {
                                 this.state = this.stateDamage;
                             } else {
                                 this.dead();
@@ -177,6 +170,7 @@ var jp;
                                 effect.y += Math.random() * 32 - 16;
                                 this.parentNode.addChild(effect);
                             }
+                            this.parentNode.removeChild(this);
                         },
                         attack: function () {
                             this.attackCnt = kimiko.DF.ATTACK_TIME;
@@ -223,6 +217,7 @@ var jp;
                     });
                     sprites.Player = Class.create(sprites.Attacker, {
                         initialize: function () {
+                            var _this = this;
                             sprites.Attacker.call(this);
                             this.image = kimiko.kimiko.core.assets[kimiko.DF.IMAGE_PLAYER];
                             this.frame = [
@@ -262,13 +257,14 @@ var jp;
                             ];
                             this.width = 32;
                             this.height = 32;
-                            this.hp = 500;
-                            this.colorNeutral = kimiko.DF.PLAYER_COLOR;
-                            this.colorDamage = kimiko.DF.PLAYER_DAMAGE_COLOR;
-                            this.colorAttack = kimiko.DF.PLAYER_ATTACK_COLOR;
+                            this.life.hpMax = 500;
+                            this.life.hp = this.life.hpMax;
                             this.anchorX = 0;
                             this.anchorY = 0;
                             this.useGravity = false;
+                            this.addEventListener(Event.ENTER_FRAME, function () {
+                                _this.stepMove();
+                            });
                         },
                         attack: function () {
                             var bullet = this.scene.newOwnBullet();
@@ -276,6 +272,26 @@ var jp;
                             bullet.vy = 0;
                             bullet.cx = this.cx;
                             bullet.cy = this.cy;
+                        },
+                        stepMove: function () {
+                            if(this.useGravity) {
+                                this.vy += kimiko.DF.GRAVITY;
+                            }
+                            if(this.cx < kimiko.DF.SC_X1) {
+                                this.cx = kimiko.DF.SC_X1;
+                                this.vx = 0;
+                            }
+                            if(kimiko.DF.SC_X2 < this.cx) {
+                            }
+                            if(kimiko.DF.GROUND_Y < this.cy) {
+                                this.cy = kimiko.DF.GROUND_Y;
+                                this.vy = 0;
+                            }
+                            this.x += this.vx;
+                            this.y += this.vy;
+                            var hoge = 0.98;
+                            this.vx *= hoge;
+                            this.vy *= hoge;
                         }
                     });
                     var WeaponA = (function () {
@@ -283,8 +299,12 @@ var jp;
                             this.parent = sprite;
                             this.state = this.stateNeutral;
                             this.fireCount = 3;
-                            this.fireInterval = kimiko.kimiko.secToFrame(0.1);
+                            this.fireInterval = kimiko.kimiko.secToFrame(0.2);
                             this.reloadFrameCount = kimiko.kimiko.secToFrame(3.0);
+                            this.dir = {
+                                x: 1,
+                                y: 0
+                            };
                         }
                         WeaponA.prototype.step = function () {
                             this.state();
@@ -292,11 +312,6 @@ var jp;
                         WeaponA.prototype.stateNeutral = function () {
                         };
                         WeaponA.prototype.stateFire = function () {
-                            if(this.reloadFrameCount < this.reloadFrameCounter) {
-                                ++this.reloadFrameCounter;
-                                this.state = this.stateNeutral;
-                                return;
-                            }
                             if(this.fireIntervalCounter < this.fireInterval) {
                                 ++this.fireIntervalCounter;
                                 return;
@@ -309,15 +324,24 @@ var jp;
                             }
                             this.fireCounter = 0;
                             this.reloadFrameCounter = 0;
+                            this.state = this.stateNeutral;
                         };
                         WeaponA.prototype.fire = function () {
-                            console.log("fire");
                             var parent = this.parent;
-                            var bullet = parent.scene.newEnemyBullet();
-                            bullet.vx = parent.dirX * kimiko.kimiko.secToPx(40);
-                            bullet.vy = 0;
-                            bullet.cx = parent.cx;
-                            bullet.cy = parent.cy;
+                            var wayNum = 3;
+                            var degToRad = Math.PI / 180;
+                            var degInterval = 45;
+                            var startDeg = -degInterval * ((wayNum - 1) / 2);
+                            for(var i = 0, iNum = wayNum; i < iNum; ++i) {
+                                var bullet = parent.scene.newEnemyBullet();
+                                var deg = startDeg + (degInterval * i);
+                                var rad = deg * degToRad;
+                                var speed = kimiko.kimiko.secToPx(80);
+                                bullet.vx = (this.dir.x * Math.cos(rad) - (this.dir.y * Math.sin(rad))) * speed;
+                                bullet.vy = (this.dir.y * Math.cos(rad) + (this.dir.x * Math.sin(rad))) * speed;
+                                bullet.cx = parent.cx;
+                                bullet.cy = parent.cy;
+                            }
                         };
                         WeaponA.prototype.startFire = function () {
                             this.fireCounter = 0;
@@ -330,110 +354,63 @@ var jp;
                         };
                         return WeaponA;
                     })();                    
-                    var EnemySinBrain = (function () {
-                        function EnemySinBrain(sprite, anchor) {
-                            this.sprite = sprite;
-                            this.anchor = anchor;
+                    sprites.EnemyA = Class.create(sprites.Attacker, {
+                        initialize: function () {
                             var _this = this;
-                            this.sprite.cx = anchor.x;
-                            this.sprite.cy = anchor.y;
-                            this.sprite.step = function () {
-                                _this.step();
-                            };
-                        }
-                        EnemySinBrain.prototype.step = function () {
-                            var cycle = kimiko.kimiko.secToFrame(3);
-                            this.sprite.useGravity = false;
-                            var ty = this.anchor.y + (Math.sin(this.sprite.age * Math.PI * 2 / cycle) * 32);
-                            this.sprite.vy = ty - this.sprite.y;
-                            var body = this.sprite;
-                            if(!body.weapon.isStateFire()) {
-                                body.weapon.startFire();
-                            }
-                        };
-                        return EnemySinBrain;
-                    })();                    
-                    var EnemyBrain = (function () {
-                        function EnemyBrain(sprite, anchor) {
-                            this.sprite = sprite;
-                            this.anchor = anchor;
-                            var _this = this;
-                            this.minX = 0;
-                            this.maxX = 0;
-                            this.moveCnt = 0;
-                            this.waitCnt = 0;
-                            this.sprite.cx = anchor.x;
-                            this.sprite.cy = anchor.y;
-                            this.sprite.step = function () {
-                                _this.step();
-                            };
-                            this.minX = this.anchor.x - 64;
-                            this.maxX = this.anchor.x + 64;
-                        }
-                        EnemyBrain.prototype.step = function () {
-                            if(!this.sprite.scene.intersectActiveArea(this.sprite)) {
-                                return;
-                            }
-                            if(this.sprite.isDamage() || this.sprite.isDead()) {
-                                return;
-                            }
-                            if(0 < --this.waitCnt) {
-                                return;
-                            }
-                            if(!this.sprite.isNeutral()) {
-                                return;
-                            }
-                            if(Math.abs(this.sprite.vx) < kimiko.kimiko.secToPx(1)) {
-                                console.log("vx:" + this.sprite.vx);
-                                if((this.moveCnt % 4) === 0) {
-                                    this.sprite.vx = -this.sprite.dirX * kimiko.kimiko.secToPx(10);
-                                    this.waitCnt = kimiko.kimiko.secToFrame(1.0);
-                                    var bullet = this.sprite.scene.newEnemyBullet();
-                                    bullet.vx = this.sprite.dirX * kimiko.kimiko.secToPx(80);
-                                    bullet.vy = 0;
-                                    bullet.cx = this.sprite.cx;
-                                    bullet.cy = this.sprite.cy;
-                                } else {
-                                    this.sprite.vx += this.sprite.dirX * kimiko.kimiko.secToPx(40);
-                                }
-                                ++this.moveCnt;
-                            }
-                            if(this.sprite.cx < this.minX) {
-                                this.sprite.dirX = 1;
-                            }
-                            if(this.maxX < this.sprite.cx) {
-                                this.sprite.dirX = -1;
-                            }
-                        };
-                        return EnemyBrain;
-                    })();                    
-                    sprites.Enemy = Class.create(sprites.Attacker, {
-                        initialize: function (anchor) {
                             sprites.Attacker.call(this);
-                            this.width = 32;
-                            this.height = 32;
-                            this.hp = 100;
-                            this.colorNeutral = kimiko.DF.ENEMY_COLOR;
-                            this.colorDamage = kimiko.DF.ENEMY_DAMAGE_COLOR;
-                            this.colorAttack = kimiko.DF.ENEMY_ATTACK_COLOR;
-                            this.backgroundColor = this.colorNeutral;
-                            this.anchor = anchor;
-                            this.brain = null;
+                            var life = this.life;
+                            life.hpMax = 100;
+                            life.hp = life.hpMax;
                             this.weapon = new WeaponA(this);
+                            this.anchor = {
+                                x: 0,
+                                y: 0
+                            };
+                            this.initStyle_();
+                            this.addEventListener(Event.ENTER_FRAME, function () {
+                                _this.weapon.step();
+                            });
                         },
-                        initType: function (typeId) {
-                            switch(typeId) {
-                                case sprites.Enemy.ID_A:
-                                    this.brain = new EnemyBrain(this, this.anchor);
-                                    break;
-                                case sprites.Enemy.ID_B:
-                                    this.brain = new EnemySinBrain(this, this.anchor);
-                                    break;
-                            }
+                        initStyle_: function () {
+                            this.width = 24;
+                            this.height = 32;
+                            this.backgroundColor = "rgb(192, 128, 128)";
+                        },
+                        start: function (anchor) {
+                            var _this = this;
+                            var range = 16;
+                            this.anchor.x = anchor.x;
+                            this.anchor.y = anchor.y - (this.height / 2);
+                            this.x = this.anchor.x;
+                            this.y = this.anchor.y;
+                            var waitFire = function () {
+                                return !_this.weapon.isStateFire();
+                            };
+                            this.tl.moveTo(this.anchor.x + range, this.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).then(function () {
+                                var wp = _this.weapon;
+                                wp.dir.x = 1;
+                                wp.dir.y = 0;
+                                wp.startFire();
+                            }).waitUntil(waitFire).moveTo(this.anchor.x - range, this.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).then(function () {
+                                var wp = _this.weapon;
+                                wp.dir.x = -1;
+                                wp.dir.y = 0;
+                                wp.startFire();
+                            }).waitUntil(waitFire).then(function () {
+                                var player = _this.scene.player;
+                                var wp = _this.weapon;
+                                wp.dir.x = player.x - _this.x;
+                                wp.dir.y = player.y - _this.y;
+                                osakana4242.utils.Vector2D.normalize(wp.dir);
+                                wp.startFire();
+                            }).waitUntil(waitFire).moveTo(this.anchor.x, this.anchor.y - 32, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).then(function () {
+                                var wp = _this.weapon;
+                                wp.dir.x = -1;
+                                wp.dir.y = 0;
+                                wp.startFire();
+                            }).waitUntil(waitFire).loop();
                         }
                     });
-                    sprites.Enemy.ID_A = 1;
-                    sprites.Enemy.ID_B = 2;
                 })(sprites || (sprites = {}));
                 scenes.Act = Class.create(Scene, {
                     initialize: function () {
@@ -460,21 +437,20 @@ var jp;
                             sprite.visible = false;
                         }
                         this.enemyBullets = [];
-                        for(var i = 0, iNum = 16; i < iNum; ++i) {
+                        for(var i = 0, iNum = 255; i < iNum; ++i) {
                             sprite = new sprites.EnemyBullet();
                             group.addChild(sprite);
                             this.enemyBullets.push(sprite);
                             sprite.visible = false;
                         }
                         this.enemys = [];
-                        for(var i = 0, iNum = 16; i < iNum; ++i) {
+                        for(var i = 0, iNum = 1; i < iNum; ++i) {
+                            sprite = new sprites.EnemyA();
                             var anchor = {
                                 x: 240 + i * 300,
-                                y: -64
+                                y: kimiko.DF.GROUND_Y
                             };
-                            sprite = new sprites.Enemy(anchor);
-                            var enemyTypeId = ((i & 0x1) == 0) ? sprites.Enemy.ID_A : sprites.Enemy.ID_B;
-                            sprite.initType(enemyTypeId);
+                            sprite.start(anchor);
                             this.enemys.push(sprite);
                             group.addChild(sprite);
                         }
@@ -617,7 +593,6 @@ var jp;
                         this.labels[1].text = player.stateToString() + " fps:" + Math.round(kimiko.kimiko.core.actualFps);
                     },
                     checkCollision: function () {
-                        var _this = this;
                         var player = this.player;
                         for(var i = 0, iNum = this.grounds.length; i < iNum; ++i) {
                             var ground = this.grounds[i];
@@ -654,47 +629,25 @@ var jp;
                             }
                         }
                         this.labels[2].text = "";
-                        if(true) {
-                            for(var i = 0, iNum = this.enemys.length; i < iNum; ++i) {
-                                var enemy = this.enemys[i];
-                                if(enemy.isDead() || player.isDead() || enemy.isDamage() || player.isDamage()) {
-                                    continue;
-                                }
-                                if(player.intersect(enemy)) {
-                                    this.labels[2].text = "hit";
-                                    if(player.isAttack() && enemy.isAttack()) {
-                                        if(enemy.attackCnt <= player.attackCnt) {
-                                            enemy.damage(player);
-                                        } else {
-                                            player.damage(enemy);
-                                        }
-                                    } else if(player.isAttack() && !enemy.isDamage()) {
+                        for(var i = 0, iNum = this.enemys.length; i < iNum; ++i) {
+                            var enemy = this.enemys[i];
+                            if(enemy.isDead() || player.isDead() || enemy.isDamage() || player.isDamage()) {
+                                continue;
+                            }
+                            if(player.intersect(enemy)) {
+                                this.labels[2].text = "hit";
+                                if(player.isAttack() && enemy.isAttack()) {
+                                    if(enemy.attackCnt <= player.attackCnt) {
                                         enemy.damage(player);
-                                    } else if(enemy.isAttack() && !player.isDamage()) {
+                                    } else {
                                         player.damage(enemy);
                                     }
+                                } else if(player.isAttack() && !enemy.isDamage()) {
+                                    enemy.damage(player);
+                                } else if(enemy.isAttack() && !player.isDamage()) {
+                                    player.damage(enemy);
                                 }
                             }
-                        } else {
-                            sprites.Enemy.collection.forEach(function (enemy) {
-                                if(enemy.isDead() || player.isDead() || enemy.isDamage() || player.isDamage()) {
-                                    return;
-                                }
-                                if(player.intersect(enemy)) {
-                                    _this.labels[2].text = "hit";
-                                    if(player.isAttack() && enemy.isAttack()) {
-                                        if(enemy.attackCnt <= player.attackCnt) {
-                                            enemy.damage(player);
-                                        } else {
-                                            player.damage(enemy);
-                                        }
-                                    } else if(player.isAttack() && !enemy.isDamage()) {
-                                        enemy.damage(player);
-                                    } else if(enemy.isAttack() && !player.isDamage()) {
-                                        player.damage(enemy);
-                                    }
-                                }
-                            });
                         }
                         for(var i = 0, iNum = this.enemys.length; i < iNum; ++i) {
                             var enemy = this.enemys[i];
@@ -722,6 +675,33 @@ var jp;
 (function (jp) {
     (function (osakana4242) {
         (function (utils) {
+            var Vector2D = (function () {
+                function Vector2D() { }
+                Vector2D.copyFrom = function copyFrom(dest, src) {
+                    dest.x = src.x;
+                    dest.y = src.y;
+                };
+                Vector2D.add = function add(dest, src) {
+                    dest.x += src.x;
+                    dest.y += src.y;
+                };
+                Vector2D.sqrMagnitude = function sqrMagnitude(a) {
+                    return (a.x * a.x) + (a.y * a.y);
+                };
+                Vector2D.magnitude = function magnitude(a) {
+                    return Math.sqrt(Vector2D.sqrMagnitude(a));
+                };
+                Vector2D.normalize = function normalize(a) {
+                    var m = Vector2D.magnitude(a);
+                    if(m === 0) {
+                        return;
+                    }
+                    a.x = a.x / m;
+                    a.y = a.y / m;
+                };
+                return Vector2D;
+            })();
+            utils.Vector2D = Vector2D;            
             var Touch = (function () {
                 function Touch() {
                     this.isTouching = false;

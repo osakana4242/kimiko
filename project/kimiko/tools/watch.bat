@@ -8,4 +8,4 @@ cd %~p0
 @rem dir /b /S %TS_DIR%\*.ts > ts_filelist.txt
 @rem watch ŠJŽn
 cd %PRJ_DIR%
-%NODE_JS_TSC% --target ES5 --watch @tools\ts_filelist.txt --out js\kimiko.js
+%NODE_JS_TSC% --target ES5 --watch @tools\ts_filelist.txt --out %JS_DIR%\kimiko.js
