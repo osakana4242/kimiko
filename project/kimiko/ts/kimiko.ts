@@ -108,6 +108,7 @@ module jp.osakana4242.kimiko {
 		export var SC2_Y1: number = 240;
 		export var SC2_X2: number = SC2_X1 + SC2_W;
 		export var SC2_Y2: number = SC2_Y1 + SC2_H;
+		export var IMAGE_MAP = "./images/map.gif";
 		export var IMAGE_CHARA001 = "./images/chara001.png";
 		export var IMAGE_CHARA002 = "./images/chara002.png";
 		export var PLAYER_COLOR: string = "rgb(240, 240, 240)";
@@ -116,8 +117,11 @@ module jp.osakana4242.kimiko {
 		export var ENEMY_COLOR: string = "rgb(120, 80, 120)";
 		export var ENEMY_DAMAGE_COLOR: string = "rgb(240, 16, 240)";
 		export var ENEMY_ATTACK_COLOR: string = "rgb(240, 16, 16)";
-		
-		export var GROUND_Y: number = 0;
+
+		export var ANIM_ID_CHARA001_WALK = 1;
+		export var ANIM_ID_CHARA002_WALK = 2;
+
+		export var GROUND_Y: number = 160;
 		export var FONT_M: string = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
 		export var GRAVITY: number = 0.25 * 60;
 	}
@@ -141,6 +145,7 @@ module jp.osakana4242.kimiko {
 		static instance: Kimiko = null;
 		
 		numberUtil = new NumberUtil();
+
 		
 		constructor(config) {
 			if (Kimiko.instance) {
@@ -148,15 +153,38 @@ module jp.osakana4242.kimiko {
 			}
 			Kimiko.instance = this;
 			var core: any = new enchant.Core(DF.SC_W, DF.SC_H);
+
 			core.fps = config.fps || DF.BASE_FPS;
 			core.preload([
+				DF.IMAGE_MAP,
 				DF.IMAGE_CHARA001,
 				DF.IMAGE_CHARA002,
 			]); // preload image
+
+			this.registerAnimFrames(DF.ANIM_ID_CHARA001_WALK, [0, 1, 0, 2], 0.2);
+			this.registerAnimFrames(DF.ANIM_ID_CHARA002_WALK, [0, 1, 2, 3], 0.1);
+
 			core.onload = function () {
 				var scene = new jp.osakana4242.kimiko.scenes.Act();
 				core.replaceScene(scene);
 			};
+		}
+
+		animFrames: { [index: number]: number[]; } = <any>{};
+
+		registerAnimFrames(animId: number, arr: number[], frameSec: number = 0.1) {
+			var frameNum = Math.floor(this.core.fps * frameSec);
+			var dest = [];
+			for (var i = 0, iNum = arr.length; i < iNum; ++i) {
+				for (var j = 0, jNum = frameNum; j < jNum; ++j) {
+					dest.push(arr[i]);
+				}
+			}
+			this.animFrames[animId] = dest;
+		}
+
+		getAnimFrames(animId: number) {
+			return this.animFrames[animId];
 		}
 		
 		get core() {

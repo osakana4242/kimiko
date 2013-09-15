@@ -2,6 +2,13 @@ develop
 
 インストール
 node.js
+nginx
+
+# シンボリックリンク作成
+nginx\html>mklink /d kimiko C:\Users\osakana4242\prj\kimiko\kimiko\project\kimiko\public
+# nginx の起動、再起動
+nginx>start nginx
+nginx>nginx -s reload
 
 ----
 
@@ -9,3 +16,24 @@ node.js
 地形の影響を受けるのはプレイヤーのみ！
 
 あとはみんな決まったレールをなぞるだけ。
+
+・スマホで遊べないことには意味がない
+・・可変FPS対応
+・・・重力
+・・・アニメフレーム
+・enchantのマップ
+・モンスターの向き対応
+・モンスターの出現対応
+・・同じマップ上で敵は1度しか出現しない
+
+ステージ
+神社
+廃病院
+夜の学校
+電車の中
+
+
+課題
+	ipod x enchant.v0.7.x.js x タッチで描画が止まる！
+		enchant.v0.5.x.js ならだいじょぶだった。
+	マップとスプライトが移動時にずれる。シノビダッシュ見てるとだいじょぶそうなので、なんとかなるはず。
