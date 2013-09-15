@@ -21,8 +21,13 @@
 	<body>
 		<script>
 			(function () {
+				var isIos = ((navigator.userAgent.indexOf('iPhone') > 0 && navigator.userAgent.indexOf('iPad') == -1) || navigator.userAgent.indexOf('iPod') > 0);
+				var isAndroid = (navigator.userAgent.indexOf('Android') > 0);
+				var isSp = isIos || isAndroid;
+				var isPc = !isSp;
+			
 				var params = {};
-				params.fps = 20;
+				params.fps = isPc ? 60 : 20;
 				if (!enchant.Core) {
 					enchant.Core = enchant.Game;
 				}
