@@ -1,20 +1,30 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
-		<meta name="format-detection" content="telephone=no">
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes"> 
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+		<title>kimiko</title>
+		<script src="./javascripts/lib/enchant/enchant-0.5.3.js"></script>
+		<script src="./javascripts/lib/enchant/plugin/tl.enchant.js"></script>
+		<script src="./javascripts/kimiko.js"></script>
+		<style>
+			body {
+				margin: 0;
+			}
+		</style>
 	</head>
 	<body>
-		<div id="script-area">
-			<script src="./js/lib/enchant/enchant.js" type="text/javascript"></script>
-			<script src="./js/kimiko.js" type="text/javascript"></script>
-			<script>
-				(function () {
-					var params = {};
-					jp.osakana4242.kimiko.start(params);
-				}());
-			</script>
-		</div>
+		<script>
+			(function () {
+				var params = {};
+				params.fps = 30;
+				if (!enchant.Core) {
+					enchant.Core = enchant.Game;
+				}
+				jp.osakana4242.kimiko.start(params);
+			}());
+		</script>
 	</body>
 </html>

@@ -93,7 +93,7 @@ module jp.osakana4242.kimiko {
 	export var kimiko: Kimiko = null;
 	
 	export module DF {
-		export var FPS: number = 60;
+		export var BASE_FPS: number = 60;
 		export var SC_W: number = 320;
 		export var SC_H: number = 320;
 		export var SC_X1: number = 0;
@@ -108,19 +108,18 @@ module jp.osakana4242.kimiko {
 		export var SC2_Y1: number = 240;
 		export var SC2_X2: number = SC2_X1 + SC2_W;
 		export var SC2_Y2: number = SC2_Y1 + SC2_H;
-		export var IMAGE_PLAYER = "./assets/images/chara001.png";
+		export var IMAGE_CHARA001 = "./images/chara001.png";
+		export var IMAGE_CHARA002 = "./images/chara002.png";
 		export var PLAYER_COLOR: string = "rgb(240, 240, 240)";
 		export var PLAYER_DAMAGE_COLOR: string = "rgb(240, 240, 120)";
 		export var PLAYER_ATTACK_COLOR: string = "rgb(160, 160, 240)";
 		export var ENEMY_COLOR: string = "rgb(120, 80, 120)";
 		export var ENEMY_DAMAGE_COLOR: string = "rgb(240, 16, 240)";
 		export var ENEMY_ATTACK_COLOR: string = "rgb(240, 16, 16)";
-		export var DAMAGE_TIME: number = FPS * 0.5;
-		export var ATTACK_TIME: number = FPS * 0.5;
 		
 		export var GROUND_Y: number = 0;
 		export var FONT_M: string = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
-		export var GRAVITY: number = 0.25;
+		export var GRAVITY: number = 0.25 * 60;
 	}
 	
 	export class NumberUtil {
@@ -143,14 +142,17 @@ module jp.osakana4242.kimiko {
 		
 		numberUtil = new NumberUtil();
 		
-		constructor() {
+		constructor(config) {
 			if (Kimiko.instance) {
 				return;
 			}
 			Kimiko.instance = this;
 			var core: any = new enchant.Core(DF.SC_W, DF.SC_H);
-			core.fps = DF.FPS;
-			core.preload(DF.IMAGE_PLAYER); // preload image
+			core.fps = config.fps || DF.BASE_FPS;
+			core.preload([
+				DF.IMAGE_CHARA001,
+				DF.IMAGE_CHARA002,
+			]); // preload image
 			core.onload = function () {
 				var scene = new jp.osakana4242.kimiko.scenes.Act();
 				core.replaceScene(scene);
@@ -165,16 +167,24 @@ module jp.osakana4242.kimiko {
 			return this.core.fps * sec;
 		}
 		
-		secToPx(px: number): number {
-			return px
-				? px / this.core.fps
+		/**
+			毎秒Xドット(DotPerSec) を 毎フレームXドット(DotPerFrame) に変換。 
+
+			60FPSで1フレームに1dot → 1 x 60 = 1秒間に60dot = 60dps
+			20FPSで1フレームに1dot → 1 x 20 = 1秒間に20dot = 20dps
+		 */
+		dpsToDpf(dotPerSec: number): number {
+			return dotPerSec
+				? dotPerSec / this.core.fps
 				: 0;
 		}
+
+		//dotPerSecToDotPerFrame
 	
 	}
 	
-	export function start() {
-		kimiko = new Kimiko();
+	export function start(params) {
+		kimiko = new Kimiko(params);
 		kimiko.core.start();
 	}
 }

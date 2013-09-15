@@ -68,8 +68,8 @@ module jp.osakana4242.kimiko.scenes {
 				this.vy = 0;
 				this.visibleCnt = 0;
 				this.backgroundColor = 'rgb(64, 255, 255)';
-				this.tl.scaleTo(1.25, DF.FPS * 0.1)
-					.scaleTo(1.0, DF.FPS * 0.1)
+				this.tl.scaleTo(1.25, kimiko.secToFrame(0.1))
+					.scaleTo(1.0, kimiko.secToFrame(0.1))
 					.loop();
 			},
 			onenterframe: function () {
@@ -131,6 +131,9 @@ module jp.osakana4242.kimiko.scenes {
 				this.attackCnt = 0;
 				this.useGravity = true;
 				this.life = new Life();
+
+				this.blinkFrameMax = kimiko.secToFrame(0.5);
+				this.blinkFrameCounter = this.blinkFrameMax;
 				
 				this.stateNeutral.stateName = "neutral";
 				this.state = this.stateNeutral;
@@ -138,6 +141,14 @@ module jp.osakana4242.kimiko.scenes {
 				this.addEventListener(Event.ENTER_FRAME, () => {
 					this.state();
 					this.life.step();
+					if (this.blinkFrameCounter < this.blinkFrameMax) {
+						++this.blinkFrameCounter;
+						if (this.blinkFrameCounter < this.blinkFrameMax) {
+							this.visible = (this.blinkFrameCounter & 0x1) == 0;
+						} else {
+							this.visible = true;
+						}
+					}
 				});
 			},
 
@@ -163,11 +174,8 @@ module jp.osakana4242.kimiko.scenes {
 			},
 
 			damage: function (attacker?: any) {
-				if (attacker) {
-					this.vx += attacker.vx;
-					this.vy += -1;
-				}
 				this.life.damage(10);
+				this.blinkFrameCounter = 0;
 				if (this.life.isAlive()) {
 					this.state = this.stateDamage;
 				} else {
@@ -186,10 +194,6 @@ module jp.osakana4242.kimiko.scenes {
 					this.parentNode.addChild(effect);
 				}
 				this.parentNode.removeChild(this);
-			},
-			attack: function () {
-				this.attackCnt = DF.ATTACK_TIME;
-				this.state = this.stateAttack;
 			},
 			isDead: function () {
 				return this.state === this.stateDead;
@@ -238,7 +242,7 @@ module jp.osakana4242.kimiko.scenes {
 		export var Player: any = Class.create(Attacker, {
 			initialize: function () {
 				Attacker.call(this);
-				this.image = kimiko.core.assets[DF.IMAGE_PLAYER]
+				this.image = kimiko.core.assets[DF.IMAGE_CHARA001]
 				this.frame = [
 					0, 0, 0, 0,
 					0, 0, 0, 0,
@@ -259,12 +263,22 @@ module jp.osakana4242.kimiko.scenes {
 
 				this.addEventListener(Event.ENTER_FRAME, () => {
 					this.stepMove();
+					
+					// 敵が近くにいれば攻撃.
+					var scene = this.scene;
+					if ((this.age % kimiko.secToFrame(0.2)) === 0) {
+						var nearEnemy = scene.getNearEnemy(this, 96 * 96);
+						if (nearEnemy !== null) {
+							this.attack();
+						}
+					}
+
 				});
 			},
 
 			attack: function () {
 				var bullet = this.scene.newOwnBullet();
-				bullet.vx = this.dirX * kimiko.secToPx(200);
+				bullet.vx = this.dirX * kimiko.dpsToDpf(200);
 				bullet.vy = 0;
 				bullet.cx = this.cx;
 				bullet.cy = this.cy;
@@ -272,8 +286,11 @@ module jp.osakana4242.kimiko.scenes {
 
 			stepMove: function () {
 				if (this.useGravity) {
-					this.vy += DF.GRAVITY;
+					this.vy += kimiko.dpsToDpf(DF.GRAVITY);
 				}
+				this.x += this.vx;
+				this.y += this.vy;
+
 				if (this.cx < DF.SC_X1) {
 					this.cx = DF.SC_X1;
 					this.vx = 0;
@@ -286,11 +303,6 @@ module jp.osakana4242.kimiko.scenes {
 					this.cy = DF.GROUND_Y;
 					this.vy = 0;
 				}
-				this.x += this.vx;
-				this.y += this.vy;
-				var hoge = 0.98;
-				this.vx *= hoge;
-				this.vy *= hoge;
 			},
 		});
 		
@@ -309,7 +321,7 @@ module jp.osakana4242.kimiko.scenes {
 			constructor(sprite: any) {
 				this.parent = sprite;
 				this.state = this.stateNeutral;
-				this.fireCount = 3;
+				this.fireCount = 1;
 				this.fireInterval = kimiko.secToFrame(0.2);
 				this.reloadFrameCount = kimiko.secToFrame(3.0);
 				this.dir = { x: 1, y: 0 }
@@ -341,7 +353,7 @@ module jp.osakana4242.kimiko.scenes {
 
 			private fire(): void {
 				var parent = this.parent;
-				var wayNum = 3;
+				var wayNum = 1;
 				var degToRad = Math.PI / 180;
 				var degInterval = 45;
 				var startDeg = - degInterval * ((wayNum - 1) / 2);
@@ -349,7 +361,7 @@ module jp.osakana4242.kimiko.scenes {
 					var bullet = parent.scene.newEnemyBullet();
 					var deg = startDeg + (degInterval * i);
 					var rad = deg * degToRad;
-					var speed = kimiko.secToPx(80);
+					var speed = kimiko.dpsToDpf(80);
 					bullet.vx = (this.dir.x * Math.cos(rad) - (this.dir.y * Math.sin(rad))) * speed;
 					bullet.vy = (this.dir.y * Math.cos(rad) + (this.dir.x * Math.sin(rad))) * speed;
 					bullet.cx = parent.cx;
@@ -392,9 +404,21 @@ module jp.osakana4242.kimiko.scenes {
 			},
 
 			initStyle_: function () {
-				this.width = 24;
+				this.width = 32;
 				this.height = 32;
-				this.backgroundColor = "rgb(192, 128, 128)";
+				//this.backgroundColor = "rgb(192, 128, 128)";
+
+				this.image = kimiko.core.assets[DF.IMAGE_CHARA002]
+				this.frame = [
+					0, 0, 0, 0,
+					0, 0, 0, 0,
+					1, 1, 1, 1,
+					1, 1, 1, 1,
+					2, 2, 2, 2,
+					2, 2, 2, 2,
+					3, 3, 3, 3,
+					3, 3, 3, 3,
+				];
 			},
 
 			start: function (anchor: utils.IVector2D) {
@@ -459,7 +483,7 @@ module jp.osakana4242.kimiko.scenes {
 			for (var i: number = 0, iNum: number = 128; i < iNum; ++i) {
 				// 背景.
 				sprite = new sprites.Sprite(8, 8);
-				group.addChild(sprite);
+				//group.addChild(sprite);
 				sprite.backgroundColor = "rgb(64, 64, 32)"
 				sprite.x = i * 100;
 				sprite.y = DF.GROUND_Y - ((i % 3) * 50);
@@ -484,7 +508,7 @@ module jp.osakana4242.kimiko.scenes {
 			}
 			
 			this.enemyBullets = [];
-			for (var i: number = 0, iNum: number = 255; i < iNum; ++i) {
+			for (var i: number = 0, iNum: number = 32; i < iNum; ++i) {
 				sprite = new sprites.EnemyBullet();
 				group.addChild(sprite);
 				this.enemyBullets.push(sprite);
@@ -515,7 +539,7 @@ module jp.osakana4242.kimiko.scenes {
 			this.labels = [];
 			for (var i: number = 0, iNum: number = 3; i < iNum; ++i) {
 				sprite = new Label("");
-				this.addChild(sprite);
+				//this.addChild(sprite);
 				this.labels.push(sprite);
 				sprite.font = DF.FONT_M;
 				sprite.color = "#fff";
@@ -604,6 +628,8 @@ module jp.osakana4242.kimiko.scenes {
 			var player = this.player;
 			player.anchorX = player.x;
 			player.anchorY = player.y;
+			player.vx = 0;
+			player.vy = 0;
 			player.useGravity = false;
 		},
 		ontouchmove: function (event) {
@@ -613,16 +639,16 @@ module jp.osakana4242.kimiko.scenes {
 			var player = this.player;
 			var playerOldX = player.x;
 			var playerOldY = player.y;
-			
-			var touchElpsedFrame = this.scene.touch.getTouchElpsedFrame();
+
+			var touchElpsedFrame = touch.getTouchElpsedFrame();
 			touchElpsedFrame = 0;
-			if (touchElpsedFrame < kimiko.secToFrame(0.5)) {			
+			if (touchElpsedFrame < kimiko.secToFrame(0.5)) {
 				player.x = player.anchorX + (diffX * 1.0);
 				player.y = player.anchorY + (diffY * 1.0);
 			}
-			
-			var dirChangeThreshold = 4;
-			if ( dirChangeThreshold <= Math.abs( player.x - playerOldX ) ) {
+
+			var dirChangeThreshold = kimiko.core.fps / 15;
+			if (dirChangeThreshold <= Math.abs(player.x - playerOldX)) {
 				player.dirX = kimiko.numberUtil.sign(player.x - playerOldX);
 				player.scaleX = player.dirX;
 			}
@@ -643,14 +669,6 @@ module jp.osakana4242.kimiko.scenes {
 		},
 		onenterframe: function () {
 			var player = this.player;
-			//
-			if ((player.age % kimiko.secToFrame(0.2)) === 0) {
-
-					var nearEnemy = this.getNearEnemy( player, 64 * 64 );
-				if ( nearEnemy !== null ) {
-					player.attack();
-				}
-			}
 			//
 			this.checkCollision();
 			// カメラ.
