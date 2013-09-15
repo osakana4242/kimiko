@@ -39,6 +39,25 @@ module jp.osakana4242.utils {
 
 	}
 
+	export interface IRect {
+		x: number;
+		y: number;
+		width: number;
+		height: number;
+	}
+
+	export class Rect {
+		public static inside(a: IRect, b: IRect): bool {
+			return (a.x <= b.x) && (b.x + b.width < a.x + a.width)
+				&& (a.y <= b.y) && (b.y + b.height < a.y + a.height);
+
+		}
+		public static outside(a: IRect, b: IRect): bool {
+			return (b.x < a.x) && (a.x + a.width <= b.x + b.width)
+				&& (b.y < a.y) && (a.y + a.height <= b.y + b.height);
+
+		}
+	}
 
 	export class Touch {
 		startX: number;
@@ -108,7 +127,7 @@ module jp.osakana4242.kimiko {
 		export var SC2_Y1: number = 240;
 		export var SC2_X2: number = SC2_X1 + SC2_W;
 		export var SC2_Y2: number = SC2_Y1 + SC2_H;
-		export var IMAGE_MAP = "./images/map.gif";
+		export var IMAGE_MAP = "./images/map.png";
 		export var IMAGE_CHARA001 = "./images/chara001.png";
 		export var IMAGE_CHARA002 = "./images/chara002.png";
 		export var PLAYER_COLOR: string = "rgb(240, 240, 240)";
@@ -121,7 +140,6 @@ module jp.osakana4242.kimiko {
 		export var ANIM_ID_CHARA001_WALK = 1;
 		export var ANIM_ID_CHARA002_WALK = 2;
 
-		export var GROUND_Y: number = 160;
 		export var FONT_M: string = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
 		export var GRAVITY: number = 0.25 * 60;
 	}

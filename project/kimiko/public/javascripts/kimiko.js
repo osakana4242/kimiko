@@ -242,6 +242,11 @@ var jp;
                                 }
                             });
                         },
+                        stateToString: function () {
+                            var str = sprites.Attacker.prototype.stateToString.call(this);
+                            str += " hp:" + this.life.hp;
+                            return str;
+                        },
                         attack: function () {
                             var bullet = this.scene.newOwnBullet();
                             bullet.vx = this.dirX * kimiko.kimiko.dpsToDpf(200);
@@ -261,8 +266,9 @@ var jp;
                             }
                             if(kimiko.DF.SC_X2 < this.cx) {
                             }
-                            if(kimiko.DF.GROUND_Y < this.cy) {
-                                this.cy = kimiko.DF.GROUND_Y;
+                            var map = this.scene.map;
+                            if(map.height < this.y + this.height) {
+                                this.y = map.height - this.height;
                                 this.vy = 0;
                             }
                         }
@@ -386,16 +392,107 @@ var jp;
                         }
                     });
                 })(sprites || (sprites = {}));
+                var MapCharaManager = (function () {
+                    function MapCharaManager(scene) {
+                        this.sleeps = [];
+                        this.actives = [];
+                        this.deads = [];
+                        this.scene = scene;
+                    }
+                    MapCharaManager.prototype.addSleep = function (sleep) {
+                        this.sleeps.push(sleep);
+                    };
+                    MapCharaManager.prototype.step = function () {
+                        this.checkSpawn();
+                        this.checkSleep();
+                    };
+                    MapCharaManager.prototype.checkSpawn = function () {
+                        var scene = this.scene;
+                        var camera = this.scene.camera;
+                        var arr = this.sleeps;
+                        for(var i = arr.length - 1; 0 <= i; --i) {
+                            var chara = arr[i];
+                            if(!camera.isInsideSpawnRect(chara)) {
+                                continue;
+                            }
+                            arr.splice(i, 1);
+                            this.actives.push(chara);
+                            scene.world.addChild(chara);
+                        }
+                    };
+                    MapCharaManager.prototype.checkSleep = function () {
+                        var scene = this.scene;
+                        var camera = this.scene.camera;
+                        var arr = this.actives;
+                        for(var i = arr.length - 1; 0 <= i; --i) {
+                            var chara = arr[i];
+                            if(camera.isInsideSleepRect(chara)) {
+                                continue;
+                            }
+                            arr.splice(i, 1);
+                            this.sleeps.push(chara);
+                            scene.world.removeChild(chara);
+                        }
+                    };
+                    return MapCharaManager;
+                })();
+                scenes.MapCharaManager = MapCharaManager;                
+                var Camera = Class.create(enchant.Node, {
+                    initialize: function () {
+                        enchant.Node.call(this);
+                        this.width = kimiko.DF.SC1_W;
+                        this.height = kimiko.DF.SC1_H;
+                        this.sleepRect = {
+                            x: 0,
+                            y: 0,
+                            width: this.width + 64,
+                            height: this.height + 64
+                        };
+                        this.spawnRect = {
+                            x: 0,
+                            y: 0,
+                            width: this.width + 8,
+                            height: this.height + 8
+                        };
+                        this.targetGroup = null;
+                    },
+                    onenterframe: function () {
+                        var camera = this;
+                        var player = this.scene.player;
+                        var tx = player.cx - (camera.width / 2) - (player.dirX * 16);
+                        var ty = player.cy - (camera.height / 2);
+                        var dx = tx - camera.x;
+                        var dy = ty - camera.y;
+                        camera.x = Math.floor(camera.x + (dx / 2));
+                        camera.y = Math.floor(camera.y + (dy / 2));
+                        var group = this.targetGroup;
+                        if(group) {
+                            group.x = -camera.x;
+                            group.y = -camera.y;
+                        }
+                    },
+                    isInsideSpawnRect: function (entity) {
+                        var rect = this.spawnRect;
+                        rect.x = this.x - ((rect.width - this.width) / 2);
+                        rect.y = this.y - ((rect.height - this.height) / 2);
+                        return osakana4242.utils.Rect.inside(rect, entity);
+                    },
+                    isInsideSleepRect: function (entity) {
+                        var rect = this.sleepRect;
+                        rect.x = this.x - ((rect.width - this.width) / 2);
+                        rect.y = this.y - ((rect.height - this.height) / 2);
+                        return osakana4242.utils.Rect.inside(rect, entity);
+                    }
+                });
                 scenes.Act = Class.create(Scene, {
                     initialize: function () {
                         var _this = this;
                         Scene.call(this);
                         this.backgroundColor = "rgb(32, 32, 64)";
-                        var group;
                         var sprite;
-                        group = new enchant.Group();
-                        this.bg = group;
-                        this.addChild(group);
+                        var world = new enchant.Group();
+                        this.world = world;
+                        this.addChild(world);
                         var blocks = [
                             [
                                 -1, 
@@ -2958,79 +3055,108 @@ var jp;
                                 -1
                             ]
                         ];
-                        var map = new enchant.Map(16, 16);
+                        var map = new enchant.Map(32, 32);
+                        this.map = map;
                         map.image = kimiko.kimiko.core.assets[kimiko.DF.IMAGE_MAP];
                         map.loadData(blocks);
                         map.x = 0;
-                        map.y = -map.height;
-                        group.addChild(map);
-                        group.onenterframe = function () {
-                            var player = _this.player;
-                            var tx = (kimiko.DF.SC1_W / 2) - player.cx + (-player.dirX * 16);
-                            var ty = (kimiko.DF.SC1_H) - (player.y + player.height + 64);
-                            _this.bg.x += (tx - _this.bg.x) / 2;
-                            _this.bg.y += (ty - _this.bg.y) / 2;
-                            _this.bg.x = Math.floor(_this.bg.x);
-                            _this.bg.y = Math.floor(_this.bg.y);
-                        };
-                        for(var i = 0, iNum = 128; i < iNum; ++i) {
-                            sprite = new enchant.Sprite(8, 8);
-                            sprite.backgroundColor = "rgb(64, 64, 32)";
-                            sprite.x = i * 100;
-                            sprite.y = kimiko.DF.GROUND_Y - ((i % 3) * 50);
-                            group.addChild(sprite);
-                        }
+                        map.y = 0;
+                        world.addChild(map);
+                        var camera = new Camera();
+                        this.camera = camera;
+                        camera.targetGroup = world;
+                        world.addChild(camera);
                         this.grounds = [];
                         this.ownBullets = [];
                         for(var i = 0, iNum = 8; i < iNum; ++i) {
                             sprite = new sprites.OwnBullet();
-                            group.addChild(sprite);
+                            world.addChild(sprite);
                             this.ownBullets.push(sprite);
                             sprite.visible = false;
                         }
                         this.enemyBullets = [];
                         for(var i = 0, iNum = 32; i < iNum; ++i) {
                             sprite = new sprites.EnemyBullet();
-                            group.addChild(sprite);
+                            world.addChild(sprite);
                             this.enemyBullets.push(sprite);
                             sprite.visible = false;
                         }
-                        this.enemys = [];
-                        for(var i = 0, iNum = 1; i < iNum; ++i) {
-                            sprite = new sprites.EnemyA();
-                            var anchor = {
-                                x: 240 + i * 300,
-                                y: kimiko.DF.GROUND_Y
-                            };
-                            sprite.start(anchor);
-                            this.enemys.push(sprite);
-                            group.addChild(sprite);
-                        }
+                        ((function () {
+                            var mapCharaMgr = new MapCharaManager(_this);
+                            _this.mapCharaMgr = mapCharaMgr;
+                            var enemySpawns = [
+                                [
+                                    8, 
+                                    40, 
+                                    1
+                                ], 
+                                [
+                                    16, 
+                                    60, 
+                                    1
+                                ], 
+                                [
+                                    24, 
+                                    40, 
+                                    1
+                                ], 
+                                [
+                                    32, 
+                                    60, 
+                                    1
+                                ], 
+                                [
+                                    40, 
+                                    40, 
+                                    1
+                                ], 
+                                
+                            ];
+                            for(var i = 0, iNum = enemySpawns.length; i < iNum; ++i) {
+                                var spawn = enemySpawns[i];
+                                var x = spawn[0] * 32;
+                                var y = spawn[1] * 32;
+                                var enemy = new sprites.EnemyA();
+                                var anchor = {
+                                    "x": x,
+                                    "y": y
+                                };
+                                enemy.start(anchor);
+                                mapCharaMgr.addSleep(enemy);
+                            }
+                        })());
                         sprite = new sprites.Player();
                         this.player = sprite;
-                        group.addChild(sprite);
-                        sprite.width = 32;
-                        sprite.height = 32;
+                        world.addChild(sprite);
                         sprite.x = 0;
-                        sprite.y = 64;
-                        this.labels = [];
-                        for(var i = 0, iNum = 3; i < iNum; ++i) {
-                            sprite = new Label("");
-                            this.labels.push(sprite);
-                            sprite.font = kimiko.DF.FONT_M;
-                            sprite.color = "#fff";
-                            sprite.y = 12 * i;
-                        }
-                        sprite = new sprites.Sprite(kimiko.DF.SC2_W, kimiko.DF.SC2_H);
-                        this.addChild(sprite);
-                        this.controllArea = sprite;
-                        sprite.x = kimiko.DF.SC2_X1;
-                        sprite.y = kimiko.DF.SC2_Y1;
-                        sprite.backgroundColor = "rgb(64, 64, 64)";
+                        sprite.y = this.map.height - sprite.height;
+                        ((function () {
+                            var group = new enchant.Group();
+                            _this.statusGroup = group;
+                            _this.addChild(group);
+                            group.x = kimiko.DF.SC2_X1;
+                            group.y = kimiko.DF.SC2_Y1;
+                            sprite = new sprites.Sprite(kimiko.DF.SC2_W, kimiko.DF.SC2_H);
+                            group.addChild(sprite);
+                            _this.controllArea = sprite;
+                            sprite.x = 0;
+                            sprite.y = 0;
+                            sprite.backgroundColor = "rgb(64, 64, 64)";
+                            _this.labels = [];
+                            for(var i = 0, iNum = 3; i < iNum; ++i) {
+                                sprite = new Label("");
+                                group.addChild(sprite);
+                                _this.labels.push(sprite);
+                                sprite.font = kimiko.DF.FONT_M;
+                                sprite.color = "#fff";
+                                sprite.y = 12 * i;
+                            }
+                        })());
                         this.touch = new osakana4242.utils.Touch();
                     },
                     getNearEnemy: function (sprite, sqrDistanceThreshold) {
-                        var enemys = this.enemys;
+                        var mapCharaMgr = this.mapCharaMgr;
+                        var enemys = mapCharaMgr.actives;
                         var getSqrDistance = function (a, b) {
                             var dx = a.cx - b.cx;
                             var dy = a.cy - b.cy;
@@ -3132,11 +3258,15 @@ var jp;
                     },
                     onenterframe: function () {
                         var player = this.player;
+                        var mapCharaMgr = this.mapCharaMgr;
+                        mapCharaMgr.step();
                         this.checkCollision();
                         this.labels[1].text = player.stateToString() + " fps:" + Math.round(kimiko.kimiko.core.actualFps);
                     },
                     checkCollision: function () {
+                        var mapCharaMgr = this.mapCharaMgr;
                         var player = this.player;
+                        var enemys = mapCharaMgr.actives;
                         for(var i = 0, iNum = this.grounds.length; i < iNum; ++i) {
                             var ground = this.grounds[i];
                             if(!this.intersectActiveArea(ground)) {
@@ -3172,8 +3302,8 @@ var jp;
                             }
                         }
                         this.labels[2].text = "";
-                        for(var i = 0, iNum = this.enemys.length; i < iNum; ++i) {
-                            var enemy = this.enemys[i];
+                        for(var i = 0, iNum = enemys.length; i < iNum; ++i) {
+                            var enemy = enemys[i];
                             if(enemy.isDead() || player.isDead() || enemy.isDamage() || player.isDamage()) {
                                 continue;
                             }
@@ -3192,8 +3322,8 @@ var jp;
                                 }
                             }
                         }
-                        for(var i = 0, iNum = this.enemys.length; i < iNum; ++i) {
-                            var enemy = this.enemys[i];
+                        for(var i = 0, iNum = enemys.length; i < iNum; ++i) {
+                            var enemy = enemys[i];
                             if(enemy.isDead() || enemy.isDamage()) {
                                 continue;
                             }
@@ -3245,6 +3375,17 @@ var jp;
                 return Vector2D;
             })();
             utils.Vector2D = Vector2D;            
+            var Rect = (function () {
+                function Rect() { }
+                Rect.inside = function inside(a, b) {
+                    return (a.x <= b.x) && (b.x + b.width < a.x + a.width) && (a.y <= b.y) && (b.y + b.height < a.y + a.height);
+                };
+                Rect.outside = function outside(a, b) {
+                    return (b.x < a.x) && (a.x + a.width <= b.x + b.width) && (b.y < a.y) && (a.y + a.height <= b.y + b.height);
+                };
+                return Rect;
+            })();
+            utils.Rect = Rect;            
             var Touch = (function () {
                 function Touch() {
                     this.isTouching = false;
@@ -3308,7 +3449,7 @@ var jp;
                 DF.SC2_Y1 = 240;
                 DF.SC2_X2 = DF.SC2_X1 + DF.SC2_W;
                 DF.SC2_Y2 = DF.SC2_Y1 + DF.SC2_H;
-                DF.IMAGE_MAP = "./images/map.gif";
+                DF.IMAGE_MAP = "./images/map.png";
                 DF.IMAGE_CHARA001 = "./images/chara001.png";
                 DF.IMAGE_CHARA002 = "./images/chara002.png";
                 DF.PLAYER_COLOR = "rgb(240, 240, 240)";
@@ -3319,7 +3460,6 @@ var jp;
                 DF.ENEMY_ATTACK_COLOR = "rgb(240, 16, 16)";
                 DF.ANIM_ID_CHARA001_WALK = 1;
                 DF.ANIM_ID_CHARA002_WALK = 2;
-                DF.GROUND_Y = 160;
                 DF.FONT_M = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
                 DF.GRAVITY = 0.25 * 60;
             })(kimiko.DF || (kimiko.DF = {}));

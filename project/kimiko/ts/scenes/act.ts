@@ -267,6 +267,12 @@ module jp.osakana4242.kimiko.scenes {
 				});
 			},
 
+			stateToString: function () {
+				var str = Attacker.prototype.stateToString.call(this);
+				str += " hp:" + this.life.hp;
+				return str;
+			},
+
 			attack: function () {
 				var bullet = this.scene.newOwnBullet();
 				bullet.vx = this.dirX * kimiko.dpsToDpf(200);
@@ -290,8 +296,9 @@ module jp.osakana4242.kimiko.scenes {
 					//this.cx = DF.SC_X2;
 					//this.vx = 0;
 				}
-				if (DF.GROUND_Y < this.cy) {
-					this.cy = DF.GROUND_Y;
+				var map = this.scene.map;
+				if (map.height < this.y + this.height) {
+					this.y = map.height - this.height;
 					this.vy = 0;
 				}
 			},
@@ -451,16 +458,120 @@ module jp.osakana4242.kimiko.scenes {
 
 	}
 	
+	export class MapCharaManager {
+		scene: any;
+		sleeps: any[] = [];
+		actives: any[] = [];
+		deads: any[] = [];
+		
+		constructor(scene: any) {
+			this.scene = scene;
+		}
+
+		public addSleep(sleep: any): void {
+			this.sleeps.push(sleep);
+		}
+
+		public step(): void {
+			this.checkSpawn();
+			this.checkSleep();
+		}
+
+		private checkSpawn(): void {
+			var scene = this.scene;
+			var camera = this.scene.camera;
+			var arr = this.sleeps;
+			for (var i = arr.length - 1; 0 <= i; --i) {
+				var chara = arr[i];
+				if (!camera.isInsideSpawnRect(chara)) {
+					continue;
+				}
+				arr.splice(i, 1);
+				this.actives.push(chara);
+				scene.world.addChild(chara);
+			}
+		}
+		private checkSleep(): void {
+			var scene = this.scene;
+			var camera = this.scene.camera;
+			var arr = this.actives;
+			for (var i = arr.length - 1; 0 <= i; --i) {
+				var chara = arr[i];
+				if (camera.isInsideSleepRect(chara)) {
+					continue;
+				}
+				arr.splice(i, 1);
+				this.sleeps.push(chara);
+				scene.world.removeChild(chara);
+			}
+		}
+	}
+
+	var Camera: any = Class.create(enchant.Node, {
+		initialize: function () {
+			enchant.Node.call(this);
+
+			this.width = DF.SC1_W;
+			this.height = DF.SC1_H;
+			this.sleepRect = {
+				x: 0,
+				y: 0,
+				width: this.width + 64,
+				height: this.height + 64,
+			};
+			this.spawnRect = {
+				x: 0,
+				y: 0,
+				width: this.width + 8,
+				height: this.height + 8,
+			};
+			this.targetGroup = null;
+		},
+
+		onenterframe: function () {
+			var camera = this;
+			var player = this.scene.player;
+			// カメラ移動.
+			// プレイヤーからどれだけずらすか。
+			var tx: number = player.cx - (camera.width / 2) - (player.dirX * 16);
+			var ty: number = player.cy - (camera.height / 2);
+			var dx = tx - camera.x;
+			var dy = ty - camera.y;
+			camera.x = Math.floor(camera.x + (dx / 2));
+			camera.y = Math.floor(camera.y + (dy / 2));
+			//
+			var group = this.targetGroup;
+			if (group) {
+				group.x = -camera.x;
+				group.y = -camera.y;
+			}
+		},
+
+		isInsideSpawnRect: function (entity: utils.IRect) {
+				var rect: utils.IRect = this.spawnRect;
+				rect.x = this.x -((rect.width -this.width) / 2);
+				rect.y = this.y -((rect.height -this.height) / 2);
+				return utils.Rect.inside(rect, entity);
+		},
+
+		isInsideSleepRect: function (entity: utils.IRect) {
+			var rect: utils.IRect = this.sleepRect;
+			rect.x = this.x - ((rect.width - this.width) / 2);
+			rect.y = this.y - ((rect.height - this.height) / 2);
+			return utils.Rect.inside(rect, entity);
+		},
+	});
+
 	export var Act: any = Class.create(Scene, {
 		initialize: function () {
 			Scene.call(this);
+
 			this.backgroundColor = "rgb(32, 32, 64)";
-			var group;
 			var sprite;
 
-			group = new enchant.Group();
-			this.bg = group;
-			this.addChild(group);
+			var world = new enchant.Group();
+			this.world = world;
+			this.addChild(world);
 			
 
 			var blocks = [
@@ -545,33 +656,21 @@ module jp.osakana4242.kimiko.scenes {
 	[-1, -1, -1, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1, -1, -1, -1, -1, -1, -1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, -1],
 	[-1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, -1, -1, -1, -1, -1, -1, -1, -1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, -1]
 			];
-
-			var map = new enchant.Map(16, 16);
+			
+			var map = new enchant.Map(32, 32);
+			this.map = map;
 			map.image = kimiko.core.assets[DF.IMAGE_MAP];
 			map.loadData(blocks);
 			map.x = 0;
-			map.y = - map.height;
-			group.addChild(map);
-			group.onenterframe = () => {
-				var player = this.player;
-				// カメラ移動.
-				var tx: number = (DF.SC1_W / 2) - player.cx + (-player.dirX * 16);
-				var ty: number = (DF.SC1_H) - (player.y + player.height + 64);
-				this.bg.x += (tx - this.bg.x) / 2;
-				this.bg.y += (ty - this.bg.y) / 2;
-				this.bg.x = Math.floor(this.bg.x);
-				this.bg.y = Math.floor(this.bg.y);
-			};
+			map.y = 0;
+			world.addChild(map);
 
-			for (var i: number = 0, iNum: number = 128; i < iNum; ++i) {
-				// 背景.
-				sprite = new enchant.Sprite(8, 8);
-				sprite.backgroundColor = "rgb(64, 64, 32)"
-				sprite.x = i * 100;
-				sprite.y = DF.GROUND_Y - ((i % 3) * 50);
-				group.addChild(sprite);
-			}
-			
+			// 1カメ.
+			var camera = new Camera();
+			this.camera = camera;
+			camera.targetGroup = world;
+			world.addChild(camera);
+
 			this.grounds = [];
 			/*
 			for (var i: number =0, iNum: number = 16; i < iNum; ++i) {
@@ -585,7 +684,7 @@ module jp.osakana4242.kimiko.scenes {
 			this.ownBullets = [];
 			for (var i: number = 0, iNum: number = 8; i < iNum; ++i) {
 				sprite = new sprites.OwnBullet();
-				group.addChild(sprite);
+				world.addChild(sprite);
 				this.ownBullets.push(sprite);
 				sprite.visible = false;
 			}
@@ -593,56 +692,79 @@ module jp.osakana4242.kimiko.scenes {
 			this.enemyBullets = [];
 			for (var i: number = 0, iNum: number = 32; i < iNum; ++i) {
 				sprite = new sprites.EnemyBullet();
-				group.addChild(sprite);
+				world.addChild(sprite);
 				this.enemyBullets.push(sprite);
 				sprite.visible = false;
 			}
 			
-			this.enemys = [];
-			for (var i: number = 0, iNum: number = 1; i < iNum; ++i) {
-				// 敵.
-				sprite = new sprites.EnemyA();
-				var anchor: utils.IVector2D = {
-					x: 240 + i * 300,
-					y: DF.GROUND_Y,
-				};
-				sprite.start(anchor);
-				this.enemys.push(sprite);
-				group.addChild(sprite);
-			}
+			(() => {
+				var mapCharaMgr = new MapCharaManager(this);
+				this.mapCharaMgr = mapCharaMgr;
+
+				var enemySpawns = [
+					[ 8, 40, 1],
+					[16, 60, 1],
+					[24, 40, 1],
+					[32, 60, 1],
+					[40, 40, 1],
+				];
+				
+				for (var i = 0, iNum = enemySpawns.length; i < iNum; ++i) {
+					// 敵.
+					var spawn = enemySpawns[i];
+					var x = spawn[0] * 32;
+					var y = spawn[1] * 32;
+					var enemy = new sprites.EnemyA();
+					var anchor: utils.IVector2D = {
+						"x": x,
+						"y": y,
+					};
+					enemy.start(anchor);
+					mapCharaMgr.addSleep(enemy);
+				}
+
+
+			} ());
 			
 			sprite = new sprites.Player();
 			this.player = sprite;
-			group.addChild(sprite);
-			sprite.width = 32;
-			sprite.height = 32;
+			world.addChild(sprite);
 			sprite.x = 0;
-			sprite.y = 64;
+			sprite.y = this.map.height - sprite.height;
 			
-			this.labels = [];
-			for (var i: number = 0, iNum: number = 3; i < iNum; ++i) {
-				sprite = new Label("");
-				//this.addChild(sprite);
-				this.labels.push(sprite);
-				sprite.font = DF.FONT_M;
-				sprite.color = "#fff";
-				sprite.y = 12 * i;
-			}
-			
-			// 操作エリア.
-			sprite = new sprites.Sprite(DF.SC2_W, DF.SC2_H);
-			this.addChild(sprite);
-			this.controllArea = sprite;
-			sprite.x = DF.SC2_X1;
-			sprite.y = DF.SC2_Y1;
-			sprite.backgroundColor = "rgb(64, 64, 64)";
-			
+			(() => {
+				// 操作エリア.
+				var group = new enchant.Group();
+				this.statusGroup = group;
+				this.addChild(group);
+				group.x = DF.SC2_X1;
+				group.y = DF.SC2_Y1;
+
+				sprite = new sprites.Sprite(DF.SC2_W, DF.SC2_H);
+				group.addChild(sprite);
+				this.controllArea = sprite;
+				sprite.x = 0;
+				sprite.y = 0;
+				sprite.backgroundColor = "rgb(64, 64, 64)";
+
+				this.labels = [];
+				for (var i: number = 0, iNum: number = 3; i < iNum; ++i) {
+					sprite = new Label("");
+					group.addChild(sprite);
+					this.labels.push(sprite);
+					sprite.font = DF.FONT_M;
+					sprite.color = "#fff";
+					sprite.y = 12 * i;
+				}
+
+			}());
 			
 			this.touch = new utils.Touch();
 		},
 		
 		getNearEnemy: function (sprite, sqrDistanceThreshold) {
-			var enemys = this.enemys;
+			var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
+			var enemys = mapCharaMgr.actives;
 			
 			var getSqrDistance = function ( a, b ) {
 				var dx = a.cx - b.cx;
@@ -753,13 +875,18 @@ module jp.osakana4242.kimiko.scenes {
 		onenterframe: function () {
 			var player = this.player;
 			//
+			var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
+			mapCharaMgr.step();
+			//
 			this.checkCollision();
 			// 情報.
 			this.labels[1].text = player.stateToString() + " fps:" + Math.round(kimiko.core.actualFps);
 		},
 		
 		checkCollision: function () {
+			var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
 			var player = this.player;
+			var enemys = mapCharaMgr.actives;
 			
 			// 地形とプレイヤーの衝突判定.
 			for (var i = 0, iNum = this.grounds.length; i < iNum; ++i) {
@@ -801,8 +928,8 @@ module jp.osakana4242.kimiko.scenes {
 			}
 			// 敵とプレイヤーの衝突判定.
 			this.labels[2].text = "";
-			for (var i = 0, iNum = this.enemys.length; i < iNum; ++i) {
-				var enemy = this.enemys[i];
+			for (var i = 0, iNum = enemys.length; i < iNum; ++i) {
+				var enemy = enemys[i];
 				if (enemy.isDead() || player.isDead() || enemy.isDamage() || player.isDamage()) {
 					continue;
 				}
@@ -823,8 +950,8 @@ module jp.osakana4242.kimiko.scenes {
 				}
 			}
 			// 敵とプレイヤー弾の衝突判定.
-			for (var i = 0, iNum = this.enemys.length; i < iNum; ++i) {
-				var enemy = this.enemys[i];
+			for (var i = 0, iNum = enemys.length; i < iNum; ++i) {
+				var enemy = enemys[i];
 				if (enemy.isDead() || enemy.isDamage()) {
 					continue;
 				}
