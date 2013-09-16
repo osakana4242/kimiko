@@ -231,6 +231,7 @@ var jp;
                             this.anchorX = 0;
                             this.anchorY = 0;
                             this.useGravity = false;
+                            this.isOnMap = false;
                             this.addEventListener(Event.ENTER_FRAME, function () {
                                 _this.stepMove();
                                 var scene = _this.scene;
@@ -255,7 +256,7 @@ var jp;
                             bullet.cy = this.cy;
                         },
                         stepMove: function () {
-                            if(this.useGravity) {
+                            if(this.useGravity && !this.isOnMap) {
                                 this.vy += kimiko.kimiko.dpsToDpf(kimiko.DF.GRAVITY);
                             }
                             this.x += this.vx;
@@ -468,12 +469,26 @@ var jp;
                     onenterframe: function () {
                         var camera = this;
                         var player = this.scene.player;
-                        var tx = player.cx - (camera.width / 2) - (player.dirX * 16);
+                        var tx = player.cx - (camera.width / 2) + (player.dirX * 32);
                         var ty = player.cy - (camera.height / 2);
+                        var speed = kimiko.kimiko.dpsToDpf(12 * 60);
                         var dx = tx - camera.x;
                         var dy = ty - camera.y;
-                        camera.x = Math.floor(camera.x + (dx / 2));
-                        camera.y = Math.floor(camera.y + (dy / 2));
+                        var mx = 0;
+                        var my = 0;
+                        var distance = osakana4242.utils.Vector2D.magnitude({
+                            x: dx,
+                            y: dy
+                        });
+                        if(speed < distance) {
+                            mx = dx * speed / distance;
+                            my = dy * speed / distance;
+                        } else {
+                            mx = dx;
+                            my = dy;
+                        }
+                        camera.x = Math.floor(camera.x + mx);
+                        camera.y = Math.floor(camera.y + my);
                         var group = this.targetGroup;
                         if(group) {
                             group.x = -camera.x;
@@ -671,6 +686,7 @@ var jp;
                         player.vx = 0;
                         player.vy = 0;
                         player.useGravity = false;
+                        player.isOnMap = false;
                     },
                     ontouchmove: function (event) {
                         var touch = this.touch;
@@ -711,12 +727,50 @@ var jp;
                         mapCharaMgr.step();
                         this.checkCollision();
                         this.labels[1].text = player.stateToString() + " fps:" + Math.round(kimiko.kimiko.core.actualFps);
-                        this.labels[2].text = "alives:" + mapCharaMgr.getAliveCount();
+                        this.labels[2].text = "actives:" + mapCharaMgr.actives.length + " sleeps:" + mapCharaMgr.sleeps.length;
+                    },
+                    checkMapCollision: function (player) {
+                        var map = this.map;
+                        var xDiff = map.tileWidth;
+                        var yDiff = map.tileHeight;
+                        var xMin = player.x;
+                        var yMin = player.y;
+                        var xMax = player.x + player.width + (xDiff - 1);
+                        var yMax = player.y + player.height + (yDiff - 1);
+                        var hoge = 8;
+                        for(var y = yMin; y < yMax; y += yDiff) {
+                            for(var x = xMin; x < xMax; x += xDiff) {
+                                var tileId = map.checkTile(x, y);
+                                var isHit = tileId !== -1;
+                                if(!isHit) {
+                                    continue;
+                                }
+                                var rect = new osakana4242.utils.Rect(Math.floor(x / map.tileWidth) * map.tileWidth, Math.floor(y / map.tileHeight) * map.tileHeight, map.tileWidth, map.tileHeight);
+                                if(!osakana4242.utils.Rect.intersect(player, rect)) {
+                                    continue;
+                                }
+                                if((map.checkTile(x, y - yDiff) === -1) && 0 <= player.vy && player.y <= rect.y + hoge) {
+                                    player.y = rect.y - player.height;
+                                    player.vy = 0;
+                                    player.isOnMap = true;
+                                } else if((map.checkTile(x, y + yDiff) === -1) && player.vy <= 0 && rect.y + rect.height - hoge < player.y + player.height) {
+                                    player.y = rect.y + rect.height;
+                                    player.vy = 0;
+                                } else if((map.checkTile(x - xDiff, y) === -1) && 0 <= player.vx && player.x <= rect.x + hoge) {
+                                    player.x = rect.x - player.width;
+                                    player.vx = 0;
+                                } else if((map.checkTile(x + xDiff, y) === -1) && player.vx <= 0 && rect.x + rect.width - hoge < player.x + player.width) {
+                                    player.x = rect.x + rect.width;
+                                    player.vx = 0;
+                                }
+                            }
+                        }
                     },
                     checkCollision: function () {
                         var mapCharaMgr = this.mapCharaMgr;
                         var player = this.player;
                         var enemys = mapCharaMgr.actives;
+                        this.checkMapCollision(player);
                         for(var i = 0, iNum = this.grounds.length; i < iNum; ++i) {
                             var ground = this.grounds[i];
                             if(!this.intersectActiveArea(ground)) {
@@ -826,12 +880,24 @@ var jp;
             })();
             utils.Vector2D = Vector2D;            
             var Rect = (function () {
-                function Rect() { }
+                function Rect(x, y, width, height) {
+                    if (typeof x === "undefined") { x = 0; }
+                    if (typeof y === "undefined") { y = 0; }
+                    if (typeof width === "undefined") { width = 0; }
+                    if (typeof height === "undefined") { height = 0; }
+                    this.x = x;
+                    this.y = y;
+                    this.width = width;
+                    this.height = height;
+                }
                 Rect.inside = function inside(a, b) {
                     return (a.x <= b.x) && (b.x + b.width < a.x + a.width) && (a.y <= b.y) && (b.y + b.height < a.y + a.height);
                 };
                 Rect.outside = function outside(a, b) {
                     return (b.x < a.x) && (a.x + a.width <= b.x + b.width) && (b.y < a.y) && (a.y + a.height <= b.y + b.height);
+                };
+                Rect.intersect = function intersect(a, other) {
+                    return (a.x < other.x + other.width) && (other.x < a.x + a.width) && (a.y < other.y + other.height) && (other.y < a.y + a.height);
                 };
                 return Rect;
             })();

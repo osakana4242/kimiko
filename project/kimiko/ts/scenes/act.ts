@@ -251,6 +251,7 @@ module jp.osakana4242.kimiko.scenes {
 				this.anchorX = 0;
 				this.anchorY = 0;
 				this.useGravity = false;
+				this.isOnMap = false;
 
 				this.addEventListener(Event.ENTER_FRAME, () => {
 					this.stepMove();
@@ -282,7 +283,7 @@ module jp.osakana4242.kimiko.scenes {
 			},
 
 			stepMove: function () {
-				if (this.useGravity) {
+				if (this.useGravity && !this.isOnMap) {
 					this.vy += kimiko.dpsToDpf(DF.GRAVITY);
 				}
 				this.x += this.vx;
@@ -548,12 +549,24 @@ module jp.osakana4242.kimiko.scenes {
 			var player = this.scene.player;
 			// カメラ移動.
 			// プレイヤーからどれだけずらすか。
-			var tx: number = player.cx - (camera.width / 2) - (player.dirX * 16);
+			var tx: number = player.cx - (camera.width / 2) + (player.dirX * 32);
 			var ty: number = player.cy - (camera.height / 2);
+			var speed = kimiko.dpsToDpf(12 * 60);
 			var dx = tx - camera.x;
 			var dy = ty - camera.y;
-			camera.x = Math.floor(camera.x + (dx / 2));
-			camera.y = Math.floor(camera.y + (dy / 2));
+			var mx = 0;
+			var my = 0;
+			var distance = utils.Vector2D.magnitude({ x: dx, y: dy });
+
+			if (speed < distance) {
+				mx = dx * speed / distance;
+				my = dy * speed / distance;
+			} else {
+				mx = dx;
+				my = dy;
+			}
+			camera.x = Math.floor(camera.x + mx);
+			camera.y = Math.floor(camera.y + my);
 			//
 			var group = this.targetGroup;
 			if (group) {
@@ -771,6 +784,8 @@ module jp.osakana4242.kimiko.scenes {
 			player.vx = 0;
 			player.vy = 0;
 			player.useGravity = false;
+			player.isOnMap = false;
+
 		},
 		ontouchmove: function (event) {
 			var touch: utils.Touch = this.touch;
@@ -816,14 +831,66 @@ module jp.osakana4242.kimiko.scenes {
 			this.checkCollision();
 			// 情報.
 			this.labels[1].text = player.stateToString() + " fps:" + Math.round(kimiko.core.actualFps);
-			this.labels[2].text = "alives:" + mapCharaMgr.getAliveCount();
+			this.labels[2].text = "actives:" + mapCharaMgr.actives.length + " sleeps:" + mapCharaMgr.sleeps.length;
 		},
 		
+		checkMapCollision: function (player) {
+			// 地形とプレイヤーの衝突判定.
+			// 自分の周囲の地形を調べる.
+			var map = this.map;
+			var xDiff = map.tileWidth;
+			var yDiff = map.tileHeight;
+			var xMin = player.x;
+			var yMin = player.y;
+			var xMax = player.x + player.width + (xDiff - 1);
+			var yMax = player.y + player.height + (yDiff - 1);
+			var hoge = 8;
+
+			for (var y = yMin; y < yMax; y += yDiff) {
+				for (var x = xMin; x < xMax; x += xDiff) {
+					var tileId = map.checkTile(x, y);
+					var isHit = tileId !== -1;
+					if (!isHit) {
+						continue;
+					}
+					var rect = new utils.Rect(
+						Math.floor(x / map.tileWidth) * map.tileWidth,
+						Math.floor(y / map.tileHeight) * map.tileHeight,
+						map.tileWidth,
+						map.tileHeight
+					);
+					if (!utils.Rect.intersect(player, rect)) {
+						continue;
+					}
+					if ((map.checkTile(x, y - yDiff) === -1) && 0 <= player.vy && player.y <= rect.y + hoge) {
+						// top
+						player.y = rect.y - player.height;
+						player.vy = 0;
+						player.isOnMap = true;
+					} else if ((map.checkTile(x, y + yDiff) === -1) && player.vy <= 0 && rect.y + rect.height - hoge < player.y + player.height) {
+						// bottom
+						player.y = rect.y + rect.height;
+						player.vy = 0;
+					} else if ((map.checkTile(x - xDiff, y) === -1) && 0 <= player.vx && player.x <= rect.x + hoge) {
+						// left
+						player.x = rect.x - player.width;
+						player.vx = 0;
+					} else if ((map.checkTile(x + xDiff, y) === -1) && player.vx <= 0 && rect.x + rect.width - hoge < player.x + player.width) {
+						// right
+						player.x = rect.x + rect.width;
+						player.vx = 0;
+					}
+				}
+			}
+		},
+
 		checkCollision: function () {
 			var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
 			var player = this.player;
 			var enemys = mapCharaMgr.actives;
-			
+
+			this.checkMapCollision(player);
+
 			// 地形とプレイヤーの衝突判定.
 			for (var i = 0, iNum = this.grounds.length; i < iNum; ++i) {
 				var ground = this.grounds[i];

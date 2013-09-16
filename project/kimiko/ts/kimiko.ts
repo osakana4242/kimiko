@@ -46,16 +46,29 @@ module jp.osakana4242.utils {
 		height: number;
 	}
 
-	export class Rect {
+	export class Rect implements IRect{
+
+		constructor(
+			public x: number = 0,
+			public y: number = 0,
+			public width: number = 0,
+			public height: number = 0) {
+		}
+
 		public static inside(a: IRect, b: IRect): bool {
 			return (a.x <= b.x) && (b.x + b.width < a.x + a.width)
 				&& (a.y <= b.y) && (b.y + b.height < a.y + a.height);
 
 		}
+
 		public static outside(a: IRect, b: IRect): bool {
 			return (b.x < a.x) && (a.x + a.width <= b.x + b.width)
 				&& (b.y < a.y) && (a.y + a.height <= b.y + b.height);
+		}
 
+		public static intersect(a: IRect, other: IRect): bool {
+			return (a.x < other.x + other.width) && (other.x < a.x + a.width)
+				&& (a.y < other.y + other.height) && (other.y < a.y + a.height);
 		}
 	}
 
