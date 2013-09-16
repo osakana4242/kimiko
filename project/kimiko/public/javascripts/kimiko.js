@@ -406,6 +406,9 @@ var jp;
                         this.checkSpawn();
                         this.checkSleep();
                     };
+                    MapCharaManager.prototype.getAliveCount = function () {
+                        return this.sleeps.length + this.actives.length;
+                    };
                     MapCharaManager.prototype.checkSpawn = function () {
                         var scene = this.scene;
                         var camera = this.scene.camera;
@@ -426,6 +429,12 @@ var jp;
                         var arr = this.actives;
                         for(var i = arr.length - 1; 0 <= i; --i) {
                             var chara = arr[i];
+                            if(chara.isDead()) {
+                                arr.splice(i, 1);
+                                this.deads.push(chara);
+                                scene.world.removeChild(chara);
+                                continue;
+                            }
                             if(camera.isInsideSleepRect(chara)) {
                                 continue;
                             }
@@ -488,11 +497,12 @@ var jp;
                     initialize: function () {
                         var _this = this;
                         Scene.call(this);
+                        var scene = this;
                         this.backgroundColor = "rgb(32, 32, 64)";
                         var sprite;
                         var world = new enchant.Group();
                         this.world = world;
-                        this.addChild(world);
+                        scene.addChild(world);
                         var blocks = [
                             [
                                 -1, 
@@ -3143,7 +3153,7 @@ var jp;
                             sprite.y = 0;
                             sprite.backgroundColor = "rgb(64, 64, 64)";
                             _this.labels = [];
-                            for(var i = 0, iNum = 3; i < iNum; ++i) {
+                            for(var i = 0, iNum = 4; i < iNum; ++i) {
                                 sprite = new Label("");
                                 group.addChild(sprite);
                                 _this.labels.push(sprite);
@@ -3262,6 +3272,7 @@ var jp;
                         mapCharaMgr.step();
                         this.checkCollision();
                         this.labels[1].text = player.stateToString() + " fps:" + Math.round(kimiko.kimiko.core.actualFps);
+                        this.labels[2].text = "alives:" + mapCharaMgr.getAliveCount();
                     },
                     checkCollision: function () {
                         var mapCharaMgr = this.mapCharaMgr;
@@ -3301,14 +3312,14 @@ var jp;
                                 });
                             }
                         }
-                        this.labels[2].text = "";
+                        this.labels[3].text = "";
                         for(var i = 0, iNum = enemys.length; i < iNum; ++i) {
                             var enemy = enemys[i];
                             if(enemy.isDead() || player.isDead() || enemy.isDamage() || player.isDamage()) {
                                 continue;
                             }
                             if(player.intersect(enemy)) {
-                                this.labels[2].text = "hit";
+                                this.labels[3].text = "hit";
                                 if(player.isAttack() && enemy.isAttack()) {
                                     if(enemy.attackCnt <= player.attackCnt) {
                                         enemy.damage(player);

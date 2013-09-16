@@ -477,6 +477,11 @@ module jp.osakana4242.kimiko.scenes {
 			this.checkSleep();
 		}
 
+		public getAliveCount(): number {
+			return this.sleeps.length + this.actives.length;
+		}
+
+		// 画面内に入ったキャラを発生させる。
 		private checkSpawn(): void {
 			var scene = this.scene;
 			var camera = this.scene.camera;
@@ -491,12 +496,22 @@ module jp.osakana4242.kimiko.scenes {
 				scene.world.addChild(chara);
 			}
 		}
+
+		// 画面外に出たキャラを休ませるか棺送りにする。
 		private checkSleep(): void {
 			var scene = this.scene;
 			var camera = this.scene.camera;
 			var arr = this.actives;
 			for (var i = arr.length - 1; 0 <= i; --i) {
 				var chara = arr[i];
+
+				if (chara.isDead()) {
+					arr.splice(i, 1);
+					this.deads.push(chara);
+					scene.world.removeChild(chara);
+					continue;
+				}
+
 				if (camera.isInsideSleepRect(chara)) {
 					continue;
 				}
@@ -566,13 +581,14 @@ module jp.osakana4242.kimiko.scenes {
 		initialize: function () {
 			Scene.call(this);
 
+			var scene = this;
 			this.backgroundColor = "rgb(32, 32, 64)";
 			var sprite;
 
 			var world = new enchant.Group();
 			this.world = world;
-			this.addChild(world);
-			
+			scene.addChild(world);
+
 
 			var blocks = [
 	[-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
@@ -748,7 +764,7 @@ module jp.osakana4242.kimiko.scenes {
 				sprite.backgroundColor = "rgb(64, 64, 64)";
 
 				this.labels = [];
-				for (var i: number = 0, iNum: number = 3; i < iNum; ++i) {
+				for (var i: number = 0, iNum: number = 4; i < iNum; ++i) {
 					sprite = new Label("");
 					group.addChild(sprite);
 					this.labels.push(sprite);
@@ -881,6 +897,7 @@ module jp.osakana4242.kimiko.scenes {
 			this.checkCollision();
 			// 情報.
 			this.labels[1].text = player.stateToString() + " fps:" + Math.round(kimiko.core.actualFps);
+			this.labels[2].text = "alives:" + mapCharaMgr.getAliveCount();
 		},
 		
 		checkCollision: function () {
@@ -927,14 +944,14 @@ module jp.osakana4242.kimiko.scenes {
 				}
 			}
 			// 敵とプレイヤーの衝突判定.
-			this.labels[2].text = "";
+			this.labels[3].text = "";
 			for (var i = 0, iNum = enemys.length; i < iNum; ++i) {
 				var enemy = enemys[i];
 				if (enemy.isDead() || player.isDead() || enemy.isDamage() || player.isDamage()) {
 					continue;
 				}
 				if (player.intersect(enemy)) {
-					this.labels[2].text = "hit";
+					this.labels[3].text = "hit";
 					if (player.isAttack() && enemy.isAttack()) {
 						// 両方攻撃してたら、後出しの勝ち.
 						if (enemy.attackCnt <= player.attackCnt) {
