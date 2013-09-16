@@ -250,7 +250,7 @@ module jp.osakana4242.kimiko.scenes {
 				this.life.hp = this.life.hpMax;
 				this.anchorX = 0;
 				this.anchorY = 0;
-				this.useGravity = false;
+				this.useGravity = true;
 				this.isOnMap = false;
 
 				this.addEventListener(Event.ENTER_FRAME, () => {
@@ -259,7 +259,7 @@ module jp.osakana4242.kimiko.scenes {
 					// 敵が近くにいれば攻撃.
 					var scene = this.scene;
 					if ((this.age % kimiko.secToFrame(0.2)) === 0) {
-						var nearEnemy = scene.getNearEnemy(this, 96 * 96);
+						var nearEnemy = scene.getNearEnemy(this, 128 * 128);
 						if (nearEnemy !== null) {
 							this.attack();
 						}
@@ -270,7 +270,7 @@ module jp.osakana4242.kimiko.scenes {
 
 			stateToString: function () {
 				var str = Attacker.prototype.stateToString.call(this);
-				str += " hp:" + this.life.hp;
+				str += " hp:" + this.life.hp + " G:" + (this.isOnMap ? "o" : "x");
 				return str;
 			},
 
@@ -383,6 +383,8 @@ module jp.osakana4242.kimiko.scenes {
 
 		}
 
+
+		// 敵はしかれたレールをなぞるだけ。
 		export var EnemyA = Class.create(Attacker, {
 			initialize: function () {
 				Attacker.call(this);
@@ -732,25 +734,34 @@ module jp.osakana4242.kimiko.scenes {
 				map.collisionData = collisionData;
 			}());
 
-			// 敵
+			// 敵, スタート地点.
 			(() => {
 				var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
 				var layer = mapData.layers[1];
 				for (var y = 0, yNum = layer.tiles.length; y < yNum; ++y) {
 					for (var x = 0, xNum = layer.tiles[y].length; x < xNum; ++x) {
-						var enemyId = layer.tiles[y][x];
-						if (enemyId === -1) {
+						var charaId = layer.tiles[y][x];
+						if (charaId === -1) {
 							continue;
 						}
-						enemyId = enemyId - 48 + 1;
-						var enemy = new sprites.EnemyA();
-						// center, bottom で配置.
-						var anchor: utils.IVector2D = {
-							"x": x * DF.MAP_TILE_W + (enemy.width / 2),
-							"y": y * DF.MAP_TILE_H + (DF.MAP_TILE_H - enemy.height),
-						};
-						enemy["brain" + enemyId](anchor);
-						mapCharaMgr.addSleep(enemy);
+						var left = x * DF.MAP_TILE_W;
+						var top = y * DF.MAP_TILE_H;
+
+						if (charaId === 40) {
+							var player = this.player;
+							player.x = left + (DF.MAP_TILE_W - player.width) / 2;
+							player.y = top + (DF.MAP_TILE_H - player.height);
+						} else if (48 <= charaId) {
+							var enemyId = charaId - 48 + 1;
+							var enemy = new sprites.EnemyA();
+							// center, bottom で配置.
+							var anchor: utils.IVector2D = {
+								"x": left + (enemy.width / 2),
+								"y": top + (DF.MAP_TILE_H - enemy.height),
+							};
+							enemy["brain" + enemyId](anchor);
+							mapCharaMgr.addSleep(enemy);
+						}
 					}
 				}
 			} ());
@@ -821,6 +832,8 @@ module jp.osakana4242.kimiko.scenes {
 			}
 			return false;
 		},
+
+		//---------------------------------------------------------------------------
 		ontouchstart: function (event) {
 			var touch: utils.Touch = this.touch;
 			touch.saveTouchStart(event.x, event.y);
@@ -876,10 +889,13 @@ module jp.osakana4242.kimiko.scenes {
 			//
 			this.checkCollision();
 			// 情報.
-			this.labels[1].text = player.stateToString() + " fps:" + Math.round(kimiko.core.actualFps);
+			//" fps:" + Math.round(kimiko.core.actualFps)
+			this.labels[1].text = player.stateToString()
 			this.labels[2].text = "actives:" + mapCharaMgr.actives.length + " sleeps:" + mapCharaMgr.sleeps.length;
 		},
-		
+		//---------------------------------------------------------------------------
+
+
 		checkMapCollision: function (player) {
 			// 地形とプレイヤーの衝突判定.
 			// 自分の周囲の地形を調べる.

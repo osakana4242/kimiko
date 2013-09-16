@@ -161,8 +161,9 @@ module jp.osakana4242.kimiko {
 		export var ENEMY_DAMAGE_COLOR: string = "rgb(240, 16, 240)";
 		export var ENEMY_ATTACK_COLOR: string = "rgb(240, 16, 16)";
 
-		export var ANIM_ID_CHARA001_WALK = 1;
-		export var ANIM_ID_CHARA002_WALK = 2;
+		export var ANIM_ID_CHARA001_WALK = 10;
+		export var ANIM_ID_CHARA001_STAND = 11;
+		export var ANIM_ID_CHARA002_WALK = 20;
 
 		export var FONT_M: string = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
 		export var GRAVITY: number = 0.25 * 60;
@@ -203,7 +204,8 @@ module jp.osakana4242.kimiko {
 				DF.IMAGE_CHARA002,
 			]); // preload image
 
-			this.registerAnimFrames(DF.ANIM_ID_CHARA001_WALK, [0, 1, 0, 2], 0.2);
+			this.registerAnimFrames(DF.ANIM_ID_CHARA001_WALK,  [0, 1, 0, 2], 0.2);
+			this.registerAnimFrames(DF.ANIM_ID_CHARA001_STAND, [0], 0.2);
 			this.registerAnimFrames(DF.ANIM_ID_CHARA002_WALK, [0, 1, 2, 3], 0.1);
 
 			core.onload = function () {

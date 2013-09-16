@@ -230,13 +230,13 @@ var jp;
                             this.life.hp = this.life.hpMax;
                             this.anchorX = 0;
                             this.anchorY = 0;
-                            this.useGravity = false;
+                            this.useGravity = true;
                             this.isOnMap = false;
                             this.addEventListener(Event.ENTER_FRAME, function () {
                                 _this.stepMove();
                                 var scene = _this.scene;
                                 if((_this.age % kimiko.kimiko.secToFrame(0.2)) === 0) {
-                                    var nearEnemy = scene.getNearEnemy(_this, 96 * 96);
+                                    var nearEnemy = scene.getNearEnemy(_this, 128 * 128);
                                     if(nearEnemy !== null) {
                                         _this.attack();
                                     }
@@ -245,7 +245,7 @@ var jp;
                         },
                         stateToString: function () {
                             var str = sprites.Attacker.prototype.stateToString.call(this);
-                            str += " hp:" + this.life.hp;
+                            str += " hp:" + this.life.hp + " G:" + (this.isOnMap ? "o" : "x");
                             return str;
                         },
                         attack: function () {
@@ -617,18 +617,26 @@ var jp;
                             var layer = mapData.layers[1];
                             for(var y = 0, yNum = layer.tiles.length; y < yNum; ++y) {
                                 for(var x = 0, xNum = layer.tiles[y].length; x < xNum; ++x) {
-                                    var enemyId = layer.tiles[y][x];
-                                    if(enemyId === -1) {
+                                    var charaId = layer.tiles[y][x];
+                                    if(charaId === -1) {
                                         continue;
                                     }
-                                    enemyId = enemyId - 48 + 1;
-                                    var enemy = new sprites.EnemyA();
-                                    var anchor = {
-                                        "x": x * kimiko.DF.MAP_TILE_W + (enemy.width / 2),
-                                        "y": y * kimiko.DF.MAP_TILE_H + (kimiko.DF.MAP_TILE_H - enemy.height)
-                                    };
-                                    enemy["brain" + enemyId](anchor);
-                                    mapCharaMgr.addSleep(enemy);
+                                    var left = x * kimiko.DF.MAP_TILE_W;
+                                    var top = y * kimiko.DF.MAP_TILE_H;
+                                    if(charaId === 40) {
+                                        var player = _this.player;
+                                        player.x = left + (kimiko.DF.MAP_TILE_W - player.width) / 2;
+                                        player.y = top + (kimiko.DF.MAP_TILE_H - player.height);
+                                    } else if(48 <= charaId) {
+                                        var enemyId = charaId - 48 + 1;
+                                        var enemy = new sprites.EnemyA();
+                                        var anchor = {
+                                            "x": left + (enemy.width / 2),
+                                            "y": top + (kimiko.DF.MAP_TILE_H - enemy.height)
+                                        };
+                                        enemy["brain" + enemyId](anchor);
+                                        mapCharaMgr.addSleep(enemy);
+                                    }
                                 }
                             }
                         })());
@@ -741,7 +749,7 @@ var jp;
                         var mapCharaMgr = this.mapCharaMgr;
                         mapCharaMgr.step();
                         this.checkCollision();
-                        this.labels[1].text = player.stateToString() + " fps:" + Math.round(kimiko.kimiko.core.actualFps);
+                        this.labels[1].text = player.stateToString();
                         this.labels[2].text = "actives:" + mapCharaMgr.actives.length + " sleeps:" + mapCharaMgr.sleeps.length;
                     },
                     checkMapCollision: function (player) {
@@ -989,8 +997,9 @@ var jp;
                 DF.ENEMY_COLOR = "rgb(120, 80, 120)";
                 DF.ENEMY_DAMAGE_COLOR = "rgb(240, 16, 240)";
                 DF.ENEMY_ATTACK_COLOR = "rgb(240, 16, 16)";
-                DF.ANIM_ID_CHARA001_WALK = 1;
-                DF.ANIM_ID_CHARA002_WALK = 2;
+                DF.ANIM_ID_CHARA001_WALK = 10;
+                DF.ANIM_ID_CHARA001_STAND = 11;
+                DF.ANIM_ID_CHARA002_WALK = 20;
                 DF.FONT_M = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
                 DF.GRAVITY = 0.25 * 60;
             })(kimiko.DF || (kimiko.DF = {}));
@@ -1032,6 +1041,9 @@ var jp;
                         1, 
                         0, 
                         2
+                    ], 0.2);
+                    this.registerAnimFrames(DF.ANIM_ID_CHARA001_STAND, [
+                        0
                     ], 0.2);
                     this.registerAnimFrames(DF.ANIM_ID_CHARA002_WALK, [
                         0, 
