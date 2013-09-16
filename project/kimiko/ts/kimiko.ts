@@ -130,6 +130,8 @@ module jp.osakana4242.kimiko {
 		export var IMAGE_MAP = "./images/map.png";
 		export var IMAGE_CHARA001 = "./images/chara001.png";
 		export var IMAGE_CHARA002 = "./images/chara002.png";
+		export var MAP_TILE_W = 32;
+		export var MAP_TILE_H = 32;
 		export var PLAYER_COLOR: string = "rgb(240, 240, 240)";
 		export var PLAYER_DAMAGE_COLOR: string = "rgb(240, 240, 120)";
 		export var PLAYER_ATTACK_COLOR: string = "rgb(160, 160, 240)";
