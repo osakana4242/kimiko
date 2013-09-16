@@ -112,6 +112,15 @@ module jp.osakana4242.utils {
 		
 		getTouchElpsedFrame() { return enchant.Core.instance.frame - this.startFrame; }
 	}
+
+	export interface IMapData {
+		width: number;
+		height: number;
+		tileWidth: number;
+		tileHeight: number;
+		chipSet: string;
+		layers: { name: string; tiles: number[][]; }[];
+	}
 	
 }
 

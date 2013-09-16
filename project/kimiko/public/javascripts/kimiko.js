@@ -357,11 +357,33 @@ var jp;
                             this.image = kimiko.kimiko.core.assets[kimiko.DF.IMAGE_CHARA002];
                             this.frame = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA002_WALK);
                         },
-                        start: function (anchor) {
+                        brain1: function (anchor) {
                             var _this = this;
                             var range = 16;
                             this.anchor.x = anchor.x;
-                            this.anchor.y = anchor.y - (this.height / 2);
+                            this.anchor.y = anchor.y;
+                            this.x = this.anchor.x;
+                            this.y = this.anchor.y;
+                            var waitFire = function () {
+                                return !_this.weapon.isStateFire();
+                            };
+                            this.tl.moveTo(this.anchor.x + range, this.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).moveTo(this.anchor.x - range, this.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).moveTo(this.anchor.x + range, this.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).then(function () {
+                                var wp = _this.weapon;
+                                wp.dir.x = 1;
+                                wp.dir.y = 0;
+                                wp.startFire();
+                            }).waitUntil(waitFire).moveTo(this.anchor.x - range, this.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).then(function () {
+                                var wp = _this.weapon;
+                                wp.dir.x = -1;
+                                wp.dir.y = 0;
+                                wp.startFire();
+                            }).waitUntil(waitFire).loop();
+                        },
+                        brain2: function (anchor) {
+                            var _this = this;
+                            var range = 16;
+                            this.anchor.x = anchor.x;
+                            this.anchor.y = anchor.y;
                             this.x = this.anchor.x;
                             this.y = this.anchor.y;
                             var waitFire = function () {
@@ -518,11 +540,9 @@ var jp;
                         var world = new enchant.Group();
                         this.world = world;
                         scene.addChild(world);
-                        var blocks = jp.osakana4242.kimiko["blocks"];
                         var map = new enchant.Map(kimiko.DF.MAP_TILE_W, kimiko.DF.MAP_TILE_H);
                         this.map = map;
                         map.image = kimiko.kimiko.core.assets[kimiko.DF.IMAGE_MAP];
-                        map.loadData(blocks);
                         map.x = 0;
                         map.y = 0;
                         world.addChild(map);
@@ -545,50 +565,6 @@ var jp;
                             this.enemyBullets.push(sprite);
                             sprite.visible = false;
                         }
-                        ((function () {
-                            var mapCharaMgr = new MapCharaManager(_this);
-                            _this.mapCharaMgr = mapCharaMgr;
-                            var enemySpawns = [
-                                [
-                                    8, 
-                                    40, 
-                                    1
-                                ], 
-                                [
-                                    16, 
-                                    60, 
-                                    1
-                                ], 
-                                [
-                                    24, 
-                                    40, 
-                                    1
-                                ], 
-                                [
-                                    32, 
-                                    60, 
-                                    1
-                                ], 
-                                [
-                                    40, 
-                                    40, 
-                                    1
-                                ], 
-                                
-                            ];
-                            for(var i = 0, iNum = enemySpawns.length; i < iNum; ++i) {
-                                var spawn = enemySpawns[i];
-                                var x = spawn[0] * 32;
-                                var y = spawn[1] * 32;
-                                var enemy = new sprites.EnemyA();
-                                var anchor = {
-                                    "x": x,
-                                    "y": y
-                                };
-                                enemy.start(anchor);
-                                mapCharaMgr.addSleep(enemy);
-                            }
-                        })());
                         sprite = new sprites.Player();
                         this.player = sprite;
                         world.addChild(sprite);
@@ -616,7 +592,46 @@ var jp;
                                 sprite.y = 12 * i;
                             }
                         })());
+                        this.mapCharaMgr = new MapCharaManager(this);
                         this.touch = new osakana4242.utils.Touch();
+                        this.loadMapData(jp.osakana4242.kimiko["mapData"]);
+                    },
+                    loadMapData: function (mapData) {
+                        var _this = this;
+                        var map = this.map;
+                        ((function () {
+                            var layer = mapData.layers[0];
+                            map.loadData(layer.tiles);
+                            var collisionData = [];
+                            for(var y = 0, yNum = layer.tiles.length; y < yNum; ++y) {
+                                var line = [];
+                                for(var x = 0, xNum = layer.tiles[y].length; x < xNum; ++x) {
+                                    line.push(layer.tiles[y][x] !== -1);
+                                }
+                                collisionData.push(line);
+                            }
+                            map.collisionData = collisionData;
+                        })());
+                        ((function () {
+                            var mapCharaMgr = _this.mapCharaMgr;
+                            var layer = mapData.layers[1];
+                            for(var y = 0, yNum = layer.tiles.length; y < yNum; ++y) {
+                                for(var x = 0, xNum = layer.tiles[y].length; x < xNum; ++x) {
+                                    var enemyId = layer.tiles[y][x];
+                                    if(enemyId === -1) {
+                                        continue;
+                                    }
+                                    enemyId = enemyId - 48 + 1;
+                                    var enemy = new sprites.EnemyA();
+                                    var anchor = {
+                                        "x": x * kimiko.DF.MAP_TILE_W + (enemy.width / 2),
+                                        "y": y * kimiko.DF.MAP_TILE_H + (kimiko.DF.MAP_TILE_H - enemy.height)
+                                    };
+                                    enemy["brain" + enemyId](anchor);
+                                    mapCharaMgr.addSleep(enemy);
+                                }
+                            }
+                        })());
                     },
                     getNearEnemy: function (sprite, sqrDistanceThreshold) {
                         var mapCharaMgr = this.mapCharaMgr;
@@ -740,26 +755,24 @@ var jp;
                         var hoge = 8;
                         for(var y = yMin; y < yMax; y += yDiff) {
                             for(var x = xMin; x < xMax; x += xDiff) {
-                                var tileId = map.checkTile(x, y);
-                                var isHit = tileId !== -1;
-                                if(!isHit) {
+                                if(!map.hitTest(x, y)) {
                                     continue;
                                 }
                                 var rect = new osakana4242.utils.Rect(Math.floor(x / map.tileWidth) * map.tileWidth, Math.floor(y / map.tileHeight) * map.tileHeight, map.tileWidth, map.tileHeight);
                                 if(!osakana4242.utils.Rect.intersect(player, rect)) {
                                     continue;
                                 }
-                                if((map.checkTile(x, y - yDiff) === -1) && 0 <= player.vy && player.y <= rect.y + hoge) {
+                                if(!map.hitTest(x, y - yDiff) && 0 <= player.vy && player.y <= rect.y + hoge) {
                                     player.y = rect.y - player.height;
                                     player.vy = 0;
                                     player.isOnMap = true;
-                                } else if((map.checkTile(x, y + yDiff) === -1) && player.vy <= 0 && rect.y + rect.height - hoge < player.y + player.height) {
+                                } else if(!map.hitTest(x, y + yDiff) && player.vy <= 0 && rect.y + rect.height - hoge < player.y + player.height) {
                                     player.y = rect.y + rect.height;
                                     player.vy = 0;
-                                } else if((map.checkTile(x - xDiff, y) === -1) && 0 <= player.vx && player.x <= rect.x + hoge) {
+                                } else if(!map.hitTest(x - xDiff, y) && 0 <= player.vx && player.x <= rect.x + hoge) {
                                     player.x = rect.x - player.width;
                                     player.vx = 0;
-                                } else if((map.checkTile(x + xDiff, y) === -1) && player.vx <= 0 && rect.x + rect.width - hoge < player.x + player.width) {
+                                } else if(!map.hitTest(x + xDiff, y) && player.vx <= 0 && rect.x + rect.width - hoge < player.x + player.width) {
                                     player.x = rect.x + rect.width;
                                     player.vx = 0;
                                 }

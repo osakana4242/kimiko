@@ -411,10 +411,41 @@ module jp.osakana4242.kimiko.scenes {
 				this.frame = kimiko.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
 			},
 
-			start: function (anchor: utils.IVector2D) {
+			// 左右に行ったりきたり
+			brain1: function (anchor: utils.IVector2D) {
 				var range = 16;
 				this.anchor.x = anchor.x;
-				this.anchor.y = anchor.y - (this.height / 2);
+				this.anchor.y = anchor.y;
+				this.x = this.anchor.x;
+				this.y = this.anchor.y;
+				var waitFire = () => { return !this.weapon.isStateFire(); };
+				this.tl
+					.moveTo(this.anchor.x + range, this.anchor.y, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN)
+					.moveTo(this.anchor.x - range, this.anchor.y, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN)
+					.moveTo(this.anchor.x + range, this.anchor.y, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN)
+					.then(() => {
+						var wp: WeaponA = this.weapon;
+						wp.dir.x = 1;
+						wp.dir.y = 0;
+						wp.startFire();
+					})
+					.waitUntil(waitFire)
+					.moveTo(this.anchor.x - range, this.anchor.y, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN)
+					.then(() => {
+						var wp: WeaponA = this.weapon;
+						wp.dir.x = -1;
+						wp.dir.y = 0;
+						wp.startFire();
+					})
+					.waitUntil(waitFire)
+					.loop();
+			},
+
+			// 三角形
+			brain2: function (anchor: utils.IVector2D) {
+				var range = 16;
+				this.anchor.x = anchor.x;
+				this.anchor.y = anchor.y;
 				this.x = this.anchor.x;
 				this.y = this.anchor.y;
 				var waitFire = () => { return !this.weapon.isStateFire(); };
@@ -455,6 +486,7 @@ module jp.osakana4242.kimiko.scenes {
 					.waitUntil(waitFire)
 					.loop();
 			},
+
 		});
 
 	}
@@ -603,12 +635,9 @@ module jp.osakana4242.kimiko.scenes {
 			scene.addChild(world);
 
 
-			var blocks = jp.osakana4242.kimiko["blocks"];
-			
 			var map = new enchant.Map(DF.MAP_TILE_W, DF.MAP_TILE_H);
 			this.map = map;
 			map.image = kimiko.core.assets[DF.IMAGE_MAP];
-			map.loadData(blocks);
 			map.x = 0;
 			map.y = 0;
 			world.addChild(map);
@@ -645,35 +674,6 @@ module jp.osakana4242.kimiko.scenes {
 				sprite.visible = false;
 			}
 			
-			(() => {
-				var mapCharaMgr = new MapCharaManager(this);
-				this.mapCharaMgr = mapCharaMgr;
-
-				var enemySpawns = [
-					[ 8, 40, 1],
-					[16, 60, 1],
-					[24, 40, 1],
-					[32, 60, 1],
-					[40, 40, 1],
-				];
-				
-				for (var i = 0, iNum = enemySpawns.length; i < iNum; ++i) {
-					// 敵.
-					var spawn = enemySpawns[i];
-					var x = spawn[0] * 32;
-					var y = spawn[1] * 32;
-					var enemy = new sprites.EnemyA();
-					var anchor: utils.IVector2D = {
-						"x": x,
-						"y": y,
-					};
-					enemy.start(anchor);
-					mapCharaMgr.addSleep(enemy);
-				}
-
-
-			} ());
-			
 			sprite = new sprites.Player();
 			this.player = sprite;
 			world.addChild(sprite);
@@ -707,7 +707,53 @@ module jp.osakana4242.kimiko.scenes {
 
 			}());
 			
+			this.mapCharaMgr = new MapCharaManager(this);
 			this.touch = new utils.Touch();
+			this.loadMapData( jp.osakana4242.kimiko["mapData"] );
+
+		},
+
+		loadMapData: function (mapData: utils.IMapData) {
+			var map = this.map;
+
+			(() => {
+				var layer = mapData.layers[0];
+				map.loadData(layer.tiles);
+
+				// コリジョン自動生成.
+				var collisionData = [];
+				for (var y = 0, yNum = layer.tiles.length; y < yNum; ++y) {
+					var line = [];
+					for (var x = 0, xNum = layer.tiles[y].length; x < xNum; ++x) {
+						line.push(layer.tiles[y][x] !== -1);
+					}
+					collisionData.push(line);
+				}
+				map.collisionData = collisionData;
+			}());
+
+			// 敵
+			(() => {
+				var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
+				var layer = mapData.layers[1];
+				for (var y = 0, yNum = layer.tiles.length; y < yNum; ++y) {
+					for (var x = 0, xNum = layer.tiles[y].length; x < xNum; ++x) {
+						var enemyId = layer.tiles[y][x];
+						if (enemyId === -1) {
+							continue;
+						}
+						enemyId = enemyId - 48 + 1;
+						var enemy = new sprites.EnemyA();
+						// center, bottom で配置.
+						var anchor: utils.IVector2D = {
+							"x": x * DF.MAP_TILE_W + (enemy.width / 2),
+							"y": y * DF.MAP_TILE_H + (DF.MAP_TILE_H - enemy.height),
+						};
+						enemy["brain" + enemyId](anchor);
+						mapCharaMgr.addSleep(enemy);
+					}
+				}
+			} ());
 		},
 		
 		getNearEnemy: function (sprite, sqrDistanceThreshold) {
@@ -848,9 +894,7 @@ module jp.osakana4242.kimiko.scenes {
 
 			for (var y = yMin; y < yMax; y += yDiff) {
 				for (var x = xMin; x < xMax; x += xDiff) {
-					var tileId = map.checkTile(x, y);
-					var isHit = tileId !== -1;
-					if (!isHit) {
+					if (!map.hitTest(x, y)) {
 						continue;
 					}
 					var rect = new utils.Rect(
@@ -862,20 +906,20 @@ module jp.osakana4242.kimiko.scenes {
 					if (!utils.Rect.intersect(player, rect)) {
 						continue;
 					}
-					if ((map.checkTile(x, y - yDiff) === -1) && 0 <= player.vy && player.y <= rect.y + hoge) {
+					if (!map.hitTest(x, y - yDiff) && 0 <= player.vy && player.y <= rect.y + hoge) {
 						// top
 						player.y = rect.y - player.height;
 						player.vy = 0;
 						player.isOnMap = true;
-					} else if ((map.checkTile(x, y + yDiff) === -1) && player.vy <= 0 && rect.y + rect.height - hoge < player.y + player.height) {
+					} else if (!map.hitTest(x, y + yDiff) && player.vy <= 0 && rect.y + rect.height - hoge < player.y + player.height) {
 						// bottom
 						player.y = rect.y + rect.height;
 						player.vy = 0;
-					} else if ((map.checkTile(x - xDiff, y) === -1) && 0 <= player.vx && player.x <= rect.x + hoge) {
+					} else if (!map.hitTest(x - xDiff, y) && 0 <= player.vx && player.x <= rect.x + hoge) {
 						// left
 						player.x = rect.x - player.width;
 						player.vx = 0;
-					} else if ((map.checkTile(x + xDiff, y) === -1) && player.vx <= 0 && rect.x + rect.width - hoge < player.x + player.width) {
+					} else if (!map.hitTest(x + xDiff, y) && player.vx <= 0 && rect.x + rect.width - hoge < player.x + player.width) {
 						// right
 						player.x = rect.x + rect.width;
 						player.vx = 0;
