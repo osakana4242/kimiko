@@ -223,7 +223,9 @@ var jp;
                             var _this = this;
                             sprites.Attacker.call(this);
                             this.image = kimiko.kimiko.core.assets[kimiko.DF.IMAGE_CHARA001];
-                            this.frame = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA001_WALK);
+                            this.animWalk = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA001_WALK);
+                            this.animStand = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA001_STAND);
+                            this.frame = this.animStand;
                             this.width = 32;
                             this.height = 32;
                             this.life.hpMax = 500;
@@ -718,6 +720,9 @@ var jp;
                         var player = this.player;
                         var playerOldX = player.x;
                         var playerOldY = player.y;
+                        if(player.animWalk !== player.frame) {
+                            player.frame = player.animWalk;
+                        }
                         var touchElpsedFrame = touch.getTouchElpsedFrame();
                         touchElpsedFrame = 0;
                         if(touchElpsedFrame < kimiko.kimiko.secToFrame(0.5)) {
@@ -739,6 +744,7 @@ var jp;
                             Math.floor(touch.diffY)
                         ]).join();
                         var player = this.player;
+                        player.frame = player.animStand;
                         if(Math.abs(touch.diffX) + Math.abs(touch.diffY) < 16) {
                             player.attack();
                         }

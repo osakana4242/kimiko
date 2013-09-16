@@ -243,7 +243,9 @@ module jp.osakana4242.kimiko.scenes {
 			initialize: function () {
 				Attacker.call(this);
 				this.image = kimiko.core.assets[DF.IMAGE_CHARA001]
-				this.frame = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_WALK);
+				this.animWalk = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_WALK);
+				this.animStand = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_STAND);
+				this.frame = this.animStand;
 				this.width = 32;
 				this.height = 32;
 				this.life.hpMax = 500;
@@ -853,6 +855,9 @@ module jp.osakana4242.kimiko.scenes {
 			var player = this.player;
 			var playerOldX = player.x;
 			var playerOldY = player.y;
+			if (player.animWalk !== player.frame) {
+				player.frame = player.animWalk;
+			}
 
 			var touchElpsedFrame = touch.getTouchElpsedFrame();
 			touchElpsedFrame = 0;
@@ -873,6 +878,7 @@ module jp.osakana4242.kimiko.scenes {
 			this.labels[0].text = (<any[]>["touch end diff", Math.floor(touch.diffX), Math.floor(touch.diffY)]).join();
 			
 			var player = this.player;
+			player.frame = player.animStand;
 
 			//player.vx += NumUtil.trim(touch.diffX * 0.05, -16, 16);
 			
