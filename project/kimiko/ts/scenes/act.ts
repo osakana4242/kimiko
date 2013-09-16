@@ -285,6 +285,7 @@ module jp.osakana4242.kimiko.scenes {
 			},
 
 			stepMove: function () {
+				var scene = this.scene;
 				if (this.useGravity && !this.isOnMap) {
 					this.vy += kimiko.dpsToDpf(DF.GRAVITY);
 				}
@@ -299,6 +300,9 @@ module jp.osakana4242.kimiko.scenes {
 					//this.cx = DF.SC_X2;
 					//this.vx = 0;
 				}
+
+				scene.checkMapCollision(this);
+
 				var map = this.scene.map;
 				if (map.height < this.y + this.height) {
 					this.y = map.height - this.height;
@@ -568,8 +572,8 @@ module jp.osakana4242.kimiko.scenes {
 			this.sleepRect = {
 				x: 0,
 				y: 0,
-				width: this.width + 64,
-				height: this.height + 64,
+				width: this.width + 96,
+				height: this.height + 96,
 			};
 			this.spawnRect = {
 				x: 0,
@@ -587,7 +591,7 @@ module jp.osakana4242.kimiko.scenes {
 			// プレイヤーからどれだけずらすか。
 			var tx: number = player.cx - (camera.width / 2) + (player.dirX * 32);
 			var ty: number = player.cy - (camera.height / 2);
-			var speed = kimiko.dpsToDpf(12 * 60);
+			var speed = kimiko.dpsToDpf(8 * 60);
 			var dx = tx - camera.x;
 			var dy = ty - camera.y;
 			var mx = 0;
@@ -652,16 +656,6 @@ module jp.osakana4242.kimiko.scenes {
 			camera.targetGroup = world;
 			world.addChild(camera);
 
-			this.grounds = [];
-			/*
-			for (var i: number =0, iNum: number = 16; i < iNum; ++i) {
-				sprite = new sprites.Ground();
-				group.addChild(sprite);
-				this.grounds[i] = sprite;
-				sprite.x = i * 200;
-				sprite.y = DF.GROUND_Y - 32;
-			}
-			*/
 			this.ownBullets = [];
 			for (var i: number = 0, iNum: number = 8; i < iNum; ++i) {
 				sprite = new sprites.OwnBullet();
@@ -838,7 +832,7 @@ module jp.osakana4242.kimiko.scenes {
 		//---------------------------------------------------------------------------
 		ontouchstart: function (event) {
 			var touch: utils.Touch = this.touch;
-			touch.saveTouchStart(event.x, event.y);
+			touch.saveTouchStart(event);
 			var player = this.player;
 			player.anchorX = player.x;
 			player.anchorY = player.y;
@@ -848,10 +842,10 @@ module jp.osakana4242.kimiko.scenes {
 			player.isOnMap = false;
 
 		},
+
 		ontouchmove: function (event) {
 			var touch: utils.Touch = this.touch;
-			var diffX = event.x - touch.startX;
-			var diffY = event.y - touch.startY
+			touch.saveTouchMove(event);
 			var player = this.player;
 			var playerOldX = player.x;
 			var playerOldY = player.y;
@@ -862,31 +856,39 @@ module jp.osakana4242.kimiko.scenes {
 			var touchElpsedFrame = touch.getTouchElpsedFrame();
 			touchElpsedFrame = 0;
 			if (touchElpsedFrame < kimiko.secToFrame(0.5)) {
-				player.x = player.anchorX + (diffX * 1.0);
-				player.y = player.anchorY + (diffY * 1.0);
+				if (DF.IS_PLAYER_ABSOLUTE_MOVE) {
+					player.x = player.anchorX + (touch.totalDiff.x * 1.5);
+					player.y = player.anchorY + (touch.totalDiff.y * 1.5);
+				} else {
+					player.vx = kimiko.numberUtil.trim(touch.diff.x * 1.0, -30, 30);
+					player.vy = kimiko.numberUtil.trim(touch.diff.y * 1.0, -30, 30);
+				}
 			}
 
-			var dirChangeThreshold = kimiko.core.fps / 15;
-			if (dirChangeThreshold <= Math.abs(player.x - playerOldX)) {
-				player.dirX = kimiko.numberUtil.sign(player.x - playerOldX);
+			var dirChangeThreshold = kimiko.core.fps / 20;
+			if (dirChangeThreshold <= Math.abs(player.vx)) {
+				player.dirX = kimiko.numberUtil.sign(player.vx);
 				player.scaleX = player.dirX;
 			}
 		},
+
 		ontouchend: function (event) {
 			var touch: utils.Touch = this.touch;
-			touch.saveTouchEnd(event.x, event.y);
-			this.labels[0].text = (<any[]>["touch end diff", Math.floor(touch.diffX), Math.floor(touch.diffY)]).join();
+			touch.saveTouchEnd(event);
+			this.labels[0].text = (<any[]>["touch end diff", Math.floor(touch.totalDiff.x), Math.floor(touch.totalDiff.y)]).join();
 			
 			var player = this.player;
 			player.frame = player.animStand;
-
+			player.vx = 0;
+			player.vy = 0;
 			//player.vx += NumUtil.trim(touch.diffX * 0.05, -16, 16);
 			
-			if (Math.abs(touch.diffX) + Math.abs(touch.diffY) < 16) {
+			if (Math.abs(touch.totalDiff.x) + Math.abs(touch.totalDiff.y) < 16) {
 				player.attack();
 			}
 			player.useGravity = true;
 		},
+
 		onenterframe: function () {
 			var player = this.player;
 			//
@@ -932,7 +934,7 @@ module jp.osakana4242.kimiko.scenes {
 						// top
 						player.y = rect.y - player.height;
 						player.vy = 0;
-						player.isOnMap = true;
+						//player.isOnMap = true;
 					} else if (!map.hitTest(x, y + yDiff) && player.vy <= 0 && rect.y + rect.height - hoge < player.y + player.height) {
 						// bottom
 						player.y = rect.y + rect.height;
@@ -955,25 +957,6 @@ module jp.osakana4242.kimiko.scenes {
 			var player = this.player;
 			var enemys = mapCharaMgr.actives;
 
-			this.checkMapCollision(player);
-
-			// 地形とプレイヤーの衝突判定.
-			for (var i = 0, iNum = this.grounds.length; i < iNum; ++i) {
-				var ground = this.grounds[i];
-				if (!this.intersectActiveArea(ground)) {
-					continue;
-				}
-				if (player.vy < 0) {
-					continue;
-				}
-				if (ground.intersect(player)) {
-					player.vy = 0;
-					player.y = ground.y - player.height;
-					break;
-				}
-			}
-			
-			
 			// 敵弾とプレイヤーの衝突判定.
 			if (true) {
 				if (player.isNeutral() || player.isAttack()) {

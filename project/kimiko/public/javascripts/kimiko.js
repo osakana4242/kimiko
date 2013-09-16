@@ -258,6 +258,7 @@ var jp;
                             bullet.cy = this.cy;
                         },
                         stepMove: function () {
+                            var scene = this.scene;
                             if(this.useGravity && !this.isOnMap) {
                                 this.vy += kimiko.kimiko.dpsToDpf(kimiko.DF.GRAVITY);
                             }
@@ -269,6 +270,7 @@ var jp;
                             }
                             if(kimiko.DF.SC_X2 < this.cx) {
                             }
+                            scene.checkMapCollision(this);
                             var map = this.scene.map;
                             if(map.height < this.y + this.height) {
                                 this.y = map.height - this.height;
@@ -479,8 +481,8 @@ var jp;
                         this.sleepRect = {
                             x: 0,
                             y: 0,
-                            width: this.width + 64,
-                            height: this.height + 64
+                            width: this.width + 96,
+                            height: this.height + 96
                         };
                         this.spawnRect = {
                             x: 0,
@@ -495,7 +497,7 @@ var jp;
                         var player = this.scene.player;
                         var tx = player.cx - (camera.width / 2) + (player.dirX * 32);
                         var ty = player.cy - (camera.height / 2);
-                        var speed = kimiko.kimiko.dpsToDpf(12 * 60);
+                        var speed = kimiko.kimiko.dpsToDpf(8 * 60);
                         var dx = tx - camera.x;
                         var dy = ty - camera.y;
                         var mx = 0;
@@ -552,7 +554,6 @@ var jp;
                         this.camera = camera;
                         camera.targetGroup = world;
                         world.addChild(camera);
-                        this.grounds = [];
                         this.ownBullets = [];
                         for(var i = 0, iNum = 8; i < iNum; ++i) {
                             sprite = new sprites.OwnBullet();
@@ -704,7 +705,7 @@ var jp;
                     },
                     ontouchstart: function (event) {
                         var touch = this.touch;
-                        touch.saveTouchStart(event.x, event.y);
+                        touch.saveTouchStart(event);
                         var player = this.player;
                         player.anchorX = player.x;
                         player.anchorY = player.y;
@@ -715,8 +716,7 @@ var jp;
                     },
                     ontouchmove: function (event) {
                         var touch = this.touch;
-                        var diffX = event.x - touch.startX;
-                        var diffY = event.y - touch.startY;
+                        touch.saveTouchMove(event);
                         var player = this.player;
                         var playerOldX = player.x;
                         var playerOldY = player.y;
@@ -726,26 +726,33 @@ var jp;
                         var touchElpsedFrame = touch.getTouchElpsedFrame();
                         touchElpsedFrame = 0;
                         if(touchElpsedFrame < kimiko.kimiko.secToFrame(0.5)) {
-                            player.x = player.anchorX + (diffX * 1.0);
-                            player.y = player.anchorY + (diffY * 1.0);
+                            if(kimiko.DF.IS_PLAYER_ABSOLUTE_MOVE) {
+                                player.x = player.anchorX + (touch.totalDiff.x * 1.5);
+                                player.y = player.anchorY + (touch.totalDiff.y * 1.5);
+                            } else {
+                                player.vx = kimiko.kimiko.numberUtil.trim(touch.diff.x * 1.0, -30, 30);
+                                player.vy = kimiko.kimiko.numberUtil.trim(touch.diff.y * 1.0, -30, 30);
+                            }
                         }
-                        var dirChangeThreshold = kimiko.kimiko.core.fps / 15;
-                        if(dirChangeThreshold <= Math.abs(player.x - playerOldX)) {
-                            player.dirX = kimiko.kimiko.numberUtil.sign(player.x - playerOldX);
+                        var dirChangeThreshold = kimiko.kimiko.core.fps / 20;
+                        if(dirChangeThreshold <= Math.abs(player.vx)) {
+                            player.dirX = kimiko.kimiko.numberUtil.sign(player.vx);
                             player.scaleX = player.dirX;
                         }
                     },
                     ontouchend: function (event) {
                         var touch = this.touch;
-                        touch.saveTouchEnd(event.x, event.y);
+                        touch.saveTouchEnd(event);
                         this.labels[0].text = ([
                             "touch end diff", 
-                            Math.floor(touch.diffX), 
-                            Math.floor(touch.diffY)
+                            Math.floor(touch.totalDiff.x), 
+                            Math.floor(touch.totalDiff.y)
                         ]).join();
                         var player = this.player;
                         player.frame = player.animStand;
-                        if(Math.abs(touch.diffX) + Math.abs(touch.diffY) < 16) {
+                        player.vx = 0;
+                        player.vy = 0;
+                        if(Math.abs(touch.totalDiff.x) + Math.abs(touch.totalDiff.y) < 16) {
                             player.attack();
                         }
                         player.useGravity = true;
@@ -779,7 +786,6 @@ var jp;
                                 if(!map.hitTest(x, y - yDiff) && 0 <= player.vy && player.y <= rect.y + hoge) {
                                     player.y = rect.y - player.height;
                                     player.vy = 0;
-                                    player.isOnMap = true;
                                 } else if(!map.hitTest(x, y + yDiff) && player.vy <= 0 && rect.y + rect.height - hoge < player.y + player.height) {
                                     player.y = rect.y + rect.height;
                                     player.vy = 0;
@@ -797,21 +803,6 @@ var jp;
                         var mapCharaMgr = this.mapCharaMgr;
                         var player = this.player;
                         var enemys = mapCharaMgr.actives;
-                        this.checkMapCollision(player);
-                        for(var i = 0, iNum = this.grounds.length; i < iNum; ++i) {
-                            var ground = this.grounds[i];
-                            if(!this.intersectActiveArea(ground)) {
-                                continue;
-                            }
-                            if(player.vy < 0) {
-                                continue;
-                            }
-                            if(ground.intersect(player)) {
-                                player.vy = 0;
-                                player.y = ground.y - player.height;
-                                break;
-                            }
-                        }
                         if(true) {
                             if(player.isNeutral() || player.isAttack()) {
                                 for(var i = 0, iNum = this.enemyBullets.length; i < iNum; ++i) {
@@ -880,7 +871,12 @@ var jp;
     (function (osakana4242) {
         (function (utils) {
             var Vector2D = (function () {
-                function Vector2D() { }
+                function Vector2D(x, y) {
+                    if (typeof x === "undefined") { x = 0; }
+                    if (typeof y === "undefined") { y = 0; }
+                    this.x = x;
+                    this.y = y;
+                }
                 Vector2D.copyFrom = function copyFrom(dest, src) {
                     dest.x = src.x;
                     dest.y = src.y;
@@ -931,29 +927,31 @@ var jp;
             utils.Rect = Rect;            
             var Touch = (function () {
                 function Touch() {
+                    this.start = new Vector2D();
+                    this.end = new Vector2D();
+                    this.totalDiff = new Vector2D();
+                    this.diff = new Vector2D();
                     this.isTouching = false;
                 }
-                Touch.prototype.saveTouchStart = function (x, y) {
-                    this.startX = x;
-                    this.startY = y;
+                Touch.prototype.saveTouchStart = function (pos) {
+                    Vector2D.copyFrom(this.start, pos);
+                    Vector2D.copyFrom(this.end, this.start);
                     this.startFrame = enchant.Core.instance.frame;
                     this.isTouching = true;
                 };
-                Touch.prototype.saveTouchMove = function (x, y) {
-                    this.endX = x;
-                    this.endY = y;
-                    this.endFrame = enchant.Core.instance.frame;
-                    this.isTouching = false;
-                    this.diffX = this.endX - this.startX;
-                    this.diffY = this.endY - this.startY;
+                Touch.prototype.saveTouchMove = function (pos) {
+                    this.diff.x = pos.x - this.end.x;
+                    this.diff.y = pos.y - this.end.y;
+                    Vector2D.copyFrom(this.end, pos);
+                    this.totalDiff.x = this.end.x - this.start.x;
+                    this.totalDiff.y = this.end.y - this.start.y;
                 };
-                Touch.prototype.saveTouchEnd = function (x, y) {
-                    this.endX = x;
-                    this.endY = y;
+                Touch.prototype.saveTouchEnd = function (pos) {
+                    Vector2D.copyFrom(this.end, pos);
                     this.endFrame = enchant.Core.instance.frame;
                     this.isTouching = false;
-                    this.diffX = this.endX - this.startX;
-                    this.diffY = this.endY - this.startY;
+                    this.totalDiff.x = this.end.x - this.start.x;
+                    this.totalDiff.y = this.end.y - this.start.y;
                 };
                 Touch.prototype.getTouchElpsedFrame = function () {
                     return enchant.Core.instance.frame - this.startFrame;
@@ -1008,6 +1006,7 @@ var jp;
                 DF.ANIM_ID_CHARA002_WALK = 20;
                 DF.FONT_M = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
                 DF.GRAVITY = 0.25 * 60;
+                DF.IS_PLAYER_ABSOLUTE_MOVE = false;
             })(kimiko.DF || (kimiko.DF = {}));
             var DF = kimiko.DF;
             var NumberUtil = (function () {

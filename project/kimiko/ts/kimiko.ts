@@ -9,7 +9,13 @@ module jp.osakana4242.utils {
 		y: number;
 	}
 
-	export class Vector2D {
+	export class Vector2D implements IVector2D {
+
+		constructor(
+			public x: number = 0,
+			public y: number = 0) {
+		}
+
 		public static copyFrom(dest: IVector2D, src: IVector2D): void {
 			dest.x = src.x;
 			dest.y = src.y;
@@ -73,41 +79,37 @@ module jp.osakana4242.utils {
 	}
 
 	export class Touch {
-		startX: number;
-		startY: number;
 		startFrame: number;
-		endX: number;
-		endY: number;
+		start: Vector2D = new Vector2D();
+		end: Vector2D = new Vector2D();
 		endFrame: number;
-		diffX: number;
-		diffY: number;
+		totalDiff: Vector2D = new Vector2D();
+		diff: Vector2D = new Vector2D();
 		isTouching: bool = false;
 		
-		saveTouchStart(x: number, y: number): void {
-			this.startX = x;
-			this.startY = y;
+		saveTouchStart(pos: IVector2D): void {
+			Vector2D.copyFrom(this.start, pos);
+			Vector2D.copyFrom(this.end, this.start);
 			this.startFrame = enchant.Core.instance.frame;
 			this.isTouching = true;
 		}
 		
-		saveTouchMove(x: number, y: number): void {
-			this.endX = x;
-			this.endY = y;
-			this.endFrame = enchant.Core.instance.frame;
-			this.isTouching = false;
-			
-			this.diffX = this.endX - this.startX;
-			this.diffY = this.endY - this.startY;
+		saveTouchMove(pos: IVector2D): void {
+			this.diff.x = pos.x - this.end.x;
+			this.diff.y = pos.y - this.end.y;
+			Vector2D.copyFrom(this.end, pos);
+
+			this.totalDiff.x = this.end.x - this.start.x;
+			this.totalDiff.y = this.end.y - this.start.y;
 		}
 		
-		saveTouchEnd(x: number, y: number): void {
-			this.endX = x;
-			this.endY = y;
+		saveTouchEnd(pos: IVector2D): void {
+			Vector2D.copyFrom(this.end, pos);
 			this.endFrame = enchant.Core.instance.frame;
 			this.isTouching = false;
 			
-			this.diffX = this.endX - this.startX;
-			this.diffY = this.endY - this.startY;
+			this.totalDiff.x = this.end.x - this.start.x;
+			this.totalDiff.y = this.end.y - this.start.y;
 		}
 		
 		getTouchElpsedFrame() { return enchant.Core.instance.frame - this.startFrame; }
@@ -167,6 +169,8 @@ module jp.osakana4242.kimiko {
 
 		export var FONT_M: string = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
 		export var GRAVITY: number = 0.25 * 60;
+
+		export var IS_PLAYER_ABSOLUTE_MOVE = false;
 	}
 	
 	export class NumberUtil {
