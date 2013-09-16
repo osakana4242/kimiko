@@ -860,8 +860,8 @@ module jp.osakana4242.kimiko.scenes {
 					player.x = player.anchorX + (touch.totalDiff.x * 1.5);
 					player.y = player.anchorY + (touch.totalDiff.y * 1.5);
 				} else {
-					player.vx = kimiko.numberUtil.trim(touch.diff.x * 1.0, -30, 30);
-					player.vy = kimiko.numberUtil.trim(touch.diff.y * 1.0, -30, 30);
+					player.vx = kimiko.numberUtil.trim(touch.diff.x * 1.5, -30, 30);
+					player.vy = kimiko.numberUtil.trim(touch.diff.y * 1.5, -30, 30);
 				}
 			}
 

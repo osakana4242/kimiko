@@ -730,8 +730,8 @@ var jp;
                                 player.x = player.anchorX + (touch.totalDiff.x * 1.5);
                                 player.y = player.anchorY + (touch.totalDiff.y * 1.5);
                             } else {
-                                player.vx = kimiko.kimiko.numberUtil.trim(touch.diff.x * 1.0, -30, 30);
-                                player.vy = kimiko.kimiko.numberUtil.trim(touch.diff.y * 1.0, -30, 30);
+                                player.vx = kimiko.kimiko.numberUtil.trim(touch.diff.x * 1.5, -30, 30);
+                                player.vy = kimiko.kimiko.numberUtil.trim(touch.diff.y * 1.5, -30, 30);
                             }
                         }
                         var dirChangeThreshold = kimiko.kimiko.core.fps / 20;
