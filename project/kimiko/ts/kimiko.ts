@@ -34,6 +34,16 @@ module jp.osakana4242.utils {
 			return Math.sqrt(Vector2D.sqrMagnitude(a));
 		}
 
+		public static sqrDistance(a: IVector2D, b: IVector2D): number {
+			var dx = b.x - a.x;
+			var dy = b.y - a.y;
+			return (dx * dx) + (dy * dy);
+		}
+
+		public static distance(a: IVector2D, b: IVector2D): number {
+			return Math.sqrt(Vector2D.sqrDistance(a, b));
+		}
+
 		public static normalize(a: IVector2D): void {
 			var m = Vector2D.magnitude(a);
 			if (m === 0) {

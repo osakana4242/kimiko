@@ -234,20 +234,39 @@ var jp;
                             this.anchorY = 0;
                             this.useGravity = true;
                             this.isOnMap = false;
+                            this.targetEnemy = null;
                             this.addEventListener(Event.ENTER_FRAME, function () {
                                 _this.stepMove();
-                                var scene = _this.scene;
-                                if((_this.age % kimiko.kimiko.secToFrame(0.2)) === 0) {
-                                    var nearEnemy = scene.getNearEnemy(_this, 128 * 128);
-                                    if(nearEnemy !== null) {
-                                        _this.attack();
+                                if(_this.targetEnemy === null) {
+                                    var scene = _this.scene;
+                                    if((_this.age % kimiko.kimiko.secToFrame(0.2)) === 0) {
+                                        _this.targetEnemy = scene.getNearEnemy(_this, 128 * 128);
+                                    }
+                                } else {
+                                    if(_this.targetEnemy.life.isDead()) {
+                                        _this.targetEnemy = null;
+                                    }
+                                    if(_this.targetEnemy !== null) {
+                                        var distance = osakana4242.utils.Vector2D.distance(_this, _this.targetEnemy);
+                                        var threshold = kimiko.DF.SC_W / 2;
+                                        if(threshold < distance) {
+                                            _this.targetEnemy = null;
+                                        } else {
+                                            _this.dirX = kimiko.kimiko.numberUtil.sign(_this.targetEnemy.x - _this.x);
+                                            _this.scaleX = _this.dirX;
+                                            if((_this.age % kimiko.kimiko.secToFrame(0.2)) === 0) {
+                                                if(distance < 128) {
+                                                    _this.attack();
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             });
                         },
                         stateToString: function () {
                             var str = sprites.Attacker.prototype.stateToString.call(this);
-                            str += " hp:" + this.life.hp + " G:" + (this.isOnMap ? "o" : "x");
+                            str += " hp:" + this.life.hp + " L:" + (this.targetEnemy !== null ? "o" : "x");
                             return str;
                         },
                         attack: function () {
@@ -259,6 +278,13 @@ var jp;
                         },
                         stepMove: function () {
                             var scene = this.scene;
+                            if(!this.targetEnemy) {
+                                var dirChangeThreshold = kimiko.kimiko.core.fps / 20;
+                                if(dirChangeThreshold <= Math.abs(this.vx)) {
+                                    this.dirX = kimiko.kimiko.numberUtil.sign(this.vx);
+                                    this.scaleX = this.dirX;
+                                }
+                            }
                             if(this.useGravity && !this.isOnMap) {
                                 this.vy += kimiko.kimiko.dpsToDpf(kimiko.DF.GRAVITY);
                             }
@@ -732,8 +758,9 @@ var jp;
                         touchElpsedFrame = 0;
                         if(touchElpsedFrame < kimiko.kimiko.secToFrame(0.5)) {
                             var moveLimit = 30;
+                            var moveRate = 1.0;
                             if(kimiko.DF.PLAYER_TOUCH_ANCHOR_ENABLE) {
-                                var tv = new osakana4242.utils.Vector2D(player.anchorX + touch.totalDiff.x * 1.5, player.anchorY + touch.totalDiff.y * 1.5);
+                                var tv = new osakana4242.utils.Vector2D(player.anchorX + touch.totalDiff.x * moveRate, player.anchorY + touch.totalDiff.y * moveRate);
                                 var v = new osakana4242.utils.Vector2D(tv.x - player.x, tv.y - player.y);
                                 var vm = Math.min(osakana4242.utils.Vector2D.magnitude(v), moveLimit);
                                 osakana4242.utils.Vector2D.normalize(v);
@@ -742,14 +769,9 @@ var jp;
                                 player.vx = v.x;
                                 player.vy = v.y;
                             } else {
-                                player.vx = kimiko.kimiko.numberUtil.trim(touch.diff.x * 1.5, -moveLimit, moveLimit);
-                                player.vy = kimiko.kimiko.numberUtil.trim(touch.diff.y * 1.5, -moveLimit, moveLimit);
+                                player.vx = kimiko.kimiko.numberUtil.trim(touch.diff.x * moveRate, -moveLimit, moveLimit);
+                                player.vy = kimiko.kimiko.numberUtil.trim(touch.diff.y * moveRate, -moveLimit, moveLimit);
                             }
-                        }
-                        var dirChangeThreshold = kimiko.kimiko.core.fps / 20;
-                        if(dirChangeThreshold <= Math.abs(player.vx)) {
-                            player.dirX = kimiko.kimiko.numberUtil.sign(player.vx);
-                            player.scaleX = player.dirX;
                         }
                     },
                     ontouchend: function (event) {
@@ -902,6 +924,14 @@ var jp;
                 };
                 Vector2D.magnitude = function magnitude(a) {
                     return Math.sqrt(Vector2D.sqrMagnitude(a));
+                };
+                Vector2D.sqrDistance = function sqrDistance(a, b) {
+                    var dx = b.x - a.x;
+                    var dy = b.y - a.y;
+                    return (dx * dx) + (dy * dy);
+                };
+                Vector2D.distance = function distance(a, b) {
+                    return Math.sqrt(Vector2D.sqrDistance(a, b));
                 };
                 Vector2D.normalize = function normalize(a) {
                     var m = Vector2D.magnitude(a);

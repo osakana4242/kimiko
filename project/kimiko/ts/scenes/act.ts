@@ -254,25 +254,44 @@ module jp.osakana4242.kimiko.scenes {
 				this.anchorY = 0;
 				this.useGravity = true;
 				this.isOnMap = false;
+				this.targetEnemy = null;
 
 				this.addEventListener(Event.ENTER_FRAME, () => {
 					this.stepMove();
 					
-					// 敵が近くにいれば攻撃.
-					var scene = this.scene;
-					if ((this.age % kimiko.secToFrame(0.2)) === 0) {
-						var nearEnemy = scene.getNearEnemy(this, 128 * 128);
-						if (nearEnemy !== null) {
-							this.attack();
+					if (this.targetEnemy === null) {
+						var scene = this.scene;
+						if ((this.age % kimiko.secToFrame(0.2)) === 0) {
+							this.targetEnemy = scene.getNearEnemy(this, 128 * 128);
+						}
+					} else {
+						if (this.targetEnemy.life.isDead()) {
+							// 敵が死んでたら解除.
+							this.targetEnemy = null;
+						}
+						if (this.targetEnemy !== null) {
+							var distance = utils.Vector2D.distance(this, this.targetEnemy);
+							var threshold = DF.SC_W / 2;
+							if (threshold < distance) {
+								// 敵が離れたら解除.
+								this.targetEnemy = null;
+							} else {
+								this.dirX = kimiko.numberUtil.sign(this.targetEnemy.x - this.x);
+								this.scaleX = this.dirX;
+								if ((this.age % kimiko.secToFrame(0.2)) === 0) {
+									if (distance < 128) {
+										this.attack();
+									}
+								}
+							}
 						}
 					}
-
 				});
 			},
 
 			stateToString: function () {
 				var str = Attacker.prototype.stateToString.call(this);
-				str += " hp:" + this.life.hp + " G:" + (this.isOnMap ? "o" : "x");
+				str += " hp:" + this.life.hp + " L:" + (this.targetEnemy !== null ? "o" : "x");
 				return str;
 			},
 
@@ -286,6 +305,15 @@ module jp.osakana4242.kimiko.scenes {
 
 			stepMove: function () {
 				var scene = this.scene;
+				
+				if (!this.targetEnemy) {
+					var dirChangeThreshold = kimiko.core.fps / 20;
+					if (dirChangeThreshold <= Math.abs(this.vx)) {
+						this.dirX = kimiko.numberUtil.sign(this.vx);
+						this.scaleX = this.dirX;
+					}
+				}
+
 				if (this.useGravity && !this.isOnMap) {
 					this.vy += kimiko.dpsToDpf(DF.GRAVITY);
 				}
@@ -863,10 +891,11 @@ module jp.osakana4242.kimiko.scenes {
 			touchElpsedFrame = 0;
 			if (touchElpsedFrame < kimiko.secToFrame(0.5)) {
 				var moveLimit = 30;
+				var moveRate = 1.0;
 				if (DF.PLAYER_TOUCH_ANCHOR_ENABLE) {
 					var tv = new utils.Vector2D(
-						player.anchorX + touch.totalDiff.x * 1.5,
-						player.anchorY + touch.totalDiff.y * 1.5);
+						player.anchorX + touch.totalDiff.x * moveRate,
+						player.anchorY + touch.totalDiff.y * moveRate);
 					var v = new utils.Vector2D(
 						tv.x - player.x,
 						tv.y - player.y
@@ -878,15 +907,9 @@ module jp.osakana4242.kimiko.scenes {
 					player.vx = v.x;
 					player.vy = v.y;
 				} else {
-					player.vx = kimiko.numberUtil.trim(touch.diff.x * 1.5, -moveLimit, moveLimit);
-					player.vy = kimiko.numberUtil.trim(touch.diff.y * 1.5, -moveLimit, moveLimit);
+					player.vx = kimiko.numberUtil.trim(touch.diff.x * moveRate, -moveLimit, moveLimit);
+					player.vy = kimiko.numberUtil.trim(touch.diff.y * moveRate, -moveLimit, moveLimit);
 				}
-			}
-
-			var dirChangeThreshold = kimiko.core.fps / 20;
-			if (dirChangeThreshold <= Math.abs(player.vx)) {
-				player.dirX = kimiko.numberUtil.sign(player.vx);
-				player.scaleX = player.dirX;
 			}
 		},
 
