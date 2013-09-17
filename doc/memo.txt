@@ -37,6 +37,7 @@ nginx>nginx -s reload
 
 バグ
 	touchmove後のに連続できみこが動いてしまう
+	やっぱりタッチスタート位置から移動距離求めるやつを改良するのがいいかも。
 
 課題
 	ipod x enchant.v0.7.x.js x タッチで描画が止まる！

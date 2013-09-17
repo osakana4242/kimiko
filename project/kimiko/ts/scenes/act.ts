@@ -862,12 +862,24 @@ module jp.osakana4242.kimiko.scenes {
 			var touchElpsedFrame = touch.getTouchElpsedFrame();
 			touchElpsedFrame = 0;
 			if (touchElpsedFrame < kimiko.secToFrame(0.5)) {
-				if (DF.IS_PLAYER_ABSOLUTE_MOVE) {
-					player.x = player.anchorX + (touch.totalDiff.x * 1.5);
-					player.y = player.anchorY + (touch.totalDiff.y * 1.5);
+				var moveLimit = 30;
+				if (DF.PLAYER_TOUCH_ANCHOR_ENABLE) {
+					var tv = new utils.Vector2D(
+						player.anchorX + touch.totalDiff.x * 1.5,
+						player.anchorY + touch.totalDiff.y * 1.5);
+					var v = new utils.Vector2D(
+						tv.x - player.x,
+						tv.y - player.y
+						);
+					var vm = Math.min(utils.Vector2D.magnitude(v), moveLimit);
+					utils.Vector2D.normalize(v);
+					v.x *= vm;
+					v.y *= vm;
+					player.vx = v.x;
+					player.vy = v.y;
 				} else {
-					player.vx = kimiko.numberUtil.trim(touch.diff.x * 1.5, -30, 30);
-					player.vy = kimiko.numberUtil.trim(touch.diff.y * 1.5, -30, 30);
+					player.vx = kimiko.numberUtil.trim(touch.diff.x * 1.5, -moveLimit, moveLimit);
+					player.vy = kimiko.numberUtil.trim(touch.diff.y * 1.5, -moveLimit, moveLimit);
 				}
 			}
 

@@ -731,12 +731,19 @@ var jp;
                         var touchElpsedFrame = touch.getTouchElpsedFrame();
                         touchElpsedFrame = 0;
                         if(touchElpsedFrame < kimiko.kimiko.secToFrame(0.5)) {
-                            if(kimiko.DF.IS_PLAYER_ABSOLUTE_MOVE) {
-                                player.x = player.anchorX + (touch.totalDiff.x * 1.5);
-                                player.y = player.anchorY + (touch.totalDiff.y * 1.5);
+                            var moveLimit = 30;
+                            if(kimiko.DF.PLAYER_TOUCH_ANCHOR_ENABLE) {
+                                var tv = new osakana4242.utils.Vector2D(player.anchorX + touch.totalDiff.x * 1.5, player.anchorY + touch.totalDiff.y * 1.5);
+                                var v = new osakana4242.utils.Vector2D(tv.x - player.x, tv.y - player.y);
+                                var vm = Math.min(osakana4242.utils.Vector2D.magnitude(v), moveLimit);
+                                osakana4242.utils.Vector2D.normalize(v);
+                                v.x *= vm;
+                                v.y *= vm;
+                                player.vx = v.x;
+                                player.vy = v.y;
                             } else {
-                                player.vx = kimiko.kimiko.numberUtil.trim(touch.diff.x * 1.5, -30, 30);
-                                player.vy = kimiko.kimiko.numberUtil.trim(touch.diff.y * 1.5, -30, 30);
+                                player.vx = kimiko.kimiko.numberUtil.trim(touch.diff.x * 1.5, -moveLimit, moveLimit);
+                                player.vy = kimiko.kimiko.numberUtil.trim(touch.diff.y * 1.5, -moveLimit, moveLimit);
                             }
                         }
                         var dirChangeThreshold = kimiko.kimiko.core.fps / 20;
@@ -1011,7 +1018,7 @@ var jp;
                 DF.ANIM_ID_CHARA002_WALK = 20;
                 DF.FONT_M = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
                 DF.GRAVITY = 0.25 * 60;
-                DF.IS_PLAYER_ABSOLUTE_MOVE = false;
+                DF.PLAYER_TOUCH_ANCHOR_ENABLE = true;
             })(kimiko.DF || (kimiko.DF = {}));
             var DF = kimiko.DF;
             var NumberUtil = (function () {

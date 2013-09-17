@@ -170,7 +170,7 @@ module jp.osakana4242.kimiko {
 		export var FONT_M: string = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
 		export var GRAVITY: number = 0.25 * 60;
 
-		export var IS_PLAYER_ABSOLUTE_MOVE = false;
+		export var PLAYER_TOUCH_ANCHOR_ENABLE = true;
 	}
 	
 	export class NumberUtil {
