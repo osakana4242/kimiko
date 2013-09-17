@@ -308,6 +308,12 @@ module jp.osakana4242.kimiko.scenes {
 					this.y = map.height - this.height;
 					this.vy = 0;
 				}
+
+				var touch: utils.Touch = scene.touch;
+				if (touch.isTouching) {
+					this.vx = 0;
+					this.vy = 0;
+				}
 			},
 		});
 		

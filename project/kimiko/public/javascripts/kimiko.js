@@ -276,6 +276,11 @@ var jp;
                                 this.y = map.height - this.height;
                                 this.vy = 0;
                             }
+                            var touch = scene.touch;
+                            if(touch.isTouching) {
+                                this.vx = 0;
+                                this.vy = 0;
+                            }
                         }
                     });
                     var WeaponA = (function () {
