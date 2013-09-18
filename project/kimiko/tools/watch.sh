@@ -6,9 +6,9 @@ cd $BASE
 
 start(){
   #ls -1 -R $TS_DIR/*.ts > watch_ts_list.txt
-  find $TS_DIR | grep -E "\.ts$" > watch_ts_list.txt
+  find $TS_DIR | grep -E "\.ts$" > "$TEMP_DIR/watch_ts_list.txt"
   
-	$NODE_JS_TSC --target ES5 --watch @watch_ts_list.txt --out $PRJ_DIR/public/javascripts/kimiko.js &
+	$NODE_JS_TSC --target ES5 --watch @"$TEMP_DIR/watch_ts_list.txt" --out $PRJ_DIR/public/javascripts/kimiko.js &
   echo $! > TSC.PID
 }
 
