@@ -278,6 +278,12 @@ var jp;
                         },
                         stepMove: function () {
                             var scene = this.scene;
+                            var input = kimiko.kimiko.core.input;
+                            var flag = ((input.left ? 1 : 0) << 0) | ((input.right ? 1 : 0) << 1) | ((input.up ? 1 : 0) << 2) | ((input.down ? 1 : 0) << 3);
+                            if(flag !== 0) {
+                                this.vx = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].x * 4;
+                                this.vy = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * 4;
+                            }
                             if(!this.targetEnemy) {
                                 var dirChangeThreshold = kimiko.kimiko.core.fps / 20;
                                 if(dirChangeThreshold <= Math.abs(this.vx)) {
@@ -303,7 +309,7 @@ var jp;
                                 this.vy = 0;
                             }
                             var touch = scene.touch;
-                            if(touch.isTouching) {
+                            if(touch.isTouching || flag !== 0) {
                                 this.vx = 0;
                                 this.vy = 0;
                             }
@@ -1055,24 +1061,69 @@ var jp;
                 DF.BIT_R = 1 << 1;
                 DF.BIT_U = 1 << 2;
                 DF.BIT_D = 1 << 3;
-                DF.HOGE = {
-                    BIT_L: {
-                        x: -1,
+                DF.DIR_FLAG_TO_VECTOR2D = ((function () {
+                    var a = {
+                    };
+                    var b = 1;
+                    var c = 0.7;
+                    a[DF.BIT_L] = {
+                        x: -b,
                         y: 0
-                    },
-                    BIT_R: {
-                        x: 1,
+                    };
+                    a[DF.BIT_R] = {
+                        x: b,
                         y: 0
-                    },
-                    BIT_U: {
+                    };
+                    a[DF.BIT_U] = {
                         x: 0,
-                        y: -1
-                    },
-                    BIT_D: {
+                        y: -b
+                    };
+                    a[DF.BIT_D] = {
                         x: 0,
-                        y: 1
-                    }
-                };
+                        y: b
+                    };
+                    a[DF.BIT_L | DF.BIT_U] = {
+                        x: -c,
+                        y: -c
+                    };
+                    a[DF.BIT_L | DF.BIT_D] = {
+                        x: -c,
+                        y: c
+                    };
+                    a[DF.BIT_L | DF.BIT_R] = {
+                        x: 0,
+                        y: 0
+                    };
+                    a[DF.BIT_R | DF.BIT_U] = {
+                        x: c,
+                        y: -c
+                    };
+                    a[DF.BIT_R | DF.BIT_D] = {
+                        x: c,
+                        y: c
+                    };
+                    a[DF.BIT_L | DF.BIT_R | DF.BIT_U] = {
+                        x: 0,
+                        y: -b
+                    };
+                    a[DF.BIT_L | DF.BIT_R | DF.BIT_D] = {
+                        x: 0,
+                        y: b
+                    };
+                    a[DF.BIT_L | DF.BIT_U | DF.BIT_D] = {
+                        x: -b,
+                        y: 0
+                    };
+                    a[DF.BIT_R | DF.BIT_U | DF.BIT_D] = {
+                        x: b,
+                        y: 0
+                    };
+                    a[DF.BIT_L | DF.BIT_R | DF.BIT_U | DF.BIT_D] = {
+                        x: 0,
+                        y: 0
+                    };
+                    return a;
+                })());
             })(kimiko.DF || (kimiko.DF = {}));
             var DF = kimiko.DF;
             var NumberUtil = (function () {

@@ -305,7 +305,16 @@ module jp.osakana4242.kimiko.scenes {
 
 			stepMove: function () {
 				var scene = this.scene;
-				
+				var input = kimiko.core.input;
+				var flag = ((input.left ? 1 : 0) << 0)
+					| ((input.right ? 1 : 0) << 1)
+					| ((input.up ? 1 : 0) << 2)
+					| ((input.down ? 1 : 0) << 3);
+				if (flag !== 0) {
+					this.vx = DF.DIR_FLAG_TO_VECTOR2D[flag].x * 4;
+					this.vy = DF.DIR_FLAG_TO_VECTOR2D[flag].y * 4;
+				}
+
 				if (!this.targetEnemy) {
 					var dirChangeThreshold = kimiko.core.fps / 20;
 					if (dirChangeThreshold <= Math.abs(this.vx)) {
@@ -338,7 +347,7 @@ module jp.osakana4242.kimiko.scenes {
 				}
 
 				var touch: utils.Touch = scene.touch;
-				if (touch.isTouching) {
+				if (touch.isTouching || flag !== 0) {
 					this.vx = 0;
 					this.vy = 0;
 				}

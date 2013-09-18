@@ -190,12 +190,30 @@ module jp.osakana4242.kimiko {
 		export var BIT_U = 1 << 2;
 		export var BIT_D = 1 << 3;
 		
-		export var HOGE = {
-		       BIT_L: { x: -1, y :  0 },
-		       BIT_R: { x:  1, y :  0 },
-		       BIT_U: { x:  0, y : -1 },
-		       BIT_D: { x:  0, y :  1 },
-		};
+		export var DIR_FLAG_TO_VECTOR2D = (() => {
+			var a: { [index: number]: utils.IVector2D; } = <any>{};
+			var b = 1;
+			var c = 0.7;
+			a[BIT_L] = { x: -b, y: 0 };
+			a[BIT_R] = { x: b, y: 0 };
+			a[BIT_U] = { x:  0, y : -b };
+			a[BIT_D] = { x: 0, y: b };
+
+			a[BIT_L | BIT_U] = { x: -c, y: -c };
+			a[BIT_L | BIT_D] = { x: -c, y: c };
+			a[BIT_L | BIT_R] = { x: 0, y: 0 };
+
+			a[BIT_R | BIT_U] = { x: c, y: -c };
+			a[BIT_R | BIT_D] = { x: c, y: c };
+
+			a[BIT_L | BIT_R | BIT_U] = { x: 0, y: -b };
+			a[BIT_L | BIT_R | BIT_D] = { x: 0, y: b };
+			a[BIT_L | BIT_U | BIT_D] = { x: -b, y: 0 };
+			a[BIT_R | BIT_U | BIT_D] = { x: b, y: 0 };
+
+			a[BIT_L | BIT_R | BIT_U | BIT_D] = { x: 0, y: 0 };
+			return a;
+		}());
 	}
 	
 	export class NumberUtil {
