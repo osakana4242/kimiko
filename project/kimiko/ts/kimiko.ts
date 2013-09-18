@@ -15,6 +15,9 @@ module jp.osakana4242.utils {
 			public x: number = 0,
 			public y: number = 0) {
 		}
+		
+		public static hoge() :void {
+		}
 
 		public static copyFrom(dest: IVector2D, src: IVector2D): void {
 			dest.x = src.x;
@@ -181,6 +184,18 @@ module jp.osakana4242.kimiko {
 		export var GRAVITY: number = 0.25 * 60;
 
 		export var PLAYER_TOUCH_ANCHOR_ENABLE = true;
+		
+		export var BIT_L = 1 << 0;
+		export var BIT_R = 1 << 1;
+		export var BIT_U = 1 << 2;
+		export var BIT_D = 1 << 3;
+		
+		export var HOGE = {
+		       BIT_L: { x: -1, y :  0 },
+		       BIT_R: { x:  1, y :  0 },
+		       BIT_U: { x:  0, y : -1 },
+		       BIT_D: { x:  0, y :  1 },
+		};
 	}
 	
 	export class NumberUtil {

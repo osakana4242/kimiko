@@ -911,6 +911,8 @@ var jp;
                     this.x = x;
                     this.y = y;
                 }
+                Vector2D.hoge = function hoge() {
+                };
                 Vector2D.copyFrom = function copyFrom(dest, src) {
                     dest.x = src.x;
                     dest.y = src.y;
@@ -1049,6 +1051,28 @@ var jp;
                 DF.FONT_M = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
                 DF.GRAVITY = 0.25 * 60;
                 DF.PLAYER_TOUCH_ANCHOR_ENABLE = true;
+                DF.BIT_L = 1 << 0;
+                DF.BIT_R = 1 << 1;
+                DF.BIT_U = 1 << 2;
+                DF.BIT_D = 1 << 3;
+                DF.HOGE = {
+                    BIT_L: {
+                        x: -1,
+                        y: 0
+                    },
+                    BIT_R: {
+                        x: 1,
+                        y: 0
+                    },
+                    BIT_U: {
+                        x: 0,
+                        y: -1
+                    },
+                    BIT_D: {
+                        x: 0,
+                        y: 1
+                    }
+                };
             })(kimiko.DF || (kimiko.DF = {}));
             var DF = kimiko.DF;
             var NumberUtil = (function () {
