@@ -45,6 +45,7 @@ module jp.osakana4242.kimiko.scenes {
 					.scaleTo(0.75, kimiko.core.fps * 0.1)
 					.loop();
 			},
+
 			onenterframe: function () {
 				if (!this.visible) {
 					return;
@@ -67,9 +68,9 @@ module jp.osakana4242.kimiko.scenes {
 				scene.checkMapCollision(this);
 			},
 			
-				onMapHit: function () {
-						this.visible = false;
-				},
+			onMapHit: function () {
+					this.visible = false;
+			},
 		});
 		
 		/** 自弾 */
@@ -92,18 +93,27 @@ module jp.osakana4242.kimiko.scenes {
 				this.y += this.vy;
 				var scene = this.scene;
 				var camera = this.scene.camera;
+				++this.visibleCnt;
 
 				if (camera.isOutsideSleepRect(this)) {
 						this.visible = false;
+						this.visibleCnt = 0;
 						return;
 				}
 					
 				if (!this.scene.intersectActiveArea(this)) {
 					this.visible = false;
+					this.visibleCnt = 0;
 					return;
 				}
+
 				scene.checkMapCollision(this);
 
+			},
+
+			onMapHit: function () {
+				this.visible = false;
+				this.visibleCnt = 0;
 			},
 		});
 
@@ -334,10 +344,19 @@ module jp.osakana4242.kimiko.scenes {
 				}
 
 				if (!this.targetEnemy) {
-					var dirChangeThreshold = kimiko.core.fps / 20;
-					if (dirChangeThreshold <= Math.abs(this.vx)) {
+					if (0 !== this.vx) {
 						this.dirX = kimiko.numberUtil.sign(this.vx);
 						this.scaleX = this.dirX;
+					}
+				}
+
+				if (this.vx !== 0 || this.vy !== 0) {
+					if (this.animWalk !== this.frame) {
+						this.frame = this.animWalk;
+					}
+				} else {
+					if (this.animStand !== this.frame) {
+						this.frame = this.animStand;
 					}
 				}
 

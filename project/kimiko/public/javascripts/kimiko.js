@@ -79,15 +79,22 @@ var jp;
                             this.y += this.vy;
                             var scene = this.scene;
                             var camera = this.scene.camera;
+                            ++this.visibleCnt;
                             if(camera.isOutsideSleepRect(this)) {
                                 this.visible = false;
+                                this.visibleCnt = 0;
                                 return;
                             }
                             if(!this.scene.intersectActiveArea(this)) {
                                 this.visible = false;
+                                this.visibleCnt = 0;
                                 return;
                             }
                             scene.checkMapCollision(this);
+                        },
+                        onMapHit: function () {
+                            this.visible = false;
+                            this.visibleCnt = 0;
                         }
                     });
                     var Life = (function () {
@@ -296,10 +303,18 @@ var jp;
                                 this.vy = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * 4;
                             }
                             if(!this.targetEnemy) {
-                                var dirChangeThreshold = kimiko.kimiko.core.fps / 20;
-                                if(dirChangeThreshold <= Math.abs(this.vx)) {
+                                if(0 !== this.vx) {
                                     this.dirX = kimiko.kimiko.numberUtil.sign(this.vx);
                                     this.scaleX = this.dirX;
+                                }
+                            }
+                            if(this.vx !== 0 || this.vy !== 0) {
+                                if(this.animWalk !== this.frame) {
+                                    this.frame = this.animWalk;
+                                }
+                            } else {
+                                if(this.animStand !== this.frame) {
+                                    this.frame = this.animStand;
                                 }
                             }
                             if(this.useGravity && !this.isOnMap) {
