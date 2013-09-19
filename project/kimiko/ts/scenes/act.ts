@@ -51,13 +51,25 @@ module jp.osakana4242.kimiko.scenes {
 				}
 				this.x += this.vx;
 				this.y += this.vy;
-				var player = this.scene.player;
-				var minX: number = player.cx - DF.SC1_W;
-				var maxX: number = player.cx + DF.SC1_W;
+
+				var scene = this.scene;
+				var camera = this.scene.camera;
+
+				if (camera.isOutsideSleepRect(this)) {
+						this.visible = false;
+						return;
+				}
+					
 				if (!this.scene.intersectActiveArea(this)) {
 					this.visible = false;
+					return;
 				}
+				scene.checkMapCollision(this);
 			},
+			
+				onMapHit: function () {
+						this.visible = false;
+				},
 		});
 		
 		/** 自弾 */
@@ -78,14 +90,20 @@ module jp.osakana4242.kimiko.scenes {
 				}
 				this.x += this.vx;
 				this.y += this.vy;
-				var player = this.scene.player;
-				var minX: number = player.cx - DF.SC1_W;
-				var maxX: number = player.cx + DF.SC1_W;
-				this.visibleCnt += 1;
-				if (kimiko.secToFrame(0.5) <= this.visibleCnt || !this.scene.intersectActiveArea(this)) {
-					this.visible = false;
-					this.visibleCnt = 0;
+				var scene = this.scene;
+				var camera = this.scene.camera;
+
+				if (camera.isOutsideSleepRect(this)) {
+						this.visible = false;
+						return;
 				}
+					
+				if (!this.scene.intersectActiveArea(this)) {
+					this.visible = false;
+					return;
+				}
+				scene.checkMapCollision(this);
+
 			},
 		});
 
@@ -632,7 +650,8 @@ module jp.osakana4242.kimiko.scenes {
 			var player = this.scene.player;
 			// カメラ移動.
 			// プレイヤーからどれだけずらすか。
-			var tx: number = player.cx - (camera.width / 2) + (player.dirX * 32);
+			// 前方は後方より少しだけ先が見えるようにする。
+			var tx: number = player.cx - (camera.width / 2) + (player.dirX * 16);
 			var ty: number = player.cy - (camera.height / 2);
 			var speed = kimiko.dpsToDpf(8 * 60);
 			var dx = tx - camera.x;
@@ -670,6 +689,13 @@ module jp.osakana4242.kimiko.scenes {
 			rect.x = this.x - ((rect.width - this.width) / 2);
 			rect.y = this.y - ((rect.height - this.height) / 2);
 			return utils.Rect.inside(rect, entity);
+		},
+
+		isOutsideSleepRect: function (entity: utils.IRect) {
+			var rect: utils.IRect = this.sleepRect;
+			rect.x = this.x - ((rect.width - this.width) / 2);
+			rect.y = this.y - ((rect.height - this.height) / 2);
+			return utils.Rect.outside(rect, entity);
 		},
 	});
 
@@ -965,7 +991,7 @@ module jp.osakana4242.kimiko.scenes {
 			var xMax = player.x + player.width + (xDiff - 1);
 			var yMax = player.y + player.height + (yDiff - 1);
 			var hoge = 8;
-
+			var isHit = false;
 			for (var y = yMin; y < yMax; y += yDiff) {
 				for (var x = xMin; x < xMax; x += xDiff) {
 					if (!map.hitTest(x, y)) {
@@ -980,25 +1006,33 @@ module jp.osakana4242.kimiko.scenes {
 					if (!utils.Rect.intersect(player, rect)) {
 						continue;
 					}
+					// TODO: たま消しのときは無駄になってしまうので省略したい
 					if (!map.hitTest(x, y - yDiff) && 0 <= player.vy && player.y <= rect.y + hoge) {
 						// top
 						player.y = rect.y - player.height;
 						player.vy = 0;
 						//player.isOnMap = true;
+						isHit = true;
 					} else if (!map.hitTest(x, y + yDiff) && player.vy <= 0 && rect.y + rect.height - hoge < player.y + player.height) {
 						// bottom
 						player.y = rect.y + rect.height;
 						player.vy = 0;
+						isHit = true;
 					} else if (!map.hitTest(x - xDiff, y) && 0 <= player.vx && player.x <= rect.x + hoge) {
 						// left
 						player.x = rect.x - player.width;
 						player.vx = 0;
+						isHit = true;
 					} else if (!map.hitTest(x + xDiff, y) && player.vx <= 0 && rect.x + rect.width - hoge < player.x + player.width) {
 						// right
 						player.x = rect.x + rect.width;
 						player.vx = 0;
+						isHit = true;
 					}
 				}
+			}
+			if (isHit && player.onMapHit) {
+					player.onMapHit();
 			}
 		},
 
