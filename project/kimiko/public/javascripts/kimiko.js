@@ -541,6 +541,7 @@ var jp;
                         enchant.Node.call(this);
                         this.width = kimiko.DF.SC1_W;
                         this.height = kimiko.DF.SC1_H;
+                        this.limitRect = new osakana4242.utils.Rect(0, 0, 320, 320);
                         this.sleepRect = {
                             x: 0,
                             y: 0,
@@ -578,6 +579,12 @@ var jp;
                         }
                         camera.x = Math.floor(camera.x + mx);
                         camera.y = Math.floor(camera.y + my);
+                        var xMin = camera.limitRect.x;
+                        var xMax = xMin + camera.limitRect.width - camera.width;
+                        var yMin = camera.limitRect.y;
+                        var yMax = yMin + camera.limitRect.height - camera.height;
+                        camera.x = kimiko.kimiko.numberUtil.trim(camera.x, xMin, xMax);
+                        camera.y = kimiko.kimiko.numberUtil.trim(camera.y, yMin, yMax);
                         var group = this.targetGroup;
                         if(group) {
                             group.x = -camera.x;
@@ -712,6 +719,11 @@ var jp;
                                 }
                             }
                         })());
+                        var camera = this.camera;
+                        camera.limitRect.x = 0;
+                        camera.limitRect.y = 0;
+                        camera.limitRect.width = map.width;
+                        camera.limitRect.height = map.height;
                     },
                     getNearEnemy: function (sprite, sqrDistanceThreshold) {
                         var mapCharaMgr = this.mapCharaMgr;
