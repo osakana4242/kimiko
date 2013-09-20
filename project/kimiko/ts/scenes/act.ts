@@ -377,23 +377,7 @@ module jp.osakana4242.kimiko.scenes {
 				}
 
 				scene.checkMapCollision(this);
-				// 移動制限.
-				if (this.x + this.width < this.limitRect.x) {
-					this.x = this.limitRect.x;
-					this.vx = 0;
-				}
-				if (this.limitRect.x + this.limitRect.width < this.x) {
-					this.x = this.limitRect.width - this.width;
-					this.vx = 0;
-				}
-				if (this.y + this.height < this.limitRect.y) {
-					this.y = this.limitRect.y;
-					this.vy = 0;
-				}
-				if (this.limitRect.y + this.limitRect.height < this.y) {
-					this.y = this.limitRect.height - this.height;
-					this.vy = 0;
-				}
+				utils.Rect.trimPos(this, this.limitRect, this.onTrim);
 
 				var touch: utils.Touch = scene.touch;
 				if (touch.isTouching || flag !== 0) {
@@ -401,6 +385,12 @@ module jp.osakana4242.kimiko.scenes {
 					this.vy = 0;
 				}
 			},
+			
+			onTrim: function (x: number, y: number) {
+				if (x !== 0) { this.vx = 0; }
+				if (y !== 0) { this.vy = 0; }
+			},
+
 		});
 		
 		class WeaponA {
@@ -701,12 +691,9 @@ module jp.osakana4242.kimiko.scenes {
 			}
 			camera.x = Math.floor(camera.x + mx);
 			camera.y = Math.floor(camera.y + my);
-			var xMin = camera.limitRect.x;
-			var xMax = xMin + camera.limitRect.width - camera.width;
-			var yMin = camera.limitRect.y;
-			var yMax = yMin + camera.limitRect.height - camera.height;
-			camera.x = kimiko.numberUtil.trim(camera.x, xMin, xMax);
-			camera.y = kimiko.numberUtil.trim(camera.y, yMin, yMax);
+
+			utils.Rect.trimPos(camera, camera.limitRect);
+
 			//
 			var group = this.targetGroup;
 			if (group) {

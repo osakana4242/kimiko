@@ -330,25 +330,18 @@ var jp;
                             if(kimiko.DF.SC_X2 < this.cx) {
                             }
                             scene.checkMapCollision(this);
-                            if(this.x + this.width < this.limitRect.x) {
-                                this.x = this.limitRect.x;
-                                this.vx = 0;
-                            }
-                            if(this.limitRect.x + this.limitRect.width < this.x) {
-                                this.x = this.limitRect.width - this.width;
-                                this.vx = 0;
-                            }
-                            if(this.y + this.height < this.limitRect.y) {
-                                this.y = this.limitRect.y;
-                                this.vy = 0;
-                            }
-                            if(this.limitRect.y + this.limitRect.height < this.y) {
-                                this.y = this.limitRect.height - this.height;
-                                this.vy = 0;
-                            }
+                            osakana4242.utils.Rect.trimPos(this, this.limitRect, this.onTrim);
                             var touch = scene.touch;
                             if(touch.isTouching || flag !== 0) {
                                 this.vx = 0;
+                                this.vy = 0;
+                            }
+                        },
+                        onTrim: function (x, y) {
+                            if(x !== 0) {
+                                this.vx = 0;
+                            }
+                            if(y !== 0) {
                                 this.vy = 0;
                             }
                         }
@@ -591,12 +584,7 @@ var jp;
                         }
                         camera.x = Math.floor(camera.x + mx);
                         camera.y = Math.floor(camera.y + my);
-                        var xMin = camera.limitRect.x;
-                        var xMax = xMin + camera.limitRect.width - camera.width;
-                        var yMin = camera.limitRect.y;
-                        var yMax = yMin + camera.limitRect.height - camera.height;
-                        camera.x = kimiko.kimiko.numberUtil.trim(camera.x, xMin, xMax);
-                        camera.y = kimiko.kimiko.numberUtil.trim(camera.y, yMin, yMax);
+                        osakana4242.utils.Rect.trimPos(camera, camera.limitRect);
                         var group = this.targetGroup;
                         if(group) {
                             group.x = -camera.x;
@@ -1043,6 +1031,33 @@ var jp;
                 };
                 Rect.intersect = function intersect(a, other) {
                     return (a.x < other.x + other.width) && (other.x < a.x + a.width) && (a.y < other.y + other.height) && (other.y < a.y + a.height);
+                };
+                Rect.trimPos = function trimPos(ownRect, limitRect, onTrim) {
+                    if (typeof onTrim === "undefined") { onTrim = null; }
+                    if(ownRect.x < limitRect.x) {
+                        ownRect.x = limitRect.x;
+                        if(onTrim) {
+                            onTrim.call(ownRect, -1, 0);
+                        }
+                    }
+                    if(limitRect.x + limitRect.width < ownRect.x + ownRect.width) {
+                        ownRect.x = limitRect.width - ownRect.width;
+                        if(onTrim) {
+                            onTrim.call(ownRect, 1, 0);
+                        }
+                    }
+                    if(ownRect.y < limitRect.y) {
+                        ownRect.y = limitRect.y;
+                        if(onTrim) {
+                            onTrim.call(ownRect, 0, -1);
+                        }
+                    }
+                    if(limitRect.y + limitRect.height < ownRect.y + ownRect.height) {
+                        ownRect.y = limitRect.height - ownRect.height;
+                        if(onTrim) {
+                            onTrim.call(ownRect, 0, 1);
+                        }
+                    }
                 };
                 return Rect;
             })();

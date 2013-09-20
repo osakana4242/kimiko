@@ -96,6 +96,31 @@ module jp.osakana4242.utils {
 			return (a.x < other.x + other.width) && (other.x < a.x + a.width)
 				&& (a.y < other.y + other.height) && (other.y < a.y + a.height);
 		}
+
+		// own を limitRect の中に収める.
+		public static trimPos(ownRect: IRect, limitRect: IRect, onTrim: (x: number, y: number) => void = null ): void {
+			// 移動制限.
+			if (ownRect.x < limitRect.x) {
+				// <
+				ownRect.x = limitRect.x;
+				if (onTrim) { onTrim.call(ownRect, -1, 0); }
+			}
+			if (limitRect.x + limitRect.width < ownRect.x + ownRect.width) {
+				// >
+				ownRect.x = limitRect.width - ownRect.width;
+				if (onTrim) { onTrim.call(ownRect, 1, 0); }
+			}
+			if (ownRect.y < limitRect.y) {
+				// ^
+				ownRect.y = limitRect.y;
+				if (onTrim) { onTrim.call(ownRect, 0, -1); }
+			}
+			if (limitRect.y + limitRect.height < ownRect.y + ownRect.height) {
+				// v
+				ownRect.y = limitRect.height - ownRect.height;
+				if (onTrim) { onTrim.call(ownRect, 0, 1); }
+			}
+		}
 	}
 
 	export class Touch {
