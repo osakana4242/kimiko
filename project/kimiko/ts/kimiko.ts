@@ -74,6 +74,13 @@ module jp.osakana4242.utils {
 			public height: number = 0) {
 		}
 
+		public static copyFrom(a: IRect, b: IRect): void {
+			a.x = b.x;
+			a.y = b.y;
+			a.width = b.width;
+			a.height = b.height;
+		}
+
 		public static inside(a: IRect, b: IRect): bool {
 			return (a.x <= b.x) && (b.x + b.width < a.x + a.width)
 				&& (a.y <= b.y) && (b.y + b.height < a.y + a.height);

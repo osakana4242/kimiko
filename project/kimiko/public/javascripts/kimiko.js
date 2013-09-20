@@ -253,6 +253,7 @@ var jp;
                             this.useGravity = true;
                             this.isOnMap = false;
                             this.targetEnemy = null;
+                            this.limitRect = new osakana4242.utils.Rect(0, 0, 320, 320);
                             this.addEventListener(Event.ENTER_FRAME, function () {
                                 _this.stepMove();
                                 if(_this.targetEnemy === null) {
@@ -329,9 +330,20 @@ var jp;
                             if(kimiko.DF.SC_X2 < this.cx) {
                             }
                             scene.checkMapCollision(this);
-                            var map = this.scene.map;
-                            if(map.height < this.y + this.height) {
-                                this.y = map.height - this.height;
+                            if(this.x + this.width < this.limitRect.x) {
+                                this.x = this.limitRect.x;
+                                this.vx = 0;
+                            }
+                            if(this.limitRect.x + this.limitRect.width < this.x) {
+                                this.x = this.limitRect.width - this.width;
+                                this.vx = 0;
+                            }
+                            if(this.y + this.height < this.limitRect.y) {
+                                this.y = this.limitRect.y;
+                                this.vy = 0;
+                            }
+                            if(this.limitRect.y + this.limitRect.height < this.y) {
+                                this.y = this.limitRect.height - this.height;
                                 this.vy = 0;
                             }
                             var touch = scene.touch;
@@ -724,6 +736,8 @@ var jp;
                         camera.limitRect.y = 0;
                         camera.limitRect.width = map.width;
                         camera.limitRect.height = map.height;
+                        var player = this.player;
+                        osakana4242.utils.Rect.copyFrom(player.limitRect, camera.limitRect);
                     },
                     getNearEnemy: function (sprite, sqrDistanceThreshold) {
                         var mapCharaMgr = this.mapCharaMgr;
@@ -1015,6 +1029,12 @@ var jp;
                     this.width = width;
                     this.height = height;
                 }
+                Rect.copyFrom = function copyFrom(a, b) {
+                    a.x = b.x;
+                    a.y = b.y;
+                    a.width = b.width;
+                    a.height = b.height;
+                };
                 Rect.inside = function inside(a, b) {
                     return (a.x <= b.x) && (b.x + b.width < a.x + a.width) && (a.y <= b.y) && (b.y + b.height < a.y + a.height);
                 };

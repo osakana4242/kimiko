@@ -283,6 +283,7 @@ module jp.osakana4242.kimiko.scenes {
 				this.useGravity = true;
 				this.isOnMap = false;
 				this.targetEnemy = null;
+				this.limitRect = new utils.Rect( 0, 0, 320, 320 );
 
 				this.addEventListener(Event.ENTER_FRAME, () => {
 					this.stepMove();
@@ -376,10 +377,21 @@ module jp.osakana4242.kimiko.scenes {
 				}
 
 				scene.checkMapCollision(this);
-
-				var map = this.scene.map;
-				if (map.height < this.y + this.height) {
-					this.y = map.height - this.height;
+				// 移動制限.
+				if (this.x + this.width < this.limitRect.x) {
+					this.x = this.limitRect.x;
+					this.vx = 0;
+				}
+				if (this.limitRect.x + this.limitRect.width < this.x) {
+					this.x = this.limitRect.width - this.width;
+					this.vx = 0;
+				}
+				if (this.y + this.height < this.limitRect.y) {
+					this.y = this.limitRect.y;
+					this.vy = 0;
+				}
+				if (this.limitRect.y + this.limitRect.height < this.y) {
+					this.y = this.limitRect.height - this.height;
 					this.vy = 0;
 				}
 
@@ -861,6 +873,9 @@ module jp.osakana4242.kimiko.scenes {
 			camera.limitRect.y = 0;
 			camera.limitRect.width = map.width;
 			camera.limitRect.height = map.height;
+			
+			var player = this.player;
+			utils.Rect.copyFrom(player.limitRect, camera.limitRect);
 		},
 		
 		getNearEnemy: function (sprite, sqrDistanceThreshold) {
