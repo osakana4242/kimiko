@@ -530,7 +530,7 @@ var jp;
                                 scene.world.removeChild(chara);
                                 continue;
                             }
-                            if(camera.isInsideSleepRect(chara)) {
+                            if(!camera.isOutsideSleepRect(chara)) {
                                 continue;
                             }
                             arr.splice(i, 1);
@@ -593,12 +593,6 @@ var jp;
                     },
                     isInsideSpawnRect: function (entity) {
                         var rect = this.spawnRect;
-                        rect.x = this.x - ((rect.width - this.width) / 2);
-                        rect.y = this.y - ((rect.height - this.height) / 2);
-                        return osakana4242.utils.Rect.inside(rect, entity);
-                    },
-                    isInsideSleepRect: function (entity) {
-                        var rect = this.sleepRect;
                         rect.x = this.x - ((rect.width - this.width) / 2);
                         rect.y = this.y - ((rect.height - this.height) / 2);
                         return osakana4242.utils.Rect.inside(rect, entity);
@@ -1027,7 +1021,7 @@ var jp;
                     return (a.x <= b.x) && (b.x + b.width < a.x + a.width) && (a.y <= b.y) && (b.y + b.height < a.y + a.height);
                 };
                 Rect.outside = function outside(a, b) {
-                    return (b.x < a.x) && (a.x + a.width <= b.x + b.width) && (b.y < a.y) && (a.y + a.height <= b.y + b.height);
+                    return (b.x < a.x) || (a.x + a.width <= b.x + b.width) || (b.y < a.y) || (a.y + a.height <= b.y + b.height);
                 };
                 Rect.intersect = function intersect(a, other) {
                     return (a.x < other.x + other.width) && (other.x < a.x + a.width) && (a.y < other.y + other.height) && (other.y < a.y + a.height);

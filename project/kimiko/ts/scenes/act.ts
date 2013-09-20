@@ -635,7 +635,7 @@ module jp.osakana4242.kimiko.scenes {
 					continue;
 				}
 
-				if (camera.isInsideSleepRect(chara)) {
+				if (!camera.isOutsideSleepRect(chara)) {
 					continue;
 				}
 				arr.splice(i, 1);
@@ -707,13 +707,6 @@ module jp.osakana4242.kimiko.scenes {
 				rect.x = this.x -((rect.width -this.width) / 2);
 				rect.y = this.y -((rect.height -this.height) / 2);
 				return utils.Rect.inside(rect, entity);
-		},
-
-		isInsideSleepRect: function (entity: utils.IRect) {
-			var rect: utils.IRect = this.sleepRect;
-			rect.x = this.x - ((rect.width - this.width) / 2);
-			rect.y = this.y - ((rect.height - this.height) / 2);
-			return utils.Rect.inside(rect, entity);
 		},
 
 		isOutsideSleepRect: function (entity: utils.IRect) {

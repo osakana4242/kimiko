@@ -87,9 +87,10 @@ module jp.osakana4242.utils {
 
 		}
 
+		// a の外側に b がいるか.
 		public static outside(a: IRect, b: IRect): bool {
-			return (b.x < a.x) && (a.x + a.width <= b.x + b.width)
-				&& (b.y < a.y) && (a.y + a.height <= b.y + b.height);
+			return (b.x < a.x) || (a.x + a.width <= b.x + b.width)
+				|| (b.y < a.y) || (a.y + a.height <= b.y + b.height);
 		}
 
 		public static intersect(a: IRect, other: IRect): bool {
