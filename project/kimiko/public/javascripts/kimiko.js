@@ -9,6 +9,175 @@ var jp;
                 var Label = enchant.Label;
                 var Event = enchant.Event;
                 var Easing = enchant.Easing;
+                var EnemyBrains = (function () {
+                    function EnemyBrains() { }
+                    EnemyBrains.brain1 = function brain1(sprite, anchor) {
+                        var range = 48;
+                        sprite.anchor.x = anchor.x;
+                        sprite.anchor.y = anchor.y;
+                        sprite.x = sprite.anchor.x;
+                        sprite.y = sprite.anchor.y;
+                        var waitFire = function () {
+                            return !sprite.weapon.isStateFire();
+                        };
+                        sprite.tl.moveTo(sprite.anchor.x + range, sprite.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).moveTo(sprite.anchor.x, sprite.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).loop();
+                    };
+                    EnemyBrains.brain2 = function brain2(sprite, anchor) {
+                        var range = 16;
+                        sprite.anchor.x = anchor.x;
+                        sprite.anchor.y = anchor.y;
+                        sprite.x = sprite.anchor.x;
+                        sprite.y = sprite.anchor.y;
+                        var waitFire = function () {
+                            return !sprite.weapon.isStateFire();
+                        };
+                        sprite.tl.moveTo(sprite.anchor.x + range, sprite.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).then(function () {
+                            var wp = sprite.weapon;
+                            wp.dir.x = 1;
+                            wp.dir.y = 0;
+                            wp.startFire();
+                        }).waitUntil(waitFire).moveTo(sprite.anchor.x - range, sprite.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).then(function () {
+                            var wp = sprite.weapon;
+                            wp.dir.x = -1;
+                            wp.dir.y = 0;
+                            wp.startFire();
+                        }).waitUntil(waitFire).then(function () {
+                            var player = sprite.scene.player;
+                            var wp = sprite.weapon;
+                            wp.dir.x = player.x - sprite.x;
+                            wp.dir.y = player.y - sprite.y;
+                            osakana4242.utils.Vector2D.normalize(wp.dir);
+                            wp.startFire();
+                        }).waitUntil(waitFire).moveTo(sprite.anchor.x, sprite.anchor.y - 32, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).then(function () {
+                            var wp = sprite.weapon;
+                            wp.dir.x = -1;
+                            wp.dir.y = 0;
+                            wp.startFire();
+                        }).waitUntil(waitFire).loop();
+                    };
+                    EnemyBrains.brain3 = function brain3(sprite, anchor) {
+                        var range = 16;
+                        sprite.anchor.x = anchor.x;
+                        sprite.anchor.y = anchor.y;
+                        sprite.x = sprite.anchor.x;
+                        sprite.y = sprite.anchor.y;
+                        var waitFire = function () {
+                            return !sprite.weapon.isStateFire();
+                        };
+                        function fireToPlayer() {
+                            var player = sprite.scene.player;
+                            var wp = sprite.weapon;
+                            wp.fireCount = 1;
+                            wp.wayNum = 1;
+                            wp.dir.x = player.x - sprite.x;
+                            wp.dir.y = player.y - sprite.y;
+                            osakana4242.utils.Vector2D.normalize(wp.dir);
+                            wp.startFire();
+                        }
+                        sprite.tl.delay(kimiko.kimiko.secToFrame(0.5)).moveBy(0, -16, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, 16, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, -8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).moveBy(0, 8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire).then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire).then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire).delay(kimiko.kimiko.secToFrame(0.5)).moveTo(sprite.anchor.x, sprite.anchor.y, kimiko.kimiko.secToFrame(0.5), Easing.LINEAR).loop();
+                    };
+                    return EnemyBrains;
+                })();
+                scenes.EnemyBrains = EnemyBrains;                
+            })(kimiko.scenes || (kimiko.scenes = {}));
+            var scenes = kimiko.scenes;
+        })(osakana4242.kimiko || (osakana4242.kimiko = {}));
+        var kimiko = osakana4242.kimiko;
+    })(jp.osakana4242 || (jp.osakana4242 = {}));
+    var osakana4242 = jp.osakana4242;
+})(jp || (jp = {}));
+var jp;
+(function (jp) {
+    (function (osakana4242) {
+        (function (kimiko) {
+            (function (scenes) {
+                var Class = enchant.Class;
+                var Core = enchant.Core;
+                var Scene = enchant.Scene;
+                var Label = enchant.Label;
+                var Event = enchant.Event;
+                var Easing = enchant.Easing;
+                var WeaponA = (function () {
+                    function WeaponA(sprite) {
+                        this.wayNum = 3;
+                        this.parent = sprite;
+                        this.state = this.stateNeutral;
+                        this.fireCount = 1;
+                        this.fireInterval = kimiko.kimiko.secToFrame(0.2);
+                        this.reloadFrameCount = kimiko.kimiko.secToFrame(3.0);
+                        this.dir = {
+                            x: 1,
+                            y: 0
+                        };
+                        this.speed = kimiko.kimiko.dpsToDpf(60 * 2);
+                    }
+                    WeaponA.prototype.step = function () {
+                        this.state();
+                    };
+                    WeaponA.prototype.stateNeutral = function () {
+                    };
+                    WeaponA.prototype.stateFire = function () {
+                        if(this.fireIntervalCounter < this.fireInterval) {
+                            ++this.fireIntervalCounter;
+                            return;
+                        }
+                        this.fireIntervalCounter = 0;
+                        if(this.fireCounter < this.fireCount) {
+                            this.fire();
+                            ++this.fireCounter;
+                            return;
+                        }
+                        this.fireCounter = 0;
+                        this.reloadFrameCounter = 0;
+                        this.state = this.stateNeutral;
+                    };
+                    WeaponA.prototype.fire = function () {
+                        var parent = this.parent;
+                        var wayNum = this.wayNum;
+                        var degToRad = Math.PI / 180;
+                        var degInterval = 90 / wayNum;
+                        var startDeg = -degInterval * ((wayNum - 1) / 2);
+                        for(var i = 0, iNum = wayNum; i < iNum; ++i) {
+                            var bullet = parent.scene.newEnemyBullet();
+                            var deg = startDeg + (degInterval * i);
+                            var rad = deg * degToRad;
+                            var speed = this.speed;
+                            bullet.vx = (this.dir.x * Math.cos(rad) - (this.dir.y * Math.sin(rad))) * speed;
+                            bullet.vy = (this.dir.y * Math.cos(rad) + (this.dir.x * Math.sin(rad))) * speed;
+                            bullet.cx = parent.cx;
+                            bullet.cy = parent.cy;
+                        }
+                    };
+                    WeaponA.prototype.startFire = function () {
+                        this.fireCounter = 0;
+                        this.fireIntervalCounter = this.fireInterval;
+                        this.reloadFrameCounter = this.reloadFrameCount;
+                        this.state = this.stateFire;
+                    };
+                    WeaponA.prototype.isStateFire = function () {
+                        return this.state === this.stateFire;
+                    };
+                    return WeaponA;
+                })();
+                scenes.WeaponA = WeaponA;                
+            })(kimiko.scenes || (kimiko.scenes = {}));
+            var scenes = kimiko.scenes;
+        })(osakana4242.kimiko || (osakana4242.kimiko = {}));
+        var kimiko = osakana4242.kimiko;
+    })(jp.osakana4242 || (jp.osakana4242 = {}));
+    var osakana4242 = jp.osakana4242;
+})(jp || (jp = {}));
+var jp;
+(function (jp) {
+    (function (osakana4242) {
+        (function (kimiko) {
+            (function (scenes) {
+                var Class = enchant.Class;
+                var Core = enchant.Core;
+                var Scene = enchant.Scene;
+                var Label = enchant.Label;
+                var Event = enchant.Event;
+                var Easing = enchant.Easing;
                 scenes.Sprite = Class.create(enchant.Sprite, {
                     initialize: function (w, h) {
                         enchant.Sprite.call(this, w, h);
@@ -344,66 +513,6 @@ var jp;
                         }
                     }
                 });
-                var WeaponA = (function () {
-                    function WeaponA(sprite) {
-                        this.parent = sprite;
-                        this.state = this.stateNeutral;
-                        this.fireCount = 1;
-                        this.fireInterval = kimiko.kimiko.secToFrame(0.2);
-                        this.reloadFrameCount = kimiko.kimiko.secToFrame(3.0);
-                        this.dir = {
-                            x: 1,
-                            y: 0
-                        };
-                    }
-                    WeaponA.prototype.step = function () {
-                        this.state();
-                    };
-                    WeaponA.prototype.stateNeutral = function () {
-                    };
-                    WeaponA.prototype.stateFire = function () {
-                        if(this.fireIntervalCounter < this.fireInterval) {
-                            ++this.fireIntervalCounter;
-                            return;
-                        }
-                        this.fireIntervalCounter = 0;
-                        if(this.fireCounter < this.fireCount) {
-                            this.fire();
-                            ++this.fireCounter;
-                            return;
-                        }
-                        this.fireCounter = 0;
-                        this.reloadFrameCounter = 0;
-                        this.state = this.stateNeutral;
-                    };
-                    WeaponA.prototype.fire = function () {
-                        var parent = this.parent;
-                        var wayNum = 1;
-                        var degToRad = Math.PI / 180;
-                        var degInterval = 45;
-                        var startDeg = -degInterval * ((wayNum - 1) / 2);
-                        for(var i = 0, iNum = wayNum; i < iNum; ++i) {
-                            var bullet = parent.scene.newEnemyBullet();
-                            var deg = startDeg + (degInterval * i);
-                            var rad = deg * degToRad;
-                            var speed = kimiko.kimiko.dpsToDpf(80);
-                            bullet.vx = (this.dir.x * Math.cos(rad) - (this.dir.y * Math.sin(rad))) * speed;
-                            bullet.vy = (this.dir.y * Math.cos(rad) + (this.dir.x * Math.sin(rad))) * speed;
-                            bullet.cx = parent.cx;
-                            bullet.cy = parent.cy;
-                        }
-                    };
-                    WeaponA.prototype.startFire = function () {
-                        this.fireCounter = 0;
-                        this.fireIntervalCounter = this.fireInterval;
-                        this.reloadFrameCounter = this.reloadFrameCount;
-                        this.state = this.stateFire;
-                    };
-                    WeaponA.prototype.isStateFire = function () {
-                        return this.state === this.stateFire;
-                    };
-                    return WeaponA;
-                })();                
                 scenes.EnemyA = Class.create(scenes.Attacker, {
                     initialize: function () {
                         var _this = this;
@@ -411,7 +520,7 @@ var jp;
                         var life = this.life;
                         life.hpMax = 100;
                         life.hp = life.hpMax;
-                        this.weapon = new WeaponA(this);
+                        this.weapon = new scenes.WeaponA(this);
                         this.anchor = {
                             x: 0,
                             y: 0
@@ -426,62 +535,6 @@ var jp;
                         this.height = 32;
                         this.image = kimiko.kimiko.core.assets[kimiko.DF.IMAGE_CHARA002];
                         this.frame = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA002_WALK);
-                    },
-                    brain1: function (anchor) {
-                        var _this = this;
-                        var range = 16;
-                        this.anchor.x = anchor.x;
-                        this.anchor.y = anchor.y;
-                        this.x = this.anchor.x;
-                        this.y = this.anchor.y;
-                        var waitFire = function () {
-                            return !_this.weapon.isStateFire();
-                        };
-                        this.tl.moveTo(this.anchor.x + range, this.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).moveTo(this.anchor.x - range, this.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).moveTo(this.anchor.x + range, this.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).then(function () {
-                            var wp = _this.weapon;
-                            wp.dir.x = 1;
-                            wp.dir.y = 0;
-                            wp.startFire();
-                        }).waitUntil(waitFire).moveTo(this.anchor.x - range, this.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).then(function () {
-                            var wp = _this.weapon;
-                            wp.dir.x = -1;
-                            wp.dir.y = 0;
-                            wp.startFire();
-                        }).waitUntil(waitFire).loop();
-                    },
-                    brain2: function (anchor) {
-                        var _this = this;
-                        var range = 16;
-                        this.anchor.x = anchor.x;
-                        this.anchor.y = anchor.y;
-                        this.x = this.anchor.x;
-                        this.y = this.anchor.y;
-                        var waitFire = function () {
-                            return !_this.weapon.isStateFire();
-                        };
-                        this.tl.moveTo(this.anchor.x + range, this.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).then(function () {
-                            var wp = _this.weapon;
-                            wp.dir.x = 1;
-                            wp.dir.y = 0;
-                            wp.startFire();
-                        }).waitUntil(waitFire).moveTo(this.anchor.x - range, this.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).then(function () {
-                            var wp = _this.weapon;
-                            wp.dir.x = -1;
-                            wp.dir.y = 0;
-                            wp.startFire();
-                        }).waitUntil(waitFire).then(function () {
-                            var player = _this.scene.player;
-                            var wp = _this.weapon;
-                            wp.dir.x = player.x - _this.x;
-                            wp.dir.y = player.y - _this.y;
-                            osakana4242.utils.Vector2D.normalize(wp.dir);
-                            wp.startFire();
-                        }).waitUntil(waitFire).moveTo(this.anchor.x, this.anchor.y - 32, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).then(function () {
-                            var wp = _this.weapon;
-                            wp.dir.x = -1;
-                            wp.dir.y = 0;
-                            wp.startFire();
-                        }).waitUntil(waitFire).loop();
                     }
                 });
                 var MapCharaManager = (function () {
@@ -704,7 +757,7 @@ var jp;
                                             "x": left + (enemy.width / 2),
                                             "y": top + (kimiko.DF.MAP_TILE_H - enemy.height)
                                         };
-                                        enemy["brain" + enemyId](anchor);
+                                        scenes.EnemyBrains["brain" + enemyId](enemy, anchor);
                                         mapCharaMgr.addSleep(enemy);
                                     }
                                 }

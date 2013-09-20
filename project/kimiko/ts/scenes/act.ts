@@ -1,3 +1,6 @@
+/// <reference path="enemyBrains.ts" />
+/// <reference path="weapon.ts" />
+
 declare var enchant: any;
 
 module jp.osakana4242.kimiko.scenes {
@@ -391,84 +394,6 @@ module jp.osakana4242.kimiko.scenes {
 
 	});
 		
-	class WeaponA {
-		fireCounter: number;
-		fireCount: number;
-		fireIntervalCounter: number;
-		fireInterval: number;
-		reloadFrameCounter: number;
-		reloadFrameCount: number;
-		parent: any;
-		dir: utils.IVector2D;
-
-		state: () => void;
-
-		constructor(sprite: any) {
-			this.parent = sprite;
-			this.state = this.stateNeutral;
-			this.fireCount = 1;
-			this.fireInterval = kimiko.secToFrame(0.2);
-			this.reloadFrameCount = kimiko.secToFrame(3.0);
-			this.dir = { x: 1, y: 0 }
-		}
-
-		public step(): void {
-			this.state();
-				
-		}
-			
-		private stateNeutral(): void {
-		}
-
-		private stateFire(): void {
-			if (this.fireIntervalCounter < this.fireInterval) {
-					++this.fireIntervalCounter;
-					return;
-			}
-			this.fireIntervalCounter = 0;
-			if (this.fireCounter < this.fireCount ) {
-					this.fire();
-					++this.fireCounter;
-					return;
-			}
-			this.fireCounter = 0;
-			this.reloadFrameCounter = 0;
-			this.state = this.stateNeutral;
-		}
-
-		private fire(): void {
-			var parent = this.parent;
-			var wayNum = 1;
-			var degToRad = Math.PI / 180;
-			var degInterval = 45;
-			var startDeg = - degInterval * ((wayNum - 1) / 2);
-			for (var i = 0, iNum = wayNum; i < iNum; ++i) {
-				var bullet = parent.scene.newEnemyBullet();
-				var deg = startDeg + (degInterval * i);
-				var rad = deg * degToRad;
-				var speed = kimiko.dpsToDpf(80);
-				bullet.vx = (this.dir.x * Math.cos(rad) - (this.dir.y * Math.sin(rad))) * speed;
-				bullet.vy = (this.dir.y * Math.cos(rad) + (this.dir.x * Math.sin(rad))) * speed;
-				bullet.cx = parent.cx;
-				bullet.cy = parent.cy;
-			}
-		}
-
-		public startFire(): void {
-			this.fireCounter = 0;
-			this.fireIntervalCounter = this.fireInterval;
-			this.reloadFrameCounter = this.reloadFrameCount;
-			this.state = this.stateFire;
-		}
-
-		public isStateFire(): bool {
-			return this.state === this.stateFire;
-		}
-	}
-
-
-
-
 	// 敵はしかれたレールをなぞるだけ。
 	export var EnemyA = Class.create(Attacker, {
 		initialize: function () {
@@ -498,81 +423,7 @@ module jp.osakana4242.kimiko.scenes {
 			this.frame = kimiko.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
 		},
 
-		// 左右に行ったりきたり
-		brain1: function (anchor: utils.IVector2D) {
-			var range = 16;
-			this.anchor.x = anchor.x;
-			this.anchor.y = anchor.y;
-			this.x = this.anchor.x;
-			this.y = this.anchor.y;
-			var waitFire = () => { return !this.weapon.isStateFire(); };
-			this.tl
-				.moveTo(this.anchor.x + range, this.anchor.y, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN)
-				.moveTo(this.anchor.x - range, this.anchor.y, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN)
-				.moveTo(this.anchor.x + range, this.anchor.y, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN)
-				.then(() => {
-					var wp: WeaponA = this.weapon;
-					wp.dir.x = 1;
-					wp.dir.y = 0;
-					wp.startFire();
-				})
-				.waitUntil(waitFire)
-				.moveTo(this.anchor.x - range, this.anchor.y, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN)
-				.then(() => {
-					var wp: WeaponA = this.weapon;
-					wp.dir.x = -1;
-					wp.dir.y = 0;
-					wp.startFire();
-				})
-				.waitUntil(waitFire)
-				.loop();
-		},
 
-		// 三角形
-		brain2: function (anchor: utils.IVector2D) {
-			var range = 16;
-			this.anchor.x = anchor.x;
-			this.anchor.y = anchor.y;
-			this.x = this.anchor.x;
-			this.y = this.anchor.y;
-			var waitFire = () => { return !this.weapon.isStateFire(); };
-			this.tl
-				.moveTo(this.anchor.x + range, this.anchor.y, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN)
-				.then(() => {
-					var wp: WeaponA = this.weapon;
-					wp.dir.x = 1;
-					wp.dir.y = 0;
-					wp.startFire();
-				})
-				.waitUntil(waitFire)
-				.moveTo(this.anchor.x - range, this.anchor.y, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN)
-				.then(() => {
-					var wp: WeaponA = this.weapon;
-					wp.dir.x = -1;
-					wp.dir.y = 0;
-					wp.startFire();
-				})
-				.waitUntil(waitFire)
-				.then(() => {
-					// プレイヤーの向きを求める.
-					var player = this.scene.player;
-					var wp: WeaponA = this.weapon;
-					wp.dir.x = player.x - this.x;
-					wp.dir.y = player.y - this.y;
-					utils.Vector2D.normalize(wp.dir);
-					wp.startFire();
-				})
-				.waitUntil(waitFire)
-				.moveTo(this.anchor.x, this.anchor.y - 32, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN)
-				.then(() => {
-					var wp: WeaponA = this.weapon;
-					wp.dir.x = -1;
-					wp.dir.y = 0;
-					wp.startFire();
-				})
-				.waitUntil(waitFire)
-				.loop();
-		},
 
 	});
 	
@@ -837,7 +688,7 @@ module jp.osakana4242.kimiko.scenes {
 								"x": left + (enemy.width / 2),
 								"y": top + (DF.MAP_TILE_H - enemy.height),
 							};
-							enemy["brain" + enemyId](anchor);
+							EnemyBrains["brain" + enemyId](enemy, anchor);
 							mapCharaMgr.addSleep(enemy);
 						}
 					}
