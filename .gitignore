@@ -1,5 +1,8 @@
-#*
+
+\#*
 .#*
 .DS_Store
+# vim backup
+*~
 
 project/kimiko/temp/*
