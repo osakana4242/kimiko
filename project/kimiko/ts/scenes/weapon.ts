@@ -32,7 +32,7 @@ module jp.osakana4242.kimiko.scenes {
 			this.fireInterval = kimiko.secToFrame(0.2);
 			this.reloadFrameCount = kimiko.secToFrame(3.0);
 			this.dir = { x: 1, y: 0 }
-			this.speed = kimiko.dpsToDpf(60 * 2);
+			this.speed = kimiko.dpsToDpf(60 * 1.0);
 		}
 
 		public step(): void {

@@ -213,6 +213,11 @@ module jp.osakana4242.kimiko {
 		export var ANIM_ID_CHARA001_STAND = 11;
 		export var ANIM_ID_CHARA002_WALK = 20;
 
+		export var PLAYER_HP = 5;
+		export var ENEMY_HP = 10;
+		// 最大連射数.
+		export var PLAYER_BULLET_NUM = 2;
+
 		export var FONT_M: string = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
 		export var GRAVITY: number = 0.25 * 60;
 

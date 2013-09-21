@@ -109,7 +109,7 @@ var jp;
                             x: 1,
                             y: 0
                         };
-                        this.speed = kimiko.kimiko.dpsToDpf(60 * 2);
+                        this.speed = kimiko.kimiko.dpsToDpf(60 * 1.0);
                     }
                     WeaponA.prototype.step = function () {
                         this.state();
@@ -345,7 +345,7 @@ var jp;
                         this.state = this.stateNeutral;
                     },
                     damage: function (attacker) {
-                        this.life.damage(10);
+                        this.life.damage(1);
                         this.blinkFrameCounter = 0;
                         if(this.life.isAlive()) {
                             this.state = this.stateDamage;
@@ -413,14 +413,14 @@ var jp;
                         this.frame = this.animStand;
                         this.width = 32;
                         this.height = 32;
-                        this.life.hpMax = 500;
+                        this.life.hpMax = kimiko.DF.PLAYER_HP;
                         this.life.hp = this.life.hpMax;
                         this.anchorX = 0;
                         this.anchorY = 0;
                         this.useGravity = true;
                         this.isOnMap = false;
                         this.targetEnemy = null;
-                        this.limitRect = new osakana4242.utils.Rect(0, 0, 320, 320);
+                        this.limitRect = new osakana4242.utils.Rect(0, 0, kimiko.DF.SC_W, kimiko.DF.SC_H);
                         this.addEventListener(Event.ENTER_FRAME, function () {
                             _this.stepMove();
                             if(_this.targetEnemy === null) {
@@ -457,6 +457,9 @@ var jp;
                     },
                     attack: function () {
                         var bullet = this.scene.newOwnBullet();
+                        if(bullet === null) {
+                            return;
+                        }
                         bullet.vx = this.dirX * kimiko.kimiko.dpsToDpf(200);
                         bullet.vy = 0;
                         bullet.cx = this.cx;
@@ -518,7 +521,7 @@ var jp;
                         var _this = this;
                         scenes.Attacker.call(this);
                         var life = this.life;
-                        life.hpMax = 100;
+                        life.hpMax = kimiko.DF.ENEMY_HP;
                         life.hp = life.hpMax;
                         this.weapon = new scenes.WeaponA(this);
                         this.anchor = {
@@ -675,7 +678,7 @@ var jp;
                         camera.targetGroup = world;
                         world.addChild(camera);
                         this.ownBullets = [];
-                        for(var i = 0, iNum = 8; i < iNum; ++i) {
+                        for(var i = 0, iNum = kimiko.DF.PLAYER_BULLET_NUM; i < iNum; ++i) {
                             sprite = new scenes.OwnBullet();
                             world.addChild(sprite);
                             this.ownBullets.push(sprite);
@@ -819,7 +822,7 @@ var jp;
                             }
                             old = bullet;
                         }
-                        return bullet;
+                        return null;
                     },
                     intersectActiveArea: function (sprite) {
                         var player = this.player;
@@ -1185,6 +1188,9 @@ var jp;
                 DF.ANIM_ID_CHARA001_WALK = 10;
                 DF.ANIM_ID_CHARA001_STAND = 11;
                 DF.ANIM_ID_CHARA002_WALK = 20;
+                DF.PLAYER_HP = 5;
+                DF.ENEMY_HP = 10;
+                DF.PLAYER_BULLET_NUM = 2;
                 DF.FONT_M = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
                 DF.GRAVITY = 0.25 * 60;
                 DF.PLAYER_TOUCH_ANCHOR_ENABLE = true;

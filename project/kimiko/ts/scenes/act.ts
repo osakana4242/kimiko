@@ -1,3 +1,4 @@
+//
 /// <reference path="enemyBrains.ts" />
 /// <reference path="weapon.ts" />
 
@@ -203,7 +204,7 @@ module jp.osakana4242.kimiko.scenes {
 		},
 
 		damage: function (attacker?: any) {
-			this.life.damage(10);
+			this.life.damage(1);
 			this.blinkFrameCounter = 0;
 			if (this.life.isAlive()) {
 				this.state = this.stateDamage;
@@ -277,14 +278,14 @@ module jp.osakana4242.kimiko.scenes {
 			this.frame = this.animStand;
 			this.width = 32;
 			this.height = 32;
-			this.life.hpMax = 500;
+			this.life.hpMax = DF.PLAYER_HP;
 			this.life.hp = this.life.hpMax;
 			this.anchorX = 0;
 			this.anchorY = 0;
 			this.useGravity = true;
 			this.isOnMap = false;
 			this.targetEnemy = null;
-			this.limitRect = new utils.Rect( 0, 0, 320, 320 );
+			this.limitRect = new utils.Rect( 0, 0, DF.SC_W, DF.SC_H );
 
 			this.addEventListener(Event.ENTER_FRAME, () => {
 				this.stepMove();
@@ -327,6 +328,9 @@ module jp.osakana4242.kimiko.scenes {
 
 		attack: function () {
 			var bullet = this.scene.newOwnBullet();
+			if (bullet === null) {
+				return;
+			}
 			bullet.vx = this.dirX * kimiko.dpsToDpf(200);
 			bullet.vy = 0;
 			bullet.cx = this.cx;
@@ -400,7 +404,7 @@ module jp.osakana4242.kimiko.scenes {
 			Attacker.call(this);
 
 			var life: Life = this.life;
-			life.hpMax = 100;
+			life.hpMax = DF.ENEMY_HP;
 			life.hp = life.hpMax;
 
 			this.weapon = new WeaponA(this);
@@ -590,7 +594,7 @@ module jp.osakana4242.kimiko.scenes {
 			world.addChild(camera);
 
 			this.ownBullets = [];
-			for (var i: number = 0, iNum: number = 8; i < iNum; ++i) {
+			for (var i: number = 0, iNum: number = DF.PLAYER_BULLET_NUM; i < iNum; ++i) {
 				sprite = new OwnBullet();
 				world.addChild(sprite);
 				this.ownBullets.push(sprite);
@@ -758,7 +762,8 @@ module jp.osakana4242.kimiko.scenes {
 				}
 				old = bullet;
 			}
-			return bullet;
+			// return bullet; // 弾が消えるまで再利用不可に.
+			return null;
 		},
 		intersectActiveArea: function (sprite) {
 			var player = this.player;
