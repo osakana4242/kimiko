@@ -1,8 +1,12 @@
-
+# emacs
 \#*
 .#*
+# mac
 .DS_Store
-# vim backup
+# vim files
 *~
+*.swp
 
+# project
 project/kimiko/temp/*
+
