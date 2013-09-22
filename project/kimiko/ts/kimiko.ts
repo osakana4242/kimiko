@@ -323,6 +323,10 @@ module jp.osakana4242.kimiko {
 		secToFrame(sec: number): number {
 			return this.core.fps * sec;
 		}
+
+		frameToSec(frame: number): number {
+			return frame / this.core.fps;
+		}
 		
 		/**
 			毎秒Xドット(DotPerSec) を 毎フレームXドット(DotPerFrame) に変換。 

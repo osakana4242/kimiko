@@ -662,6 +662,17 @@ var jp;
                         var _this = this;
                         Scene.call(this);
                         var scene = this;
+                        this.state = this.stateGameStart;
+                        this.score = 0;
+                        this.timeLimitCounter = 0;
+                        this.timeLimit = kimiko.kimiko.secToFrame(180);
+                        this.statusTexts = [
+                            [], 
+                            [], 
+                            [], 
+                            [], 
+                            
+                        ];
                         this.backgroundColor = "rgb(32, 32, 64)";
                         var sprite;
                         var world = new enchant.Group();
@@ -672,6 +683,9 @@ var jp;
                         map.image = kimiko.kimiko.core.assets[kimiko.DF.IMAGE_MAP];
                         map.x = 0;
                         map.y = 0;
+                        if(map._style) {
+                            map._style.zIndex = -1;
+                        }
                         world.addChild(map);
                         var camera = new Camera();
                         this.camera = camera;
@@ -709,7 +723,8 @@ var jp;
                             sprite.y = 0;
                             sprite.backgroundColor = "rgb(64, 64, 64)";
                             _this.labels = [];
-                            for(var i = 0, iNum = 4; i < iNum; ++i) {
+                            var texts = _this.statusTexts;
+                            for(var i = 0, iNum = texts.length; i < iNum; ++i) {
                                 sprite = new Label("");
                                 group.addChild(sprite);
                                 _this.labels.push(sprite);
@@ -725,6 +740,8 @@ var jp;
                     loadMapData: function (mapData) {
                         var _this = this;
                         var map = this.map;
+                        this.timeLimit = kimiko.kimiko.secToFrame(30);
+                        this.timeLimitCounter = 0;
                         ((function () {
                             var layer = mapData.layers[0];
                             map.loadData(layer.tiles);
@@ -833,6 +850,13 @@ var jp;
                         }
                         return false;
                     },
+                    countTimeLimit: function () {
+                        if(this.timeLimit <= this.timeLimitCounter) {
+                            return true;
+                        }
+                        ++this.timeLimitCounter;
+                        return this.timeLimit <= this.timeLimitCounter;
+                    },
                     ontouchstart: function (event) {
                         var touch = this.touch;
                         touch.saveTouchStart(event);
@@ -876,7 +900,7 @@ var jp;
                     ontouchend: function (event) {
                         var touch = this.touch;
                         touch.saveTouchEnd(event);
-                        this.labels[0].text = ([
+                        this.statusTexts[0][1] = ([
                             "touch end diff", 
                             Math.floor(touch.totalDiff.x), 
                             Math.floor(touch.totalDiff.y)
@@ -891,12 +915,34 @@ var jp;
                         player.useGravity = true;
                     },
                     onenterframe: function () {
+                        this.state();
+                        this.updateStatusText();
+                    },
+                    stateGameStart: function () {
+                        this.state = this.stateNormal;
+                    },
+                    stateNormal: function () {
                         var player = this.player;
                         var mapCharaMgr = this.mapCharaMgr;
                         mapCharaMgr.step();
                         this.checkCollision();
-                        this.labels[1].text = player.stateToString();
-                        this.labels[2].text = "actives:" + mapCharaMgr.actives.length + " sleeps:" + mapCharaMgr.sleeps.length;
+                        if(this.countTimeLimit()) {
+                            this.state = this.stateGameOver;
+                        }
+                    },
+                    stateGameOver: function () {
+                    },
+                    updateStatusText: function () {
+                        var player = this.player;
+                        var mapCharaMgr = this.mapCharaMgr;
+                        var texts = this.statusTexts;
+                        texts[0][0] = "(L) " + Math.floor(kimiko.kimiko.frameToSec(this.timeLimit - this.timeLimitCounter));
+                        texts[1][0] = player.stateToString();
+                        texts[2][0] = "actives:" + mapCharaMgr.actives.length + " sleeps:" + mapCharaMgr.sleeps.length;
+                        for(var i = 0, iNum = texts.length; i < iNum; ++i) {
+                            var line = texts[i].join(" ");
+                            this.labels[i].text = line;
+                        }
                     },
                     checkMapCollision: function (player) {
                         var map = this.map;
@@ -941,6 +987,7 @@ var jp;
                         }
                     },
                     checkCollision: function () {
+                        var scene = this;
                         var mapCharaMgr = this.mapCharaMgr;
                         var player = this.player;
                         var enemys = mapCharaMgr.actives;
@@ -964,14 +1011,14 @@ var jp;
                                 });
                             }
                         }
-                        this.labels[3].text = "";
+                        this.statusTexts[3][1] = "";
                         for(var i = 0, iNum = enemys.length; i < iNum; ++i) {
                             var enemy = enemys[i];
                             if(enemy.isDead() || player.isDead() || enemy.isDamage() || player.isDamage()) {
                                 continue;
                             }
                             if(player.intersect(enemy)) {
-                                this.labels[3].text = "hit";
+                                this.statusTexts[3][1] = "hit";
                                 if(player.isAttack() && enemy.isAttack()) {
                                     if(enemy.attackCnt <= player.attackCnt) {
                                         enemy.damage(player);
@@ -994,6 +1041,10 @@ var jp;
                                 var bullet = this.ownBullets[j];
                                 if(bullet.visible && enemy.intersect(bullet)) {
                                     enemy.damage(bullet);
+                                    scene.score += 10;
+                                    if(enemy.life.isDead()) {
+                                        scene.score += 100;
+                                    }
                                     bullet.visible = false;
                                 }
                             }
@@ -1339,6 +1390,9 @@ var jp;
                 });
                 Kimiko.prototype.secToFrame = function (sec) {
                     return this.core.fps * sec;
+                };
+                Kimiko.prototype.frameToSec = function (frame) {
+                    return frame / this.core.fps;
                 };
                 Kimiko.prototype.dpsToDpf = function (dotPerSec) {
                     return dotPerSec ? dotPerSec / this.core.fps : 0;

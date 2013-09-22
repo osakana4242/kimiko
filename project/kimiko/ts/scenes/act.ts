@@ -572,6 +572,16 @@ module jp.osakana4242.kimiko.scenes {
 			Scene.call(this);
 
 			var scene = this;
+
+			// systems
+			this.state = this.stateGameStart;
+			this.score = 0;
+			this.timeLimitCounter = 0;
+			this.timeLimit = kimiko.secToFrame(180);
+			this.statusTexts = [
+				[], [], [], [],
+			];
+			//
 			this.backgroundColor = "rgb(32, 32, 64)";
 			var sprite;
 
@@ -585,6 +595,11 @@ module jp.osakana4242.kimiko.scenes {
 			map.image = kimiko.core.assets[DF.IMAGE_MAP];
 			map.x = 0;
 			map.y = 0;
+			if (map._style) {
+				// for enchant-0.5.x
+				// マップがなぜか手前に来てしまうので、zIndex指定しちゃう。
+				map._style.zIndex = -1;
+			}
 			world.addChild(map);
 
 			// 1カメ.
@@ -623,6 +638,7 @@ module jp.osakana4242.kimiko.scenes {
 				group.x = DF.SC2_X1;
 				group.y = DF.SC2_Y1;
 
+				// 背景.
 				sprite = new Sprite(DF.SC2_W, DF.SC2_H);
 				group.addChild(sprite);
 				this.controllArea = sprite;
@@ -630,8 +646,10 @@ module jp.osakana4242.kimiko.scenes {
 				sprite.y = 0;
 				sprite.backgroundColor = "rgb(64, 64, 64)";
 
+				// labels
 				this.labels = [];
-				for (var i: number = 0, iNum: number = 4; i < iNum; ++i) {
+				var texts: string[][] = this.statusTexts;
+				for (var i: number = 0, iNum: number = texts.length; i < iNum; ++i) {
 					sprite = new Label("");
 					group.addChild(sprite);
 					this.labels.push(sprite);
@@ -650,6 +668,8 @@ module jp.osakana4242.kimiko.scenes {
 
 		loadMapData: function (mapData: utils.IMapData) {
 			var map = this.map;
+			this.timeLimit = kimiko.secToFrame(30);
+			this.timeLimitCounter = 0;
 
 			(() => {
 				var layer = mapData.layers[0];
@@ -774,6 +794,15 @@ module jp.osakana4242.kimiko.scenes {
 			}
 			return false;
 		},
+		
+		/** タイムオーバーになったらtrue. */
+		countTimeLimit: function () {
+			if (this.timeLimit <= this.timeLimitCounter) {
+				return true;
+			}
+			++this.timeLimitCounter;
+			return this.timeLimit <= this.timeLimitCounter;
+		},
 
 		//---------------------------------------------------------------------------
 		ontouchstart: function (event) {
@@ -828,7 +857,7 @@ module jp.osakana4242.kimiko.scenes {
 		ontouchend: function (event) {
 			var touch: utils.Touch = this.touch;
 			touch.saveTouchEnd(event);
-			this.labels[0].text = (<any[]>["touch end diff", Math.floor(touch.totalDiff.x), Math.floor(touch.totalDiff.y)]).join();
+			this.statusTexts[0][1] = (<any[]>["touch end diff", Math.floor(touch.totalDiff.x), Math.floor(touch.totalDiff.y)]).join();
 			
 			var player = this.player;
 			player.frame = player.animStand;
@@ -843,19 +872,51 @@ module jp.osakana4242.kimiko.scenes {
 		},
 
 		onenterframe: function () {
+			this.state();
+			this.updateStatusText();
+	},
+	
+		//---------------------------------------------------------------------------
+		// states..
+		
+		stateGameStart: function () {
+			this.state = this.stateNormal;
+		},
+					
+		stateNormal: function () {
 			var player = this.player;
 			//
 			var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
 			mapCharaMgr.step();
 			//
 			this.checkCollision();
-			// 情報.
-			//" fps:" + Math.round(kimiko.core.actualFps)
-			this.labels[1].text = player.stateToString()
-			this.labels[2].text = "actives:" + mapCharaMgr.actives.length + " sleeps:" + mapCharaMgr.sleeps.length;
+			//
+			if (this.countTimeLimit()) {
+				// タイムオーバー.
+				this.state = this.stateGameOver;
+			}
 		},
+
+		stateGameOver: function () {
+		},
+
 		//---------------------------------------------------------------------------
 
+		updateStatusText: function () {
+			var player = this.player;
+			var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
+			//" fps:" + Math.round(kimiko.core.actualFps)
+			var texts: string[][] = this.statusTexts;
+			texts[0][0] = "(L) " + Math.floor(kimiko.frameToSec(this.timeLimit - this.timeLimitCounter));	
+			texts[1][0] = player.stateToString()
+			texts[2][0] = "actives:" + mapCharaMgr.actives.length +
+				" sleeps:" + mapCharaMgr.sleeps.length;
+			//
+			for (var i = 0, iNum = texts.length; i < iNum; ++i) {
+				var line = texts[i].join(" ");
+				this.labels[i].text = line;
+			}
+		},
 
 		checkMapCollision: function (player) {
 			// 地形とプレイヤーの衝突判定.
@@ -914,6 +975,7 @@ module jp.osakana4242.kimiko.scenes {
 		},
 
 		checkCollision: function () {
+			var scene = this;
 			var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
 			var player = this.player;
 			var enemys = mapCharaMgr.actives;
@@ -940,14 +1002,14 @@ module jp.osakana4242.kimiko.scenes {
 				}
 			}
 			// 敵とプレイヤーの衝突判定.
-			this.labels[3].text = "";
+			this.statusTexts[3][1] = "";
 			for (var i = 0, iNum = enemys.length; i < iNum; ++i) {
 				var enemy = enemys[i];
 				if (enemy.isDead() || player.isDead() || enemy.isDamage() || player.isDamage()) {
 					continue;
 				}
 				if (player.intersect(enemy)) {
-					this.labels[3].text = "hit";
+					this.statusTexts[3][1] = "hit";
 					if (player.isAttack() && enemy.isAttack()) {
 						// 両方攻撃してたら、後出しの勝ち.
 						if (enemy.attackCnt <= player.attackCnt) {
@@ -972,6 +1034,10 @@ module jp.osakana4242.kimiko.scenes {
 					var bullet = this.ownBullets[j];
 					if (bullet.visible && enemy.intersect(bullet)) {
 						enemy.damage(bullet);
+						scene.score += 10;
+						if (enemy.life.isDead()) {
+							scene.score += 100;
+						}
 						bullet.visible = false;
 					}
 				}
