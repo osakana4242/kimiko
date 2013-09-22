@@ -668,7 +668,7 @@ module jp.osakana4242.kimiko.scenes {
 
 		loadMapData: function (mapData: utils.IMapData) {
 			var map = this.map;
-			this.timeLimit = kimiko.secToFrame(30);
+			this.timeLimit = kimiko.secToFrame(180);
 			this.timeLimitCounter = 0;
 
 			(() => {
@@ -722,7 +722,7 @@ module jp.osakana4242.kimiko.scenes {
 			camera.limitRect.x = 0;
 			camera.limitRect.y = 0;
 			camera.limitRect.width = map.width;
-			camera.limitRect.height = map.height;
+			camera.limitRect.height = map.height + (DF.SC1_H / 2);
 			
 			var player = this.player;
 			utils.Rect.copyFrom(player.limitRect, camera.limitRect);
@@ -903,14 +903,16 @@ module jp.osakana4242.kimiko.scenes {
 		//---------------------------------------------------------------------------
 
 		updateStatusText: function () {
+			var scene = this;
 			var player = this.player;
 			var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
 			//" fps:" + Math.round(kimiko.core.actualFps)
 			var texts: string[][] = this.statusTexts;
-			texts[0][0] = "(L) " + Math.floor(kimiko.frameToSec(this.timeLimit - this.timeLimitCounter));	
+			texts[0][0] = "SC " + scene.score + " " +
+				"(L) " + Math.floor(kimiko.frameToSec(this.timeLimit - this.timeLimitCounter));	
 			texts[1][0] = player.stateToString()
-			texts[2][0] = "actives:" + mapCharaMgr.actives.length +
-				" sleeps:" + mapCharaMgr.sleeps.length;
+			texts[2][0] = "actives:" + mapCharaMgr.actives.length + " " +
+				"sleeps:" + mapCharaMgr.sleeps.length;
 			//
 			for (var i = 0, iNum = texts.length; i < iNum; ++i) {
 				var line = texts[i].join(" ");

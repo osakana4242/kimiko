@@ -740,7 +740,7 @@ var jp;
                     loadMapData: function (mapData) {
                         var _this = this;
                         var map = this.map;
-                        this.timeLimit = kimiko.kimiko.secToFrame(30);
+                        this.timeLimit = kimiko.kimiko.secToFrame(180);
                         this.timeLimitCounter = 0;
                         ((function () {
                             var layer = mapData.layers[0];
@@ -787,7 +787,7 @@ var jp;
                         camera.limitRect.x = 0;
                         camera.limitRect.y = 0;
                         camera.limitRect.width = map.width;
-                        camera.limitRect.height = map.height;
+                        camera.limitRect.height = map.height + (kimiko.DF.SC1_H / 2);
                         var player = this.player;
                         osakana4242.utils.Rect.copyFrom(player.limitRect, camera.limitRect);
                     },
@@ -933,12 +933,13 @@ var jp;
                     stateGameOver: function () {
                     },
                     updateStatusText: function () {
+                        var scene = this;
                         var player = this.player;
                         var mapCharaMgr = this.mapCharaMgr;
                         var texts = this.statusTexts;
-                        texts[0][0] = "(L) " + Math.floor(kimiko.kimiko.frameToSec(this.timeLimit - this.timeLimitCounter));
+                        texts[0][0] = "SC " + scene.score + " " + "(L) " + Math.floor(kimiko.kimiko.frameToSec(this.timeLimit - this.timeLimitCounter));
                         texts[1][0] = player.stateToString();
-                        texts[2][0] = "actives:" + mapCharaMgr.actives.length + " sleeps:" + mapCharaMgr.sleeps.length;
+                        texts[2][0] = "actives:" + mapCharaMgr.actives.length + " " + "sleeps:" + mapCharaMgr.sleeps.length;
                         for(var i = 0, iNum = texts.length; i < iNum; ++i) {
                             var line = texts[i].join(" ");
                             this.labels[i].text = line;
