@@ -272,7 +272,7 @@ module jp.osakana4242.kimiko.scenes {
 	export var Player: any = Class.create(Attacker, {
 		initialize: function () {
 			Attacker.call(this);
-			this.image = kimiko.core.assets[DF.IMAGE_CHARA001]
+			this.image = kimiko.core.assets[Assets.IMAGE_CHARA001]
 			this.animWalk = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_WALK);
 			this.animStand = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_STAND);
 			this.frame = this.animStand;
@@ -423,7 +423,7 @@ module jp.osakana4242.kimiko.scenes {
 			this.height = 32;
 			//this.backgroundColor = "rgb(192, 128, 128)";
 
-			this.image = kimiko.core.assets[DF.IMAGE_CHARA002]
+			this.image = kimiko.core.assets[Assets.IMAGE_CHARA002]
 			this.frame = kimiko.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
 		},
 
@@ -567,6 +567,67 @@ module jp.osakana4242.kimiko.scenes {
 		},
 	});
 
+	export var GameStart: any = Class.create(Scene, {
+		initialize: function () {
+			Scene.call(this);
+			
+			var scene = this;
+			//
+			var bg1 = new Sprite(DF.SC1_W, DF.SC1_H);
+			((sprite: any) => {
+				sprite.x = 0;
+				sprite.y = 0;
+				sprite.image = kimiko.core.assets[Assets.IMAGE_GAME_START_BG];
+			}(bg1));
+			//
+			var label1 = new enchant.Label("GOOD NIGHT...");
+			((label: any) => {
+				label.font = DF.FONT_M;
+				label.width = DF.SC_W;
+				label.height = 12;
+				label.color = "rgb(255, 255, 255)";
+				label.textAlign = "center";
+				var ax = (DF.SC1_W - label.width) / 2;
+				var ay = (DF.SC1_H - label.height) / 2;
+				label.x = ax;
+				label.y = ay;
+				label.tl.
+					moveTo(ax + 0, ay + 8, kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).
+					moveTo(ax + 0, ay - 8, kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).
+					loop();
+			}(label1));
+			//
+			var fadeFilm = new Sprite(DF.SC_W, DF.SC_H);
+			((sprite: any) => {
+				sprite.x = 0;
+				sprite.y = 0;
+				sprite.backgroundColor = "rgb(0, 0, 0)";
+			}(fadeFilm));
+
+			var layer1 = new enchant.Group();
+			layer1.addChild(bg1);
+			layer1.addChild(label1); 
+			//
+			scene.backgroundColor = "rgb(0, 0, 0)";
+			scene.addChild(layer1);
+			scene.addChild(fadeFilm);
+			scene.tl.
+				then(() => {
+					fadeFilm.tl.fadeTo(0.0, kimiko.secToFrame(0.5));
+				}).
+				delay(kimiko.secToFrame(0.5)).
+				delay(kimiko.secToFrame(2.0)).
+				then(() => {
+					fadeFilm.tl.fadeTo(1.0, kimiko.secToFrame(0.5));
+				}).
+				delay(kimiko.secToFrame(0.5)).
+				then(() => {
+					kimiko.core.replaceScene(new scenes.Act());
+				});
+		},
+
+	});
+	
 	export var GameOver: any = Class.create(Scene, {
 		initialize: function () {
 			Scene.call(this);
@@ -622,7 +683,7 @@ module jp.osakana4242.kimiko.scenes {
 
 			var map = new enchant.Map(DF.MAP_TILE_W, DF.MAP_TILE_H);
 			this.map = map;
-			map.image = kimiko.core.assets[DF.IMAGE_MAP];
+			map.image = kimiko.core.assets[Assets.IMAGE_MAP];
 			map.x = 0;
 			map.y = 0;
 			if (map._style) {

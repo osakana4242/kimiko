@@ -181,6 +181,13 @@ module jp.osakana4242.kimiko {
 	
 	export var kimiko: Kimiko = null;
 	
+	export module Assets {
+		export var IMAGE_GAME_START_BG = "./images/game_start_bg.png";
+		export var IMAGE_MAP = "./images/map.png";
+		export var IMAGE_CHARA001 = "./images/chara001.png";
+		export var IMAGE_CHARA002 = "./images/chara002.png";
+	}
+
 	export module DF {
 		export var BASE_FPS: number = 60;
 		export var SC_W: number = 320;
@@ -197,9 +204,6 @@ module jp.osakana4242.kimiko {
 		export var SC2_Y1: number = 240;
 		export var SC2_X2: number = SC2_X1 + SC2_W;
 		export var SC2_Y2: number = SC2_Y1 + SC2_H;
-		export var IMAGE_MAP = "./images/map.png";
-		export var IMAGE_CHARA001 = "./images/chara001.png";
-		export var IMAGE_CHARA002 = "./images/chara002.png";
 		export var MAP_TILE_W = 32;
 		export var MAP_TILE_H = 32;
 		export var PLAYER_COLOR: string = "rgb(240, 240, 240)";
@@ -283,18 +287,20 @@ module jp.osakana4242.kimiko {
 			var core: any = new enchant.Core(DF.SC_W, DF.SC_H);
 
 			core.fps = config.fps || DF.BASE_FPS;
-			core.preload([
-				DF.IMAGE_MAP,
-				DF.IMAGE_CHARA001,
-				DF.IMAGE_CHARA002,
-			]); // preload image
+			for (var key in Assets) {
+				if (!Assets.hasOwnProperty(key)) {
+					continue;
+				}
+				var path = Assets[key];
+				core.preload(path);
+			}
 
 			this.registerAnimFrames(DF.ANIM_ID_CHARA001_WALK,  [0, 1, 0, 2], 0.2);
 			this.registerAnimFrames(DF.ANIM_ID_CHARA001_STAND, [0], 0.2);
 			this.registerAnimFrames(DF.ANIM_ID_CHARA002_WALK, [0, 1, 2, 3], 0.1);
 
 			core.onload = function () {
-				var scene = new jp.osakana4242.kimiko.scenes.Act();
+				var scene = new jp.osakana4242.kimiko.scenes.GameStart();
 				core.replaceScene(scene);
 			};
 		}

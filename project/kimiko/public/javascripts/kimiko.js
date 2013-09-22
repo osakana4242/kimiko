@@ -407,7 +407,7 @@ var jp;
                     initialize: function () {
                         var _this = this;
                         scenes.Attacker.call(this);
-                        this.image = kimiko.kimiko.core.assets[kimiko.DF.IMAGE_CHARA001];
+                        this.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_CHARA001];
                         this.animWalk = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA001_WALK);
                         this.animStand = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA001_STAND);
                         this.frame = this.animStand;
@@ -536,7 +536,7 @@ var jp;
                     initStyle_: function () {
                         this.width = 32;
                         this.height = 32;
-                        this.image = kimiko.kimiko.core.assets[kimiko.DF.IMAGE_CHARA002];
+                        this.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_CHARA002];
                         this.frame = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA002_WALK);
                     }
                 });
@@ -657,6 +657,50 @@ var jp;
                         return osakana4242.utils.Rect.outside(rect, entity);
                     }
                 });
+                scenes.GameStart = Class.create(Scene, {
+                    initialize: function () {
+                        Scene.call(this);
+                        var scene = this;
+                        var bg1 = new scenes.Sprite(kimiko.DF.SC1_W, kimiko.DF.SC1_H);
+                        ((function (sprite) {
+                            sprite.x = 0;
+                            sprite.y = 0;
+                            sprite.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_GAME_START_BG];
+                        })(bg1));
+                        var label1 = new enchant.Label("GOOD NIGHT...");
+                        ((function (label) {
+                            label.font = kimiko.DF.FONT_M;
+                            label.width = kimiko.DF.SC_W;
+                            label.height = 12;
+                            label.color = "rgb(255, 255, 255)";
+                            label.textAlign = "center";
+                            var ax = (kimiko.DF.SC1_W - label.width) / 2;
+                            var ay = (kimiko.DF.SC1_H - label.height) / 2;
+                            label.x = ax;
+                            label.y = ay;
+                            label.tl.moveTo(ax + 0, ay + 8, kimiko.kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).moveTo(ax + 0, ay - 8, kimiko.kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).loop();
+                        })(label1));
+                        var fadeFilm = new scenes.Sprite(kimiko.DF.SC_W, kimiko.DF.SC_H);
+                        ((function (sprite) {
+                            sprite.x = 0;
+                            sprite.y = 0;
+                            sprite.backgroundColor = "rgb(0, 0, 0)";
+                        })(fadeFilm));
+                        var layer1 = new enchant.Group();
+                        layer1.addChild(bg1);
+                        layer1.addChild(label1);
+                        scene.backgroundColor = "rgb(0, 0, 0)";
+                        scene.addChild(layer1);
+                        scene.addChild(fadeFilm);
+                        scene.tl.then(function () {
+                            fadeFilm.tl.fadeTo(0.0, kimiko.kimiko.secToFrame(0.5));
+                        }).delay(kimiko.kimiko.secToFrame(0.5)).delay(kimiko.kimiko.secToFrame(2.0)).then(function () {
+                            fadeFilm.tl.fadeTo(1.0, kimiko.kimiko.secToFrame(0.5));
+                        }).delay(kimiko.kimiko.secToFrame(0.5)).then(function () {
+                            kimiko.kimiko.core.replaceScene(new kimiko.scenes.Act());
+                        });
+                    }
+                });
                 scenes.GameOver = Class.create(Scene, {
                     initialize: function () {
                         Scene.call(this);
@@ -702,7 +746,7 @@ var jp;
                         scene.addChild(world);
                         var map = new enchant.Map(kimiko.DF.MAP_TILE_W, kimiko.DF.MAP_TILE_H);
                         this.map = map;
-                        map.image = kimiko.kimiko.core.assets[kimiko.DF.IMAGE_MAP];
+                        map.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_MAP];
                         map.x = 0;
                         map.y = 0;
                         if(map._style) {
@@ -1230,6 +1274,13 @@ var jp;
             var Label = enchant.Label;
             var Event = enchant.Event;
             kimiko.kimiko = null;
+            (function (Assets) {
+                Assets.IMAGE_GAME_START_BG = "./images/game_start_bg.png";
+                Assets.IMAGE_MAP = "./images/map.png";
+                Assets.IMAGE_CHARA001 = "./images/chara001.png";
+                Assets.IMAGE_CHARA002 = "./images/chara002.png";
+            })(kimiko.Assets || (kimiko.Assets = {}));
+            var Assets = kimiko.Assets;
             (function (DF) {
                 DF.BASE_FPS = 60;
                 DF.SC_W = 320;
@@ -1246,9 +1297,6 @@ var jp;
                 DF.SC2_Y1 = 240;
                 DF.SC2_X2 = DF.SC2_X1 + DF.SC2_W;
                 DF.SC2_Y2 = DF.SC2_Y1 + DF.SC2_H;
-                DF.IMAGE_MAP = "./images/map.png";
-                DF.IMAGE_CHARA001 = "./images/chara001.png";
-                DF.IMAGE_CHARA002 = "./images/chara002.png";
                 DF.MAP_TILE_W = 32;
                 DF.MAP_TILE_H = 32;
                 DF.PLAYER_COLOR = "rgb(240, 240, 240)";
@@ -1361,12 +1409,13 @@ var jp;
                     Kimiko.instance = this;
                     var core = new enchant.Core(DF.SC_W, DF.SC_H);
                     core.fps = config.fps || DF.BASE_FPS;
-                    core.preload([
-                        DF.IMAGE_MAP, 
-                        DF.IMAGE_CHARA001, 
-                        DF.IMAGE_CHARA002, 
-                        
-                    ]);
+                    for(var key in Assets) {
+                        if(!Assets.hasOwnProperty(key)) {
+                            continue;
+                        }
+                        var path = Assets[key];
+                        core.preload(path);
+                    }
                     this.registerAnimFrames(DF.ANIM_ID_CHARA001_WALK, [
                         0, 
                         1, 
@@ -1383,7 +1432,7 @@ var jp;
                         3
                     ], 0.1);
                     core.onload = function () {
-                        var scene = new jp.osakana4242.kimiko.scenes.Act();
+                        var scene = new jp.osakana4242.kimiko.scenes.GameStart();
                         core.replaceScene(scene);
                     };
                 }
