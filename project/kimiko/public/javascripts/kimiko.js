@@ -657,6 +657,28 @@ var jp;
                         return osakana4242.utils.Rect.outside(rect, entity);
                     }
                 });
+                scenes.GameOver = Class.create(Scene, {
+                    initialize: function () {
+                        Scene.call(this);
+                        var scene = this;
+                        var label1 = new enchant.Label("GAME OVER");
+                        ((function (label) {
+                            label.font = kimiko.DF.FONT_M;
+                            label.width = kimiko.DF.SC_W;
+                            label.height = 12;
+                            label.color = "rgb(255, 255, 255)";
+                            label.textAlign = "center";
+                            var ax = (kimiko.DF.SC1_W - label.width) / 2;
+                            var ay = (kimiko.DF.SC1_H - label.height) / 2;
+                            label.x = ax;
+                            label.y = ay;
+                            label.tl.moveTo(ax + 0, ay + 8, kimiko.kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).moveTo(ax + 0, ay - 8, kimiko.kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).loop();
+                        })(label1));
+                        var layer1 = new enchant.Group();
+                        layer1.addChild(label1);
+                        scene.addChild(layer1);
+                    }
+                });
                 scenes.Act = Class.create(Scene, {
                     initialize: function () {
                         var _this = this;
@@ -737,126 +759,6 @@ var jp;
                         this.touch = new osakana4242.utils.Touch();
                         this.loadMapData(jp.osakana4242.kimiko["mapData"]);
                     },
-                    loadMapData: function (mapData) {
-                        var _this = this;
-                        var map = this.map;
-                        this.timeLimit = kimiko.kimiko.secToFrame(180);
-                        this.timeLimitCounter = 0;
-                        ((function () {
-                            var layer = mapData.layers[0];
-                            map.loadData(layer.tiles);
-                            var collisionData = [];
-                            for(var y = 0, yNum = layer.tiles.length; y < yNum; ++y) {
-                                var line = [];
-                                for(var x = 0, xNum = layer.tiles[y].length; x < xNum; ++x) {
-                                    line.push(layer.tiles[y][x] !== -1);
-                                }
-                                collisionData.push(line);
-                            }
-                            map.collisionData = collisionData;
-                        })());
-                        ((function () {
-                            var mapCharaMgr = _this.mapCharaMgr;
-                            var layer = mapData.layers[1];
-                            for(var y = 0, yNum = layer.tiles.length; y < yNum; ++y) {
-                                for(var x = 0, xNum = layer.tiles[y].length; x < xNum; ++x) {
-                                    var charaId = layer.tiles[y][x];
-                                    if(charaId === -1) {
-                                        continue;
-                                    }
-                                    var left = x * kimiko.DF.MAP_TILE_W;
-                                    var top = y * kimiko.DF.MAP_TILE_H;
-                                    if(charaId === 40) {
-                                        var player = _this.player;
-                                        player.x = left + (kimiko.DF.MAP_TILE_W - player.width) / 2;
-                                        player.y = top + (kimiko.DF.MAP_TILE_H - player.height);
-                                    } else if(48 <= charaId) {
-                                        var enemyId = charaId - 48 + 1;
-                                        var enemy = new scenes.EnemyA();
-                                        var anchor = {
-                                            "x": left + (enemy.width / 2),
-                                            "y": top + (kimiko.DF.MAP_TILE_H - enemy.height)
-                                        };
-                                        scenes.EnemyBrains["brain" + enemyId](enemy, anchor);
-                                        mapCharaMgr.addSleep(enemy);
-                                    }
-                                }
-                            }
-                        })());
-                        var camera = this.camera;
-                        camera.limitRect.x = 0;
-                        camera.limitRect.y = 0;
-                        camera.limitRect.width = map.width;
-                        camera.limitRect.height = map.height + (kimiko.DF.SC1_H / 2);
-                        var player = this.player;
-                        osakana4242.utils.Rect.copyFrom(player.limitRect, camera.limitRect);
-                    },
-                    getNearEnemy: function (sprite, sqrDistanceThreshold) {
-                        var mapCharaMgr = this.mapCharaMgr;
-                        var enemys = mapCharaMgr.actives;
-                        var getSqrDistance = function (a, b) {
-                            var dx = a.cx - b.cx;
-                            var dy = a.cy - b.cy;
-                            return (dx * dx) + (dy * dy);
-                        };
-                        var near = null;
-                        var nearSqrDistance = 0;
-                        for(var i = 0, iNum = enemys.length; i < iNum; ++i) {
-                            var enemy = enemys[i];
-                            if(enemy.isDead()) {
-                                continue;
-                            }
-                            var sqrDistance = getSqrDistance(sprite, enemy);
-                            if(near === null) {
-                                near = enemy;
-                                nearSqrDistance = sqrDistance;
-                            } else if(sqrDistance < nearSqrDistance) {
-                                near = enemy;
-                                nearSqrDistance = sqrDistance;
-                            }
-                        }
-                        return nearSqrDistance < sqrDistanceThreshold ? near : null;
-                    },
-                    newEnemyBullet: function () {
-                        var old = null;
-                        for(var i = 0, iNum = this.enemyBullets.length; i < iNum; ++i) {
-                            var bullet = this.enemyBullets[i];
-                            if(!bullet.visible) {
-                                bullet.visible = true;
-                                return bullet;
-                            }
-                            old = bullet;
-                        }
-                        return bullet;
-                    },
-                    newOwnBullet: function () {
-                        var old = null;
-                        for(var i = 0, iNum = this.ownBullets.length; i < iNum; ++i) {
-                            var bullet = this.ownBullets[i];
-                            if(!bullet.visible) {
-                                bullet.visible = true;
-                                return bullet;
-                            }
-                            old = bullet;
-                        }
-                        return null;
-                    },
-                    intersectActiveArea: function (sprite) {
-                        var player = this.player;
-                        var minX = player.cx - kimiko.DF.SC1_W;
-                        var maxX = player.cx + kimiko.DF.SC1_W;
-                        if(minX <= sprite.cx && sprite.cx <= maxX) {
-                            return true;
-                        }
-                        return false;
-                    },
-                    countTimeLimit: function () {
-                        if(this.timeLimit <= this.timeLimitCounter) {
-                            return true;
-                        }
-                        ++this.timeLimitCounter;
-                        return this.timeLimit <= this.timeLimitCounter;
-                    },
                     ontouchstart: function (event) {
                         var touch = this.touch;
                         touch.saveTouchStart(event);
@@ -931,6 +833,132 @@ var jp;
                         }
                     },
                     stateGameOver: function () {
+                        kimiko.kimiko.core.pushScene(new scenes.GameOver());
+                        this.state = this.stateGameStart;
+                    },
+                    loadMapData: function (mapData) {
+                        var _this = this;
+                        var map = this.map;
+                        this.timeLimit = kimiko.kimiko.secToFrame(180);
+                        this.timeLimitCounter = 0;
+                        ((function () {
+                            var layer = mapData.layers[0];
+                            map.loadData(layer.tiles);
+                            var collisionData = [];
+                            for(var y = 0, yNum = layer.tiles.length; y < yNum; ++y) {
+                                var line = [];
+                                for(var x = 0, xNum = layer.tiles[y].length; x < xNum; ++x) {
+                                    line.push(layer.tiles[y][x] !== -1);
+                                }
+                                collisionData.push(line);
+                            }
+                            map.collisionData = collisionData;
+                        })());
+                        ((function () {
+                            var mapCharaMgr = _this.mapCharaMgr;
+                            var layer = mapData.layers[1];
+                            for(var y = 0, yNum = layer.tiles.length; y < yNum; ++y) {
+                                for(var x = 0, xNum = layer.tiles[y].length; x < xNum; ++x) {
+                                    var charaId = layer.tiles[y][x];
+                                    if(charaId === -1) {
+                                        continue;
+                                    }
+                                    var left = x * kimiko.DF.MAP_TILE_W;
+                                    var top = y * kimiko.DF.MAP_TILE_H;
+                                    if(charaId === 40) {
+                                        var player = _this.player;
+                                        player.x = left + (kimiko.DF.MAP_TILE_W - player.width) / 2;
+                                        player.y = top + (kimiko.DF.MAP_TILE_H - player.height);
+                                    } else if(48 <= charaId) {
+                                        var enemyId = charaId - 48 + 1;
+                                        var enemy = new scenes.EnemyA();
+                                        var anchor = {
+                                            "x": left + (enemy.width / 2),
+                                            "y": top + (kimiko.DF.MAP_TILE_H - enemy.height)
+                                        };
+                                        scenes.EnemyBrains["brain" + enemyId](enemy, anchor);
+                                        mapCharaMgr.addSleep(enemy);
+                                    }
+                                }
+                            }
+                        })());
+                        var camera = this.camera;
+                        camera.limitRect.x = 0;
+                        camera.limitRect.y = 0;
+                        camera.limitRect.width = map.width;
+                        camera.limitRect.height = map.height + (kimiko.DF.SC1_H / 2);
+                        var player = this.player;
+                        osakana4242.utils.Rect.copyFrom(player.limitRect, camera.limitRect);
+                    },
+                    onPlayerDead: function () {
+                        var scene = this;
+                        scene.state = scene.stateGameOver;
+                    },
+                    getNearEnemy: function (sprite, sqrDistanceThreshold) {
+                        var mapCharaMgr = this.mapCharaMgr;
+                        var enemys = mapCharaMgr.actives;
+                        var getSqrDistance = function (a, b) {
+                            var dx = a.cx - b.cx;
+                            var dy = a.cy - b.cy;
+                            return (dx * dx) + (dy * dy);
+                        };
+                        var near = null;
+                        var nearSqrDistance = 0;
+                        for(var i = 0, iNum = enemys.length; i < iNum; ++i) {
+                            var enemy = enemys[i];
+                            if(enemy.isDead()) {
+                                continue;
+                            }
+                            var sqrDistance = getSqrDistance(sprite, enemy);
+                            if(near === null) {
+                                near = enemy;
+                                nearSqrDistance = sqrDistance;
+                            } else if(sqrDistance < nearSqrDistance) {
+                                near = enemy;
+                                nearSqrDistance = sqrDistance;
+                            }
+                        }
+                        return nearSqrDistance < sqrDistanceThreshold ? near : null;
+                    },
+                    newEnemyBullet: function () {
+                        var old = null;
+                        for(var i = 0, iNum = this.enemyBullets.length; i < iNum; ++i) {
+                            var bullet = this.enemyBullets[i];
+                            if(!bullet.visible) {
+                                bullet.visible = true;
+                                return bullet;
+                            }
+                            old = bullet;
+                        }
+                        return bullet;
+                    },
+                    newOwnBullet: function () {
+                        var old = null;
+                        for(var i = 0, iNum = this.ownBullets.length; i < iNum; ++i) {
+                            var bullet = this.ownBullets[i];
+                            if(!bullet.visible) {
+                                bullet.visible = true;
+                                return bullet;
+                            }
+                            old = bullet;
+                        }
+                        return null;
+                    },
+                    intersectActiveArea: function (sprite) {
+                        var player = this.player;
+                        var minX = player.cx - kimiko.DF.SC1_W;
+                        var maxX = player.cx + kimiko.DF.SC1_W;
+                        if(minX <= sprite.cx && sprite.cx <= maxX) {
+                            return true;
+                        }
+                        return false;
+                    },
+                    countTimeLimit: function () {
+                        if(this.timeLimit <= this.timeLimitCounter) {
+                            return true;
+                        }
+                        ++this.timeLimitCounter;
+                        return this.timeLimit <= this.timeLimitCounter;
                     },
                     updateStatusText: function () {
                         var scene = this;
@@ -992,24 +1020,16 @@ var jp;
                         var mapCharaMgr = this.mapCharaMgr;
                         var player = this.player;
                         var enemys = mapCharaMgr.actives;
-                        if(true) {
-                            if(player.isNeutral() || player.isAttack()) {
-                                for(var i = 0, iNum = this.enemyBullets.length; i < iNum; ++i) {
-                                    var bullet = this.enemyBullets[i];
-                                    if(bullet.visible && player.intersect(bullet)) {
-                                        player.damage(bullet);
-                                        bullet.visible = false;
+                        if(player.isNeutral() || player.isAttack()) {
+                            for(var i = 0, iNum = this.enemyBullets.length; i < iNum; ++i) {
+                                var bullet = this.enemyBullets[i];
+                                if(bullet.visible && player.life.isAlive() && player.intersect(bullet)) {
+                                    player.damage(bullet);
+                                    bullet.visible = false;
+                                    if(player.life.isDead()) {
+                                        this.onPlayerDead();
                                     }
                                 }
-                            }
-                        } else {
-                            if(player.isNeutral() || player.isAttack()) {
-                                scenes.EnemyBullet.collection.forEach(function (bullet) {
-                                    if(bullet.visible && player.intersect(bullet)) {
-                                        player.damage(bullet);
-                                        bullet.visible = false;
-                                    }
-                                });
                             }
                         }
                         this.statusTexts[3][1] = "";
