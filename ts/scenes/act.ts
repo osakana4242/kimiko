@@ -850,17 +850,18 @@ module jp.osakana4242.kimiko.scenes {
 		stateGameStart: function () {
 			var scene = this;
 			scene.state = scene.stateNormal;
-			
-			var sound = kimiko.core.assets[Assets.SOUND_BGM];
-			var soundSec = 15.922 + 0.5;
-			var replay = () => {
-				// sound.play();
-				if (!scene.state === scene.stateNormal) {
-					return;
-				}
-				window.setTimeout(replay, Math.floor(soundSec * 1000));
-			};	
-			replay();
+			if (kimiko.config.isSoundEnabled) {
+				var sound = kimiko.core.assets[Assets.SOUND_BGM];
+				var soundSec = 15.922 + 0.5;
+				var replay = () => {
+					sound.play();
+					if (!scene.state === scene.stateNormal) {
+						return;
+					}
+					window.setTimeout(replay, Math.floor(soundSec * 1000));
+				};	
+				replay();
+			}
 		},
 					
 		stateNormal: function () {

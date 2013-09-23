@@ -275,30 +275,51 @@ module jp.osakana4242.kimiko {
 			}
 		}
 	}
-	
+		
+	export interface IConfig {
+		fps: number;
+		isSoundEnabled: bool;
+		version: string;
+	}
+
+
 	export class Kimiko {
 		
 		static instance: Kimiko = null;
 		
 		numberUtil = new NumberUtil();
-
+		config: IConfig;
 		
-		constructor(config) {
+		constructor(config: IConfig) {
 			if (Kimiko.instance) {
 				return;
 			}
 			Kimiko.instance = this;
+			this.config = config;
+			
 			var core: any = new enchant.Core(DF.SC_W, DF.SC_H);
-
 			core.fps = config.fps || DF.BASE_FPS;
+			// preload
 			for (var key in Assets) {
 				if (!Assets.hasOwnProperty(key)) {
 					continue;
 				}
 				var path = Assets[key];
-				core.preload(path);
+				var pathSplited = path.split(".");
+				var ext = pathSplited.length <= 0 ? "" : "." + pathSplited[pathSplited.length - 1];
+				// パスにバージョンを付加.
+				var newPath = path + "?v=" + config.version + ext;
+				Assets[key] = newPath;
+				//
+				var isSound = ext === ".mp3";
+				if (!config.isSoundEnabled && isSound) {
+					// 音鳴らさないので読み込みをスキップ.
+					continue;
+				}
+				core.preload(newPath);
 			}
-
+			
+			// anim
 			this.registerAnimFrames(DF.ANIM_ID_CHARA001_WALK,  [0, 1, 0, 2], 0.2);
 			this.registerAnimFrames(DF.ANIM_ID_CHARA001_STAND, [0], 0.2);
 			this.registerAnimFrames(DF.ANIM_ID_CHARA002_WALK, [0, 1, 2, 3], 0.1);
@@ -309,6 +330,7 @@ module jp.osakana4242.kimiko {
 			core.keybind("D".charCodeAt(0), "right");	
 			core.keybind("W".charCodeAt(0), "up");	
 			core.keybind("S".charCodeAt(0), "down");	
+			
 			//
 			core.onload = function () {
 				var scene = new jp.osakana4242.kimiko.scenes.GameStart();

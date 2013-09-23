@@ -936,15 +936,18 @@ var jp;
                     stateGameStart: function () {
                         var scene = this;
                         scene.state = scene.stateNormal;
-                        var sound = kimiko.kimiko.core.assets[kimiko.Assets.SOUND_BGM];
-                        var soundSec = 15.922 + 0.5;
-                        var replay = function () {
-                            if(!scene.state === scene.stateNormal) {
-                                return;
-                            }
-                            window.setTimeout(replay, Math.floor(soundSec * 1000));
-                        };
-                        replay();
+                        if(kimiko.kimiko.config.isSoundEnabled) {
+                            var sound = kimiko.kimiko.core.assets[kimiko.Assets.SOUND_BGM];
+                            var soundSec = 15.922 + 0.5;
+                            var replay = function () {
+                                sound.play();
+                                if(!scene.state === scene.stateNormal) {
+                                    return;
+                                }
+                                window.setTimeout(replay, Math.floor(soundSec * 1000));
+                            };
+                            replay();
+                        }
                     },
                     stateNormal: function () {
                         var player = this.player;
@@ -1486,6 +1489,7 @@ var jp;
                         return;
                     }
                     Kimiko.instance = this;
+                    this.config = config;
                     var core = new enchant.Core(DF.SC_W, DF.SC_H);
                     core.fps = config.fps || DF.BASE_FPS;
                     for(var key in Assets) {
@@ -1493,7 +1497,15 @@ var jp;
                             continue;
                         }
                         var path = Assets[key];
-                        core.preload(path);
+                        var pathSplited = path.split(".");
+                        var ext = pathSplited.length <= 0 ? "" : "." + pathSplited[pathSplited.length - 1];
+                        var newPath = path + "?v=" + config.version + ext;
+                        Assets[key] = newPath;
+                        var isSound = ext === ".mp3";
+                        if(!config.isSoundEnabled && isSound) {
+                            continue;
+                        }
+                        core.preload(newPath);
                     }
                     this.registerAnimFrames(DF.ANIM_ID_CHARA001_WALK, [
                         0, 
