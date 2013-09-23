@@ -729,13 +729,18 @@ var jp;
                         scene.backgroundColor = "rgb(0, 0, 0)";
                         scene.addChild(layer1);
                         scene.addChild(fadeFilm);
-                        scene.tl.then(function () {
-                            fadeFilm.tl.fadeTo(0.0, kimiko.kimiko.secToFrame(0.5));
-                        }).delay(kimiko.kimiko.secToFrame(0.5)).delay(kimiko.kimiko.secToFrame(2.0)).then(function () {
-                            fadeFilm.tl.fadeTo(1.0, kimiko.kimiko.secToFrame(0.5));
-                        }).delay(kimiko.kimiko.secToFrame(0.5)).then(function () {
-                            kimiko.kimiko.core.replaceScene(new kimiko.scenes.Act());
-                        });
+                        ((function () {
+                            var next = function () {
+                                kimiko.kimiko.core.replaceScene(new kimiko.scenes.Act());
+                            };
+                            scene.tl.then(function () {
+                                fadeFilm.tl.fadeTo(0.0, kimiko.kimiko.secToFrame(0.5));
+                            }).delay(kimiko.kimiko.secToFrame(0.5)).delay(kimiko.kimiko.secToFrame(2.0)).then(function () {
+                                fadeFilm.tl.fadeTo(1.0, kimiko.kimiko.secToFrame(0.5));
+                            }).delay(kimiko.kimiko.secToFrame(0.5)).then(next);
+                            scene.addEventListener(Event.TOUCH_END, next);
+                            scene.addEventListener(Event.A_BUTTON_UP, next);
+                        })());
                     }
                 });
                 scenes.GameOver = Class.create(Scene, {
@@ -1475,6 +1480,11 @@ var jp;
                         2, 
                         3
                     ], 0.1);
+                    core.keybind(" ".charCodeAt(0), "a");
+                    core.keybind("A".charCodeAt(0), "left");
+                    core.keybind("D".charCodeAt(0), "right");
+                    core.keybind("W".charCodeAt(0), "up");
+                    core.keybind("S".charCodeAt(0), "down");
                     core.onload = function () {
                         var scene = new jp.osakana4242.kimiko.scenes.GameStart();
                         core.replaceScene(scene);

@@ -592,19 +592,20 @@ module jp.osakana4242.kimiko.scenes {
 			scene.backgroundColor = "rgb(0, 0, 0)";
 			scene.addChild(layer1);
 			scene.addChild(fadeFilm);
-			scene.tl.
-				then(() => {
-					fadeFilm.tl.fadeTo(0.0, kimiko.secToFrame(0.5));
-				}).
-				delay(kimiko.secToFrame(0.5)).
-				delay(kimiko.secToFrame(2.0)).
-				then(() => {
-					fadeFilm.tl.fadeTo(1.0, kimiko.secToFrame(0.5));
-				}).
-				delay(kimiko.secToFrame(0.5)).
-				then(() => {
+			(() => {
+				var next = () => {
 					kimiko.core.replaceScene(new scenes.Act());
-				});
+				};
+				scene.tl.
+					then(() => { fadeFilm.tl.fadeTo(0.0, kimiko.secToFrame(0.5)); }).
+					delay(kimiko.secToFrame(0.5)).
+					delay(kimiko.secToFrame(2.0)).
+					then(() => { fadeFilm.tl.fadeTo(1.0, kimiko.secToFrame(0.5)); }).
+					delay(kimiko.secToFrame(0.5)).
+					then(next);
+					scene.addEventListener(Event.TOUCH_END, next);
+					scene.addEventListener(Event.A_BUTTON_UP, next);
+			}());
 		},
 
 	});

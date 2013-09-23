@@ -300,7 +300,14 @@ module jp.osakana4242.kimiko {
 			this.registerAnimFrames(DF.ANIM_ID_CHARA001_WALK,  [0, 1, 0, 2], 0.2);
 			this.registerAnimFrames(DF.ANIM_ID_CHARA001_STAND, [0], 0.2);
 			this.registerAnimFrames(DF.ANIM_ID_CHARA002_WALK, [0, 1, 2, 3], 0.1);
-
+			
+			// key bind
+			core.keybind(" ".charCodeAt(0), "a");	
+			core.keybind("A".charCodeAt(0), "left");	
+			core.keybind("D".charCodeAt(0), "right");	
+			core.keybind("W".charCodeAt(0), "up");	
+			core.keybind("S".charCodeAt(0), "down");	
+			//
 			core.onload = function () {
 				var scene = new jp.osakana4242.kimiko.scenes.GameStart();
 				core.replaceScene(scene);
