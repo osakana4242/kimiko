@@ -9,25 +9,35 @@ var jp;
                 var Label = enchant.Label;
                 var Event = enchant.Event;
                 var Easing = enchant.Easing;
-                var EnemyBrains = (function () {
-                    function EnemyBrains() { }
-                    EnemyBrains.brain1 = function brain1(sprite, anchor) {
+                (function (EnemyBodys) {
+                    function body1(sprite) {
+                        sprite.width = 32;
+                        sprite.height = 32;
+                        sprite.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_CHARA002];
+                        sprite.frame = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA002_WALK);
+                    }
+                    EnemyBodys.body1 = body1;
+                    function body2(sprite) {
+                        sprite.width = 64;
+                        sprite.height = 64;
+                        sprite.backgroundColor = "rgb(192, 128, 192)";
+                    }
+                    EnemyBodys.body2 = body2;
+                })(scenes.EnemyBodys || (scenes.EnemyBodys = {}));
+                var EnemyBodys = scenes.EnemyBodys;
+                (function (EnemyBrains) {
+                    function brain1(sprite) {
+                        var anchor = sprite.anchor;
                         var range = 48;
-                        sprite.anchor.x = anchor.x;
-                        sprite.anchor.y = anchor.y;
-                        sprite.x = sprite.anchor.x;
-                        sprite.y = sprite.anchor.y;
                         var waitFire = function () {
                             return !sprite.weapon.isStateFire();
                         };
                         sprite.tl.moveTo(sprite.anchor.x + range, sprite.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).moveTo(sprite.anchor.x, sprite.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).loop();
-                    };
-                    EnemyBrains.brain2 = function brain2(sprite, anchor) {
+                    }
+                    EnemyBrains.brain1 = brain1;
+                    function brain2(sprite) {
+                        var anchor = sprite.anchor;
                         var range = 16;
-                        sprite.anchor.x = anchor.x;
-                        sprite.anchor.y = anchor.y;
-                        sprite.x = sprite.anchor.x;
-                        sprite.y = sprite.anchor.y;
                         var waitFire = function () {
                             return !sprite.weapon.isStateFire();
                         };
@@ -54,13 +64,11 @@ var jp;
                             wp.dir.y = 0;
                             wp.startFire();
                         }).waitUntil(waitFire).loop();
-                    };
-                    EnemyBrains.brain3 = function brain3(sprite, anchor) {
+                    }
+                    EnemyBrains.brain2 = brain2;
+                    function brain3(sprite, anchor) {
+                        var anchor = sprite.anchor;
                         var range = 16;
-                        sprite.anchor.x = anchor.x;
-                        sprite.anchor.y = anchor.y;
-                        sprite.x = sprite.anchor.x;
-                        sprite.y = sprite.anchor.y;
                         var waitFire = function () {
                             return !sprite.weapon.isStateFire();
                         };
@@ -75,10 +83,33 @@ var jp;
                             wp.startFire();
                         }
                         sprite.tl.delay(kimiko.kimiko.secToFrame(0.5)).moveBy(0, -16, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, 16, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, -8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).moveBy(0, 8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire).then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire).then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire).delay(kimiko.kimiko.secToFrame(0.5)).moveTo(sprite.anchor.x, sprite.anchor.y, kimiko.kimiko.secToFrame(0.5), Easing.LINEAR).loop();
-                    };
-                    return EnemyBrains;
-                })();
-                scenes.EnemyBrains = EnemyBrains;                
+                    }
+                    EnemyBrains.brain3 = brain3;
+                })(scenes.EnemyBrains || (scenes.EnemyBrains = {}));
+                var EnemyBrains = scenes.EnemyBrains;
+                scenes.EnemyData = [
+                    {
+                        hpMax: 5,
+                        body: EnemyBodys.body1,
+                        brain: EnemyBrains.brain1
+                    }, 
+                    {
+                        hpMax: 10,
+                        body: EnemyBodys.body1,
+                        brain: EnemyBrains.brain2
+                    }, 
+                    {
+                        hpMax: 10,
+                        body: EnemyBodys.body1,
+                        brain: EnemyBrains.brain3
+                    }, 
+                    {
+                        hpMax: 30,
+                        body: EnemyBodys.body2,
+                        brain: EnemyBrains.brain3
+                    }, 
+                    
+                ];
             })(kimiko.scenes || (kimiko.scenes = {}));
             var scenes = kimiko.scenes;
         })(osakana4242.kimiko || (osakana4242.kimiko = {}));
@@ -520,24 +551,11 @@ var jp;
                     initialize: function () {
                         var _this = this;
                         scenes.Attacker.call(this);
-                        var life = this.life;
-                        life.hpMax = kimiko.DF.ENEMY_HP;
-                        life.hp = life.hpMax;
                         this.weapon = new scenes.WeaponA(this);
-                        this.anchor = {
-                            x: 0,
-                            y: 0
-                        };
-                        this.initStyle_();
+                        this.anchor = new osakana4242.utils.Vector2D();
                         this.addEventListener(Event.ENTER_FRAME, function () {
                             _this.weapon.step();
                         });
-                    },
-                    initStyle_: function () {
-                        this.width = 32;
-                        this.height = 32;
-                        this.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_CHARA002];
-                        this.frame = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA002_WALK);
                     }
                 });
                 var MapCharaManager = (function () {
@@ -914,13 +932,19 @@ var jp;
                                         player.x = left + (kimiko.DF.MAP_TILE_W - player.width) / 2;
                                         player.y = top + (kimiko.DF.MAP_TILE_H - player.height);
                                     } else if(48 <= charaId) {
-                                        var enemyId = charaId - 48 + 1;
+                                        var enemyId = charaId - 48;
+                                        var data = scenes.EnemyData[enemyId];
                                         var enemy = new scenes.EnemyA();
-                                        var anchor = {
-                                            "x": left + (enemy.width / 2),
-                                            "y": top + (kimiko.DF.MAP_TILE_H - enemy.height)
-                                        };
-                                        scenes.EnemyBrains["brain" + enemyId](enemy, anchor);
+                                        enemy.life.hpMax = data.hpMax;
+                                        enemy.life.hp = enemy.life.hpMax;
+                                        data.body(enemy);
+                                        var center = left + (enemy.width / 2);
+                                        var bottom = top + (kimiko.DF.MAP_TILE_H - enemy.height);
+                                        var anchor = new osakana4242.utils.Vector2D(center, bottom);
+                                        osakana4242.utils.Vector2D.copyFrom(enemy.anchor, anchor);
+                                        enemy.x = anchor.x;
+                                        enemy.y = anchor.y;
+                                        data.brain(enemy);
                                         mapCharaMgr.addSleep(enemy);
                                     }
                                 }

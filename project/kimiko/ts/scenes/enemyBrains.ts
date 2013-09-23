@@ -11,15 +11,28 @@ module jp.osakana4242.kimiko.scenes {
 	var Event = enchant.Event;
 	var Easing = enchant.Easing;
 
-	export class EnemyBrains {
+	export module EnemyBodys {
+
+		export function body1(sprite: any) {
+			sprite.width = 32;
+			sprite.height = 32;
+			sprite.image = kimiko.core.assets[Assets.IMAGE_CHARA002]
+			sprite.frame = kimiko.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
+		}
+
+		export function body2(sprite: any) {
+			sprite.width = 64;
+			sprite.height = 64;
+			sprite.backgroundColor = "rgb(192, 128, 192)";
+		}
+	}
+
+	export module EnemyBrains {
 
 		// 左右に行ったりきたり
-		public static brain1(sprite: any, anchor: utils.IVector2D): void {
+		export function brain1(sprite: any): void {
+			var anchor = sprite.anchor;
 			var range = 48;
-			sprite.anchor.x = anchor.x;
-			sprite.anchor.y = anchor.y;
-			sprite.x = sprite.anchor.x;
-			sprite.y = sprite.anchor.y;
 			var waitFire = () => { return !sprite.weapon.isStateFire(); };
 			sprite.tl
 				.moveTo(sprite.anchor.x + range, sprite.anchor.y, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN)
@@ -28,12 +41,9 @@ module jp.osakana4242.kimiko.scenes {
 		}
 
 		// 三角形
-		public static brain2(sprite: any, anchor: utils.IVector2D): void {
+		export function brain2(sprite: any): void {
+			var anchor = sprite.anchor;
 			var range = 16;
-			sprite.anchor.x = anchor.x;
-			sprite.anchor.y = anchor.y;
-			sprite.x = sprite.anchor.x;
-			sprite.y = sprite.anchor.y;
 			var waitFire = () => { return !sprite.weapon.isStateFire(); };
 			sprite.tl
 				.moveTo(sprite.anchor.x + range, sprite.anchor.y, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN)
@@ -74,12 +84,9 @@ module jp.osakana4242.kimiko.scenes {
 		}
 
 		// 連射マン.
-		public static brain3(sprite: any, anchor: utils.IVector2D): void {
+		export function brain3(sprite: any, anchor: utils.IVector2D): void {
+			var anchor = sprite.anchor;
 			var range = 16;
-			sprite.anchor.x = anchor.x;
-			sprite.anchor.y = anchor.y;
-			sprite.x = sprite.anchor.x;
-			sprite.y = sprite.anchor.y;
 
 			var waitFire = () => { return !sprite.weapon.isStateFire(); };
 			function fireToPlayer() {
@@ -116,5 +123,31 @@ module jp.osakana4242.kimiko.scenes {
 				.loop();
 		}
 	}
+
+	export var EnemyData: { [index: number]: {hpMax: number; body: any; brain: any;}; } = <any>[
+		{
+			hpMax: 5,
+			body: EnemyBodys.body1,
+			brain: EnemyBrains.brain1,
+		},
+
+		{
+			hpMax: 10,
+			body: EnemyBodys.body1,
+			brain: EnemyBrains.brain2,
+		},
+
+		{
+			hpMax: 10,
+			body: EnemyBodys.body1,
+			brain: EnemyBrains.brain3,
+		},
+
+		{
+			hpMax: 30,
+			body: EnemyBodys.body2,
+			brain: EnemyBrains.brain3,
+		},
+	];
 
 }

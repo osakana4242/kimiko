@@ -397,37 +397,18 @@ module jp.osakana4242.kimiko.scenes {
 		},
 
 	});
-		
+
 	// 敵はしかれたレールをなぞるだけ。
 	export var EnemyA = Class.create(Attacker, {
 		initialize: function () {
 			Attacker.call(this);
 
-			var life: Life = this.life;
-			life.hpMax = DF.ENEMY_HP;
-			life.hp = life.hpMax;
-
 			this.weapon = new WeaponA(this);
-			this.anchor = {
-				x: 0,
-				y: 0,
-			};
-			this.initStyle_();
+			this.anchor = new utils.Vector2D();
 			this.addEventListener(Event.ENTER_FRAME, () => {
 				this.weapon.step();
 			});
 		},
-
-		initStyle_: function () {
-			this.width = 32;
-			this.height = 32;
-			//this.backgroundColor = "rgb(192, 128, 128)";
-
-			this.image = kimiko.core.assets[Assets.IMAGE_CHARA002]
-			this.frame = kimiko.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
-		},
-
-
 
 	});
 	
@@ -896,14 +877,20 @@ module jp.osakana4242.kimiko.scenes {
 							player.x = left + (DF.MAP_TILE_W - player.width) / 2;
 							player.y = top + (DF.MAP_TILE_H - player.height);
 						} else if (48 <= charaId) {
-							var enemyId = charaId - 48 + 1;
+							var enemyId = charaId - 48;
+							var data = EnemyData[enemyId]
 							var enemy = new EnemyA();
-							// center, bottom で配置.
-							var anchor: utils.IVector2D = {
-								"x": left + (enemy.width / 2),
-								"y": top + (DF.MAP_TILE_H - enemy.height),
-							};
-							EnemyBrains["brain" + enemyId](enemy, anchor);
+							enemy.life.hpMax = data.hpMax;
+							enemy.life.hp = enemy.life.hpMax;
+							data.body(enemy);
+							
+							var center = left + (enemy.width / 2);
+							var bottom = top + (DF.MAP_TILE_H - enemy.height);
+							var anchor = new utils.Vector2D(center, bottom);
+							utils.Vector2D.copyFrom(enemy.anchor, anchor);
+							enemy.x = anchor.x;
+							enemy.y = anchor.y;
+						data.brain(enemy);
 							mapCharaMgr.addSleep(enemy);
 						}
 					}
