@@ -844,8 +844,8 @@ var jp;
                         var touchElpsedFrame = touch.getTouchElpsedFrame();
                         touchElpsedFrame = 0;
                         if(touchElpsedFrame < kimiko.kimiko.secToFrame(0.5)) {
-                            var moveLimit = 30;
-                            var moveRate = 1.0;
+                            var moveLimit = kimiko.DF.TOUCH_TO_CHARA_MOVE_LIMIT;
+                            var moveRate = kimiko.DF.TOUCH_TO_CHARA_MOVE_RATE;
                             if(kimiko.DF.PLAYER_TOUCH_ANCHOR_ENABLE) {
                                 var tv = new osakana4242.utils.Vector2D(player.anchorX + touch.totalDiff.x * moveRate, player.anchorY + touch.totalDiff.y * moveRate);
                                 var v = new osakana4242.utils.Vector2D(tv.x - player.x, tv.y - player.y);
@@ -1332,6 +1332,8 @@ var jp;
                 DF.ANIM_ID_CHARA001_WALK = 10;
                 DF.ANIM_ID_CHARA001_STAND = 11;
                 DF.ANIM_ID_CHARA002_WALK = 20;
+                DF.TOUCH_TO_CHARA_MOVE_RATE = 1.5;
+                DF.TOUCH_TO_CHARA_MOVE_LIMIT = 30;
                 DF.PLAYER_HP = 5;
                 DF.ENEMY_HP = 10;
                 DF.PLAYER_BULLET_NUM = 2;

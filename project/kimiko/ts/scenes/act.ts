@@ -765,8 +765,8 @@ module jp.osakana4242.kimiko.scenes {
 			var touchElpsedFrame = touch.getTouchElpsedFrame();
 			touchElpsedFrame = 0;
 			if (touchElpsedFrame < kimiko.secToFrame(0.5)) {
-				var moveLimit = 30;
-				var moveRate = 1.0;
+				var moveLimit = DF.TOUCH_TO_CHARA_MOVE_LIMIT;
+				var moveRate = DF.TOUCH_TO_CHARA_MOVE_RATE;
 				if (DF.PLAYER_TOUCH_ANCHOR_ENABLE) {
 					var tv = new utils.Vector2D(
 						player.anchorX + touch.totalDiff.x * moveRate,
