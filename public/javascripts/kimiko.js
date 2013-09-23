@@ -254,7 +254,7 @@ var jp;
                 });
                 scenes.EnemyBullet = Class.create(scenes.Sprite, {
                     initialize: function () {
-                        scenes.Sprite.call(this, 16, 16);
+                        scenes.Sprite.call(this, 8, 8);
                         this.vx = 0;
                         this.vy = 0;
                         this.backgroundColor = 'rgb(255, 64, 64)';
@@ -289,7 +289,7 @@ var jp;
                         this.vy = 0;
                         this.visibleCnt = 0;
                         this.backgroundColor = 'rgb(64, 255, 255)';
-                        this.tl.scaleTo(1.25, kimiko.kimiko.secToFrame(0.1)).scaleTo(1.0, kimiko.kimiko.secToFrame(0.1)).loop();
+                        this.tl.scaleTo(0.75, kimiko.kimiko.secToFrame(0.1)).scaleTo(1.0, kimiko.kimiko.secToFrame(0.1)).loop();
                     },
                     onenterframe: function () {
                         if(!this.visible) {
@@ -513,7 +513,7 @@ var jp;
                         if(bullet === null) {
                             return;
                         }
-                        bullet.vx = this.dirX * kimiko.kimiko.dpsToDpf(200);
+                        bullet.vx = this.dirX * kimiko.kimiko.dpsToDpf(8 * 60);
                         bullet.vy = 0;
                         bullet.cx = this.cx;
                         bullet.cy = this.cy;

@@ -39,7 +39,7 @@ module jp.osakana4242.kimiko.scenes {
 	/** 敵弾 */
 	export var EnemyBullet: any = Class.create(Sprite, {
 		initialize: function () {
-			Sprite.call(this, 16, 16);
+			Sprite.call(this, 8, 8);
 			this.vx = 0;
 			this.vy = 0;
 			this.backgroundColor = 'rgb(255, 64, 64)';
@@ -83,7 +83,7 @@ module jp.osakana4242.kimiko.scenes {
 			this.vy = 0;
 			this.visibleCnt = 0;
 			this.backgroundColor = 'rgb(64, 255, 255)';
-			this.tl.scaleTo(1.25, kimiko.secToFrame(0.1))
+			this.tl.scaleTo(0.75, kimiko.secToFrame(0.1))
 				.scaleTo(1.0, kimiko.secToFrame(0.1))
 				.loop();
 		},
@@ -331,7 +331,7 @@ module jp.osakana4242.kimiko.scenes {
 			if (bullet === null) {
 				return;
 			}
-			bullet.vx = this.dirX * kimiko.dpsToDpf(200);
+			bullet.vx = this.dirX * kimiko.dpsToDpf(8 * 60);
 			bullet.vy = 0;
 			bullet.cx = this.cx;
 			bullet.cy = this.cy;
