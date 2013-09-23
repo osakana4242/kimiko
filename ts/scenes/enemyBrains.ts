@@ -29,18 +29,43 @@ module jp.osakana4242.kimiko.scenes {
 
 	export module EnemyBrains {
 
-		// ¶‰E‚És‚Á‚½‚è‚«‚½‚è
-		export function brain1(sprite: any): void {
+		// å·¦å³ã«è¡Œã£ãŸã‚ŠããŸã‚Š
+		export function brainX(sprite: any): void {
 			var anchor = sprite.anchor;
 			var range = 48;
 			var waitFire = () => { return !sprite.weapon.isStateFire(); };
 			sprite.tl
-				.moveTo(sprite.anchor.x + range, sprite.anchor.y, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN)
-				.moveTo(sprite.anchor.x, sprite.anchor.y, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN)
+				.moveTo(anchor.x + range, anchor.y, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN)
+				.moveTo(anchor.x, anchor.y, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN)
 				.loop();
 		}
 
-		// OŠpŒ`
+		// ä¸Šä¸‹ã«ãµã‚ãµã‚.
+		export function brain1(sprite: any): void {
+			var anchor = sprite.anchor;
+			var range = 48;
+			var fire = () => {
+					// Xæ–¹å‘ã ã‘ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã«åˆã‚ã›ã¦ç™ºæ³¡ã™ã‚‹.
+				var player = sprite.scene.player;
+				var wp: WeaponA = sprite.weapon;
+				wp.wayNum = 1;
+				wp.speed = kimiko.dpsToDpf(1.5 * DF.BASE_FPS);
+				wp.dir.x = player.x - sprite.x;
+				wp.dir.y = 0;
+				utils.Vector2D.normalize(wp.dir);
+				wp.startFire();
+			};
+			var waitFire = () => { return !sprite.weapon.isStateFire(); };
+			
+			sprite.tl.
+				moveTo(anchor.x, anchor.y - range, kimiko.secToFrame(2.0), Easing.SIN_EASEINOUT).
+				then(fire).waitUntil(waitFire).
+				moveTo(anchor.x, anchor.y, kimiko.secToFrame(2.0), Easing.SIN_EASEINOUT).
+				then(fire).waitUntil(waitFire).
+				loop();
+		}
+
+		// ä¸‰è§’å½¢
 		export function brain2(sprite: any): void {
 			var anchor = sprite.anchor;
 			var range = 16;
@@ -63,7 +88,7 @@ module jp.osakana4242.kimiko.scenes {
 				})
 				.waitUntil(waitFire)
 				.then(() => {
-					// ƒvƒŒƒCƒ„[‚ÌŒü‚«‚ğ‹‚ß‚é.
+					// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å‘ãã‚’æ±‚ã‚ã‚‹.
 					var player = sprite.scene.player;
 					var wp: WeaponA = sprite.weapon;
 					wp.dir.x = player.x - sprite.x;
@@ -83,14 +108,14 @@ module jp.osakana4242.kimiko.scenes {
 				.loop();
 		}
 
-		// ˜AËƒ}ƒ“.
+		// é€£å°„ãƒãƒ³.
 		export function brain3(sprite: any, anchor: utils.IVector2D): void {
 			var anchor = sprite.anchor;
 			var range = 16;
 
 			var waitFire = () => { return !sprite.weapon.isStateFire(); };
 			function fireToPlayer() {
-				// ƒvƒŒƒCƒ„[‚ÌŒü‚«‚ğ‹‚ß‚é.
+				// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å‘ãã‚’æ±‚ã‚ã‚‹.
 				var player = sprite.scene.player;
 				var wp: WeaponA = sprite.weapon;
 				wp.fireCount = 1;
@@ -126,7 +151,7 @@ module jp.osakana4242.kimiko.scenes {
 
 	export var EnemyData: { [index: number]: {hpMax: number; body: any; brain: any;}; } = <any>[
 		{
-			hpMax: 5,
+			hpMax: 10,
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain1,
 		},

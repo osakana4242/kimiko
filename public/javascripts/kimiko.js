@@ -26,13 +26,32 @@ var jp;
                 })(scenes.EnemyBodys || (scenes.EnemyBodys = {}));
                 var EnemyBodys = scenes.EnemyBodys;
                 (function (EnemyBrains) {
-                    function brain1(sprite) {
+                    function brainX(sprite) {
                         var anchor = sprite.anchor;
                         var range = 48;
                         var waitFire = function () {
                             return !sprite.weapon.isStateFire();
                         };
-                        sprite.tl.moveTo(sprite.anchor.x + range, sprite.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).moveTo(sprite.anchor.x, sprite.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).loop();
+                        sprite.tl.moveTo(anchor.x + range, anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).moveTo(anchor.x, anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).loop();
+                    }
+                    EnemyBrains.brainX = brainX;
+                    function brain1(sprite) {
+                        var anchor = sprite.anchor;
+                        var range = 48;
+                        var fire = function () {
+                            var player = sprite.scene.player;
+                            var wp = sprite.weapon;
+                            wp.wayNum = 1;
+                            wp.speed = kimiko.kimiko.dpsToDpf(1.5 * kimiko.DF.BASE_FPS);
+                            wp.dir.x = player.x - sprite.x;
+                            wp.dir.y = 0;
+                            osakana4242.utils.Vector2D.normalize(wp.dir);
+                            wp.startFire();
+                        };
+                        var waitFire = function () {
+                            return !sprite.weapon.isStateFire();
+                        };
+                        sprite.tl.moveTo(anchor.x, anchor.y - range, kimiko.kimiko.secToFrame(2.0), Easing.SIN_EASEINOUT).then(fire).waitUntil(waitFire).moveTo(anchor.x, anchor.y, kimiko.kimiko.secToFrame(2.0), Easing.SIN_EASEINOUT).then(fire).waitUntil(waitFire).loop();
                     }
                     EnemyBrains.brain1 = brain1;
                     function brain2(sprite) {
@@ -89,7 +108,7 @@ var jp;
                 var EnemyBrains = scenes.EnemyBrains;
                 scenes.EnemyData = [
                     {
-                        hpMax: 5,
+                        hpMax: 10,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain1
                     }, 
@@ -130,9 +149,9 @@ var jp;
                 var Easing = enchant.Easing;
                 var WeaponA = (function () {
                     function WeaponA(sprite) {
-                        this.wayNum = 3;
                         this.parent = sprite;
                         this.state = this.stateNeutral;
+                        this.wayNum = 1;
                         this.fireCount = 1;
                         this.fireInterval = kimiko.kimiko.secToFrame(0.2);
                         this.reloadFrameCount = kimiko.kimiko.secToFrame(3.0);
@@ -581,7 +600,7 @@ var jp;
                         var arr = this.sleeps;
                         for(var i = arr.length - 1; 0 <= i; --i) {
                             var chara = arr[i];
-                            if(!camera.isInsideSpawnRect(chara)) {
+                            if(!camera.isIntersectSpawnRect(chara)) {
                                 continue;
                             }
                             arr.splice(i, 1);
@@ -621,14 +640,14 @@ var jp;
                         this.sleepRect = {
                             x: 0,
                             y: 0,
-                            width: this.width + 96,
-                            height: this.height + 96
+                            width: this.width + 128,
+                            height: this.height + 128
                         };
                         this.spawnRect = {
                             x: 0,
                             y: 0,
-                            width: this.width + 8,
-                            height: this.height + 8
+                            width: this.width + 32,
+                            height: this.height + 32
                         };
                         this.targetGroup = null;
                     },
@@ -662,7 +681,7 @@ var jp;
                             group.y = -camera.y;
                         }
                     },
-                    isInsideSpawnRect: function (entity) {
+                    isIntersectSpawnRect: function (entity) {
                         var rect = this.spawnRect;
                         rect.x = this.x - ((rect.width - this.width) / 2);
                         rect.y = this.y - ((rect.height - this.height) / 2);
@@ -1214,7 +1233,7 @@ var jp;
                     return (a.x <= b.x) && (b.x + b.width < a.x + a.width) && (a.y <= b.y) && (b.y + b.height < a.y + a.height);
                 };
                 Rect.outside = function outside(a, b) {
-                    return (b.x < a.x) || (a.x + a.width <= b.x + b.width) || (b.y < a.y) || (a.y + a.height <= b.y + b.height);
+                    return (b.x + b.width < a.x) || (a.x + a.width <= b.x) || (b.y + b.height < a.y) || (a.y + a.height <= b.y);
                 };
                 Rect.intersect = function intersect(a, other) {
                     return (a.x < other.x + other.width) && (other.x < a.x + a.width) && (a.y < other.y + other.height) && (other.y < a.y + a.height);
@@ -1335,7 +1354,6 @@ var jp;
                 DF.TOUCH_TO_CHARA_MOVE_RATE = 1.5;
                 DF.TOUCH_TO_CHARA_MOVE_LIMIT = 30;
                 DF.PLAYER_HP = 5;
-                DF.ENEMY_HP = 10;
                 DF.PLAYER_BULLET_NUM = 2;
                 DF.FONT_M = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
                 DF.GRAVITY = 0.25 * 60;

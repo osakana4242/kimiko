@@ -89,8 +89,8 @@ module jp.osakana4242.utils {
 
 		// a の外側に b がいるか.
 		public static outside(a: IRect, b: IRect): bool {
-			return (b.x < a.x) || (a.x + a.width <= b.x + b.width)
-				|| (b.y < a.y) || (a.y + a.height <= b.y + b.height);
+			return (b.x + b.width < a.x) || (a.x + a.width <= b.x)
+				|| (b.y + b.height < a.y) || (a.y + a.height <= b.y);
 		}
 
 		public static intersect(a: IRect, other: IRect): bool {
@@ -221,7 +221,6 @@ module jp.osakana4242.kimiko {
 		// スワイプで1フレームにキャラが移動できる最大距離.
 		export var TOUCH_TO_CHARA_MOVE_LIMIT = 30;
 		export var PLAYER_HP = 5;
-		export var ENEMY_HP = 10;
 		// 最大連射数.
 		export var PLAYER_BULLET_NUM = 2;
 

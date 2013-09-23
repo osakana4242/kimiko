@@ -18,7 +18,7 @@ module jp.osakana4242.kimiko.scenes {
 		fireInterval: number;
 		reloadFrameCounter: number;
 		reloadFrameCount: number;
-		wayNum: number = 3;
+		wayNum: number;
 		speed: number;
 		parent: any;
 		dir: utils.IVector2D;
@@ -28,6 +28,7 @@ module jp.osakana4242.kimiko.scenes {
 		constructor(sprite: any) {
 			this.parent = sprite;
 			this.state = this.stateNeutral;
+			this.wayNum = 1;
 			this.fireCount = 1;
 			this.fireInterval = kimiko.secToFrame(0.2);
 			this.reloadFrameCount = kimiko.secToFrame(3.0);

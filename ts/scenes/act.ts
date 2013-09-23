@@ -442,7 +442,7 @@ module jp.osakana4242.kimiko.scenes {
 			var arr = this.sleeps;
 			for (var i = arr.length - 1; 0 <= i; --i) {
 				var chara = arr[i];
-				if (!camera.isInsideSpawnRect(chara)) {
+				if (!camera.isIntersectSpawnRect(chara)) {
 					continue;
 				}
 				arr.splice(i, 1);
@@ -486,14 +486,14 @@ module jp.osakana4242.kimiko.scenes {
 			this.sleepRect = {
 				x: 0,
 				y: 0,
-				width: this.width + 96,
-				height: this.height + 96,
+				width: this.width + 128,
+				height: this.height + 128,
 			};
 			this.spawnRect = {
 				x: 0,
 				y: 0,
-				width: this.width + 8,
-				height: this.height + 8,
+				width: this.width + 32,
+				height: this.height + 32,
 			};
 			this.targetGroup = null;
 		},
@@ -533,7 +533,7 @@ module jp.osakana4242.kimiko.scenes {
 			}
 		},
 
-		isInsideSpawnRect: function (entity: utils.IRect) {
+		isIntersectSpawnRect: function (entity: utils.IRect) {
 				var rect: utils.IRect = this.spawnRect;
 				rect.x = this.x -((rect.width -this.width) / 2);
 				rect.y = this.y -((rect.height -this.height) / 2);
