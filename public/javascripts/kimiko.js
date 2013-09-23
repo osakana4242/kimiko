@@ -920,11 +920,6 @@ var jp;
                     ontouchend: function (event) {
                         var touch = this.touch;
                         touch.saveTouchEnd(event);
-                        this.statusTexts[0][1] = ([
-                            "touch end diff", 
-                            Math.floor(touch.totalDiff.x), 
-                            Math.floor(touch.totalDiff.y)
-                        ]).join();
                         var player = this.player;
                         player.frame = player.animStand;
                         player.vx = 0;
@@ -939,7 +934,17 @@ var jp;
                         this.updateStatusText();
                     },
                     stateGameStart: function () {
-                        this.state = this.stateNormal;
+                        var scene = this;
+                        scene.state = scene.stateNormal;
+                        var sound = kimiko.kimiko.core.assets[kimiko.Assets.SOUND_BGM];
+                        var soundSec = 15.922 + 0.5;
+                        var replay = function () {
+                            if(!scene.state === scene.stateNormal) {
+                                return;
+                            }
+                            window.setTimeout(replay, Math.floor(soundSec * 1000));
+                        };
+                        replay();
                     },
                     stateNormal: function () {
                         var player = this.player;
@@ -1098,9 +1103,8 @@ var jp;
                         var player = this.player;
                         var mapCharaMgr = this.mapCharaMgr;
                         var texts = this.statusTexts;
-                        texts[0][0] = "SC " + scene.score + " " + "(L) " + Math.floor(kimiko.kimiko.frameToSec(this.timeLimit - this.timeLimitCounter));
-                        texts[1][0] = player.stateToString();
-                        texts[2][0] = "actives:" + mapCharaMgr.actives.length + " " + "sleeps:" + mapCharaMgr.sleeps.length;
+                        texts[0][0] = "SC " + scene.score + " " + "TIME " + Math.floor(kimiko.kimiko.frameToSec(this.timeLimit - this.timeLimitCounter));
+                        texts[1][0] = "LIFE " + player.life.hp;
                         for(var i = 0, iNum = texts.length; i < iNum; ++i) {
                             var line = texts[i].join(" ");
                             this.labels[i].text = line;
@@ -1351,6 +1355,7 @@ var jp;
                 Assets.IMAGE_MAP = "./images/map.png";
                 Assets.IMAGE_CHARA001 = "./images/chara001.png";
                 Assets.IMAGE_CHARA002 = "./images/chara002.png";
+                Assets.SOUND_BGM = "./sounds/bgm.mp3";
             })(kimiko.Assets || (kimiko.Assets = {}));
             var Assets = kimiko.Assets;
             (function (DF) {

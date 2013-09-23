@@ -186,6 +186,7 @@ module jp.osakana4242.kimiko {
 		export var IMAGE_MAP = "./images/map.png";
 		export var IMAGE_CHARA001 = "./images/chara001.png";
 		export var IMAGE_CHARA002 = "./images/chara002.png";
+		export var SOUND_BGM = "./sounds/bgm.mp3";
 	}
 
 	export module DF {

@@ -825,7 +825,7 @@ module jp.osakana4242.kimiko.scenes {
 		ontouchend: function (event) {
 			var touch: utils.Touch = this.touch;
 			touch.saveTouchEnd(event);
-			this.statusTexts[0][1] = (<any[]>["touch end diff", Math.floor(touch.totalDiff.x), Math.floor(touch.totalDiff.y)]).join();
+			// this.statusTexts[0][1] = (<any[]>["touch end diff", Math.floor(touch.totalDiff.x), Math.floor(touch.totalDiff.y)]).join();
 			
 			var player = this.player;
 			player.frame = player.animStand;
@@ -848,7 +848,19 @@ module jp.osakana4242.kimiko.scenes {
 		// states..
 		
 		stateGameStart: function () {
-			this.state = this.stateNormal;
+			var scene = this;
+			scene.state = scene.stateNormal;
+			
+			var sound = kimiko.core.assets[Assets.SOUND_BGM];
+			var soundSec = 15.922 + 0.5;
+			var replay = () => {
+				// sound.play();
+				if (!scene.state === scene.stateNormal) {
+					return;
+				}
+				window.setTimeout(replay, Math.floor(soundSec * 1000));
+			};	
+			replay();
 		},
 					
 		stateNormal: function () {
@@ -1040,10 +1052,11 @@ module jp.osakana4242.kimiko.scenes {
 			//" fps:" + Math.round(kimiko.core.actualFps)
 			var texts: string[][] = this.statusTexts;
 			texts[0][0] = "SC " + scene.score + " " +
-				"(L) " + Math.floor(kimiko.frameToSec(this.timeLimit - this.timeLimitCounter));	
-			texts[1][0] = player.stateToString()
-			texts[2][0] = "actives:" + mapCharaMgr.actives.length + " " +
-				"sleeps:" + mapCharaMgr.sleeps.length;
+				"TIME " + Math.floor(kimiko.frameToSec(this.timeLimit - this.timeLimitCounter));	
+			texts[1][0] = "LIFE " + player.life.hp;
+			//texts[1][0] = player.stateToString()
+			//texts[2][0] = "actives:" + mapCharaMgr.actives.length + " " +
+			//	"sleeps:" + mapCharaMgr.sleeps.length;
 			//
 			for (var i = 0, iNum = texts.length; i < iNum; ++i) {
 				var line = texts[i].join(" ");
