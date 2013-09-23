@@ -212,6 +212,7 @@ module jp.osakana4242.kimiko {
 		export var ENEMY_COLOR: string = "rgb(120, 80, 120)";
 		export var ENEMY_DAMAGE_COLOR: string = "rgb(240, 16, 240)";
 		export var ENEMY_ATTACK_COLOR: string = "rgb(240, 16, 16)";
+		export var ENEMY_ID_BOSS = 0xf;
 
 		export var ANIM_ID_CHARA001_WALK = 10;
 		export var ANIM_ID_CHARA001_STAND = 11;

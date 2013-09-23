@@ -403,12 +403,16 @@ module jp.osakana4242.kimiko.scenes {
 		initialize: function () {
 			Attacker.call(this);
 
+			this.enemyId = -1;
 			this.weapon = new WeaponA(this);
 			this.anchor = new utils.Vector2D();
 			this.addEventListener(Event.ENTER_FRAME, () => {
 				this.weapon.step();
 			});
 		},
+		
+		getEnemyData: function () { return EnemyData[this.enemyId]; },
+		isBoss: function () { return this.enemyId === DF.ENEMY_ID_BOSS; },
 
 	});
 	
@@ -639,6 +643,35 @@ module jp.osakana4242.kimiko.scenes {
 			scene.addChild(layer1);
 		}
 	});
+	export var GameClear: any = Class.create(Scene, {
+		initialize: function () {
+			Scene.call(this);
+			
+			var scene = this;
+			//
+			var label1 = new enchant.Label("GAME CLEAR!");
+			((label: any) => {
+				label.font = DF.FONT_M;
+				label.width = DF.SC_W;
+				label.height = 12;
+				label.color = "rgb(255, 255, 255)";
+				label.textAlign = "center";
+				var ax = (DF.SC1_W - label.width) / 2;
+				var ay = (DF.SC1_H - label.height) / 2;
+				label.x = ax;
+				label.y = ay;
+				label.tl.
+					moveTo(ax + 0, ay + 8, kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).
+					moveTo(ax + 0, ay - 8, kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).
+					loop();
+			}(label1));
+			//
+			var layer1 = new enchant.Group();
+			layer1.addChild(label1); 
+			//
+			scene.addChild(layer1);
+		}
+	});
 
 	export var Act: any = Class.create(Scene, {
 		initialize: function () {
@@ -837,6 +870,11 @@ module jp.osakana4242.kimiko.scenes {
 			this.state = this.stateGameStart;
 		},
 
+		stateGameClear: function () {
+			kimiko.core.pushScene(new GameClear());
+			this.state = this.stateGameStart;
+		},
+
 		//---------------------------------------------------------------------------
 
 		loadMapData: function (mapData: utils.IMapData) {
@@ -881,6 +919,7 @@ module jp.osakana4242.kimiko.scenes {
 							var enemyId = charaId - 48;
 							var data = EnemyData[enemyId]
 							var enemy = new EnemyA();
+							enemy.enemyId = enemyId;
 							enemy.life.hpMax = data.hpMax;
 							enemy.life.hp = enemy.life.hpMax;
 							data.body(enemy);
@@ -910,6 +949,11 @@ module jp.osakana4242.kimiko.scenes {
 		onPlayerDead: function () {
 			var scene = this;
 			scene.state = scene.stateGameOver;
+		},
+		
+		onBossDead: function () {
+			var scene = this;
+			scene.state = scene.stateGameClear;
 		},
 		
 		getNearEnemy: function (sprite, sqrDistanceThreshold) {
@@ -1069,7 +1113,7 @@ module jp.osakana4242.kimiko.scenes {
 			var player = this.player;
 			var enemys = mapCharaMgr.actives;
 
-			// 敵弾とプレイヤーの衝突判定.
+			// プレイヤーと敵弾の衝突判定.
 			if (player.isNeutral() || player.isAttack()) {
 				for (var i = 0, iNum = this.enemyBullets.length; i < iNum; ++i) {
 					var bullet = this.enemyBullets[i];
@@ -1079,29 +1123,6 @@ module jp.osakana4242.kimiko.scenes {
 						if (player.life.isDead()) {
 							this.onPlayerDead();
 						}
-					}
-				}
-			}
-			// 敵とプレイヤーの衝突判定.
-			this.statusTexts[3][1] = "";
-			for (var i = 0, iNum = enemys.length; i < iNum; ++i) {
-				var enemy = enemys[i];
-				if (enemy.isDead() || player.isDead() || enemy.isDamage() || player.isDamage()) {
-					continue;
-				}
-				if (player.intersect(enemy)) {
-					this.statusTexts[3][1] = "hit";
-					if (player.isAttack() && enemy.isAttack()) {
-						// 両方攻撃してたら、後出しの勝ち.
-						if (enemy.attackCnt <= player.attackCnt) {
-							enemy.damage(player);
-						} else {
-							player.damage(enemy);
-						}
-					} else if (player.isAttack() && !enemy.isDamage()) {
-						enemy.damage(player);
-					} else if (enemy.isAttack() && !player.isDamage()) {
-						player.damage(enemy);
 					}
 				}
 			}
@@ -1117,7 +1138,11 @@ module jp.osakana4242.kimiko.scenes {
 						enemy.damage(bullet);
 						scene.score += 10;
 						if (enemy.life.isDead()) {
-							scene.score += 100;
+							var ed: IEnemyData = enemy.getEnemyData();
+							scene.score += ed.score;
+							if (enemy.isBoss()) {
+								scene.onBossDead();
+							}
 						}
 						bullet.visible = false;
 					}

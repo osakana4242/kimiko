@@ -109,7 +109,7 @@ module jp.osakana4242.kimiko.scenes {
 		}
 
 		// 連射マン.
-		export function brain3(sprite: any, anchor: utils.IVector2D): void {
+		export function brain3(sprite: any): void {
 			var anchor = sprite.anchor;
 			var range = 16;
 
@@ -149,30 +149,40 @@ module jp.osakana4242.kimiko.scenes {
 		}
 	}
 
-	export var EnemyData: { [index: number]: {hpMax: number; body: any; brain: any;}; } = <any>[
-		{
+	export interface IEnemyData {
+		hpMax: number;
+		body: (sprite: any) => void;
+		brain: any;
+		score: number;
+	}
+	export var EnemyData: { [index: number]: IEnemyData; } = <any>{
+		0x0: {
 			hpMax: 10,
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain1,
+			score: 100,
 		},
 
-		{
+		0x1: {
 			hpMax: 10,
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain2,
-		},
+			score: 100,
+	},
 
-		{
+		0x2: {
 			hpMax: 10,
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain3,
+			score: 100,
 		},
-
-		{
+		// boss.
+		0xf: {
 			hpMax: 30,
 			body: EnemyBodys.body2,
 			brain: EnemyBrains.brain3,
+			score: 1000,
 		},
-	];
+	};
 
 }

@@ -85,7 +85,7 @@ var jp;
                         }).waitUntil(waitFire).loop();
                     }
                     EnemyBrains.brain2 = brain2;
-                    function brain3(sprite, anchor) {
+                    function brain3(sprite) {
                         var anchor = sprite.anchor;
                         var range = 16;
                         var waitFire = function () {
@@ -106,29 +106,32 @@ var jp;
                     EnemyBrains.brain3 = brain3;
                 })(scenes.EnemyBrains || (scenes.EnemyBrains = {}));
                 var EnemyBrains = scenes.EnemyBrains;
-                scenes.EnemyData = [
-                    {
+                scenes.EnemyData = {
+                    0: {
                         hpMax: 10,
                         body: EnemyBodys.body1,
-                        brain: EnemyBrains.brain1
-                    }, 
-                    {
+                        brain: EnemyBrains.brain1,
+                        score: 100
+                    },
+                    1: {
                         hpMax: 10,
                         body: EnemyBodys.body1,
-                        brain: EnemyBrains.brain2
-                    }, 
-                    {
+                        brain: EnemyBrains.brain2,
+                        score: 100
+                    },
+                    2: {
                         hpMax: 10,
                         body: EnemyBodys.body1,
-                        brain: EnemyBrains.brain3
-                    }, 
-                    {
+                        brain: EnemyBrains.brain3,
+                        score: 100
+                    },
+                    15: {
                         hpMax: 30,
                         body: EnemyBodys.body2,
-                        brain: EnemyBrains.brain3
-                    }, 
-                    
-                ];
+                        brain: EnemyBrains.brain3,
+                        score: 1000
+                    }
+                };
             })(kimiko.scenes || (kimiko.scenes = {}));
             var scenes = kimiko.scenes;
         })(osakana4242.kimiko || (osakana4242.kimiko = {}));
@@ -570,11 +573,18 @@ var jp;
                     initialize: function () {
                         var _this = this;
                         scenes.Attacker.call(this);
+                        this.enemyId = -1;
                         this.weapon = new scenes.WeaponA(this);
                         this.anchor = new osakana4242.utils.Vector2D();
                         this.addEventListener(Event.ENTER_FRAME, function () {
                             _this.weapon.step();
                         });
+                    },
+                    getEnemyData: function () {
+                        return scenes.EnemyData[this.enemyId];
+                    },
+                    isBoss: function () {
+                        return this.enemyId === kimiko.DF.ENEMY_ID_BOSS;
                     }
                 });
                 var MapCharaManager = (function () {
@@ -765,6 +775,28 @@ var jp;
                         scene.addChild(layer1);
                     }
                 });
+                scenes.GameClear = Class.create(Scene, {
+                    initialize: function () {
+                        Scene.call(this);
+                        var scene = this;
+                        var label1 = new enchant.Label("GAME CLEAR!");
+                        ((function (label) {
+                            label.font = kimiko.DF.FONT_M;
+                            label.width = kimiko.DF.SC_W;
+                            label.height = 12;
+                            label.color = "rgb(255, 255, 255)";
+                            label.textAlign = "center";
+                            var ax = (kimiko.DF.SC1_W - label.width) / 2;
+                            var ay = (kimiko.DF.SC1_H - label.height) / 2;
+                            label.x = ax;
+                            label.y = ay;
+                            label.tl.moveTo(ax + 0, ay + 8, kimiko.kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).moveTo(ax + 0, ay - 8, kimiko.kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).loop();
+                        })(label1));
+                        var layer1 = new enchant.Group();
+                        layer1.addChild(label1);
+                        scene.addChild(layer1);
+                    }
+                });
                 scenes.Act = Class.create(Scene, {
                     initialize: function () {
                         var _this = this;
@@ -922,6 +954,10 @@ var jp;
                         kimiko.kimiko.core.pushScene(new scenes.GameOver());
                         this.state = this.stateGameStart;
                     },
+                    stateGameClear: function () {
+                        kimiko.kimiko.core.pushScene(new scenes.GameClear());
+                        this.state = this.stateGameStart;
+                    },
                     loadMapData: function (mapData) {
                         var _this = this;
                         var map = this.map;
@@ -959,6 +995,7 @@ var jp;
                                         var enemyId = charaId - 48;
                                         var data = scenes.EnemyData[enemyId];
                                         var enemy = new scenes.EnemyA();
+                                        enemy.enemyId = enemyId;
                                         enemy.life.hpMax = data.hpMax;
                                         enemy.life.hp = enemy.life.hpMax;
                                         data.body(enemy);
@@ -985,6 +1022,10 @@ var jp;
                     onPlayerDead: function () {
                         var scene = this;
                         scene.state = scene.stateGameOver;
+                    },
+                    onBossDead: function () {
+                        var scene = this;
+                        scene.state = scene.stateGameClear;
                     },
                     getNearEnemy: function (sprite, sqrDistanceThreshold) {
                         var mapCharaMgr = this.mapCharaMgr;
@@ -1124,27 +1165,6 @@ var jp;
                                 }
                             }
                         }
-                        this.statusTexts[3][1] = "";
-                        for(var i = 0, iNum = enemys.length; i < iNum; ++i) {
-                            var enemy = enemys[i];
-                            if(enemy.isDead() || player.isDead() || enemy.isDamage() || player.isDamage()) {
-                                continue;
-                            }
-                            if(player.intersect(enemy)) {
-                                this.statusTexts[3][1] = "hit";
-                                if(player.isAttack() && enemy.isAttack()) {
-                                    if(enemy.attackCnt <= player.attackCnt) {
-                                        enemy.damage(player);
-                                    } else {
-                                        player.damage(enemy);
-                                    }
-                                } else if(player.isAttack() && !enemy.isDamage()) {
-                                    enemy.damage(player);
-                                } else if(enemy.isAttack() && !player.isDamage()) {
-                                    player.damage(enemy);
-                                }
-                            }
-                        }
                         for(var i = 0, iNum = enemys.length; i < iNum; ++i) {
                             var enemy = enemys[i];
                             if(enemy.isDead() || enemy.isDamage()) {
@@ -1156,7 +1176,11 @@ var jp;
                                     enemy.damage(bullet);
                                     scene.score += 10;
                                     if(enemy.life.isDead()) {
-                                        scene.score += 100;
+                                        var ed = enemy.getEnemyData();
+                                        scene.score += ed.score;
+                                        if(enemy.isBoss()) {
+                                            scene.onBossDead();
+                                        }
                                     }
                                     bullet.visible = false;
                                 }
@@ -1353,6 +1377,7 @@ var jp;
                 DF.ENEMY_COLOR = "rgb(120, 80, 120)";
                 DF.ENEMY_DAMAGE_COLOR = "rgb(240, 16, 240)";
                 DF.ENEMY_ATTACK_COLOR = "rgb(240, 16, 16)";
+                DF.ENEMY_ID_BOSS = 0xf;
                 DF.ANIM_ID_CHARA001_WALK = 10;
                 DF.ANIM_ID_CHARA001_STAND = 11;
                 DF.ANIM_ID_CHARA002_WALK = 20;
