@@ -487,6 +487,7 @@ var jp;
                                 }
                                 if(_this.targetEnemy !== null) {
                                     var distance = osakana4242.utils.Vector2D.distance(_this, _this.targetEnemy);
+                                    distance = osakana4242.utils.Rect.distance(_this, _this.targetEnemy);
                                     var threshold = kimiko.DF.SC_W / 2;
                                     if(threshold < distance) {
                                         _this.targetEnemy = null;
@@ -1273,6 +1274,23 @@ var jp;
                 };
                 Rect.intersect = function intersect(a, other) {
                     return (a.x < other.x + other.width) && (other.x < a.x + a.width) && (a.y < other.y + other.height) && (other.y < a.y + a.height);
+                };
+                Rect.distance = function distance(a, b) {
+                    var dx = Math.max(b.x - (a.x + a.width), a.x - (b.x + b.width));
+                    var dy = Math.max(b.y - (b.y + b.height), a.y - (b.y + b.height));
+                    if(dx < 0) {
+                        dx = 0;
+                    }
+                    if(dy < 0) {
+                        dy = 0;
+                    }
+                    if(dx !== 0 && dy !== 0) {
+                        return Math.sqrt((dx * dx) + (dy * dy));
+                    } else if(dx !== 0) {
+                        return dx;
+                    } else {
+                        return dy;
+                    }
                 };
                 Rect.trimPos = function trimPos(ownRect, limitRect, onTrim) {
                     if (typeof onTrim === "undefined") { onTrim = null; }

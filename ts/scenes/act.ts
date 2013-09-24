@@ -302,6 +302,7 @@ module jp.osakana4242.kimiko.scenes {
 					}
 					if (this.targetEnemy !== null) {
 						var distance = utils.Vector2D.distance(this, this.targetEnemy);
+						distance = utils.Rect.distance(this, this.targetEnemy);
 						var threshold = DF.SC_W / 2;
 						if (threshold < distance) {
 							// 敵が離れたら解除.

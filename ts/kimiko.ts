@@ -98,6 +98,22 @@ module jp.osakana4242.utils {
 				&& (a.y < other.y + other.height) && (other.y < a.y + a.height);
 		}
 
+		public static distance(a: IRect, b: IRect): number {
+			var dx = Math.max(b.x - (a.x + a.width), a.x - (b.x + b.width));
+			var dy = Math.max(b.y - (b.y + b.height), a.y - (b.y + b.height));
+			// 食い込んでるのは距離0とする.
+			if (dx < 0) { dx = 0; }
+			if (dy < 0) { dy = 0; }
+			//
+			if (dx !== 0 && dy !== 0) {
+				return Math.sqrt((dx * dx) + (dy * dy));
+			} else if (dx !== 0) {
+				return dx;
+			} else {
+				return dy;
+			}	
+		}
+
 		// own を limitRect の中に収める.
 		public static trimPos(ownRect: IRect, limitRect: IRect, onTrim: (x: number, y: number) => void = null ): void {
 			// 移動制限.
