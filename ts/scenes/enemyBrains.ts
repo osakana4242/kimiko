@@ -18,12 +18,14 @@ module jp.osakana4242.kimiko.scenes {
 			sprite.height = 32;
 			sprite.image = kimiko.core.assets[Assets.IMAGE_CHARA002]
 			sprite.frame = kimiko.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
+			sprite.collider.centerBottom(28, 28);
 		}
 
 		export function body2(sprite: any) {
 			sprite.width = 64;
 			sprite.height = 64;
 			sprite.backgroundColor = "rgb(192, 128, 192)";
+			sprite.collider.centerBottom(60, 60);
 		}
 	}
 

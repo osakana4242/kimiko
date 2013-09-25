@@ -140,6 +140,52 @@ module jp.osakana4242.utils {
 		}
 	}
 
+	/** 矩形の当たり判定 */
+	export class Collider {
+		public parent: IRect;
+		public rect = new Rect();
+		private workRect = new Rect();
+		
+		public getRect() {
+			var s = this.rect;
+			var d = this.workRect;
+			d.width = s.width;
+			d.height = s.height;
+			var x = s.x;
+			var y = s.y;
+			var p = this.parent;
+			if (p) {
+				x += p.x;
+				y += p.y;
+			}
+			d.x = x;
+			d.y = y;
+			return d;
+		}
+		
+		public centerBottom(width: number, height: number) {
+			var rect = this.rect;
+			rect.width  = width;
+			rect.height = height;
+			rect.x = (this.parent.width - width) / 2;
+			rect.y = this.parent.height - height;
+		}
+		
+		public centerMiddle(width: number, height: number) {
+			var rect = this.rect;
+			rect.width  = width;
+			rect.height = height;
+			rect.x = (this.parent.width  - width ) / 2;
+			rect.y = (this.parent.height - height) / 2;
+		}
+
+		public intersect(collider: Collider): bool {
+			return Rect.intersect(this.getRect(), collider.getRect());
+		}
+		
+	}
+	
+
 	export class Touch {
 		startFrame: number;
 		start: Vector2D = new Vector2D();

@@ -42,6 +42,12 @@ module jp.osakana4242.kimiko.scenes {
 			Sprite.call(this, 8, 8);
 			this.vx = 0;
 			this.vy = 0;
+			this.collider = (() => {
+				var c = new utils.Collider();
+				c.parent = this;
+				c.centerMiddle(4, 4);
+				return c;
+			}());
 			this.backgroundColor = 'rgb(255, 64, 64)';
 			this.tl.scaleTo(1.0, kimiko.core.fps * 0.1)
 				.scaleTo(0.75, kimiko.core.fps * 0.1)
@@ -82,6 +88,12 @@ module jp.osakana4242.kimiko.scenes {
 			this.vx = 0;
 			this.vy = 0;
 			this.visibleCnt = 0;
+			this.collider = (() => {
+				var c = new utils.Collider();
+				c.parent = this;
+				c.centerMiddle(8, 8);
+				return c;
+			}());
 			this.backgroundColor = 'rgb(64, 255, 255)';
 			this.tl.scaleTo(0.75, kimiko.secToFrame(0.1))
 				.scaleTo(1.0, kimiko.secToFrame(0.1))
@@ -150,7 +162,7 @@ module jp.osakana4242.kimiko.scenes {
 			}
 		}
 	}
-		
+	
 	/** とりあえず攻撃できるひと */
 	export var Attacker: any = Class.create(Sprite, {
 		initialize: function () {
@@ -167,6 +179,9 @@ module jp.osakana4242.kimiko.scenes {
 				
 			this.stateNeutral.stateName = "neutral";
 			this.state = this.stateNeutral;
+			
+			this.rectCollider_ = new utils.Rect();
+			this.workRect_ = new utils.Rect();
 
 			this.addEventListener(Event.ENTER_FRAME, () => {
 				this.state();
@@ -181,7 +196,7 @@ module jp.osakana4242.kimiko.scenes {
 				}
 			});
 		},
-
+		
 		stateToString: function () {
 			var dir: string = 0 <= this.dirX ? '>' : '<';
 			return (<any[]>[dir, this.state.stateName, 'cx', Math.round(this.cx), 'cy', Math.round(this.cy)]).join();
@@ -278,6 +293,12 @@ module jp.osakana4242.kimiko.scenes {
 			this.frame = this.animStand;
 			this.width = 32;
 			this.height = 32;
+			this.collider = (() => {
+				var c = new utils.Collider();
+				c.parent = this;
+				c.centerBottom(8, 24);
+				return c;
+			}());
 			this.life.hpMax = DF.PLAYER_HP;
 			this.life.hp = this.life.hpMax;
 			this.anchorX = 0;
@@ -407,6 +428,8 @@ module jp.osakana4242.kimiko.scenes {
 			this.enemyId = -1;
 			this.weapon = new WeaponA(this);
 			this.anchor = new utils.Vector2D();
+			this.collider = new utils.Collider();
+			this.collider.parent = this;
 			this.addEventListener(Event.ENTER_FRAME, () => {
 				this.weapon.step();
 			});
@@ -1069,13 +1092,15 @@ module jp.osakana4242.kimiko.scenes {
 		checkMapCollision: function (player) {
 			// 地形とプレイヤーの衝突判定.
 			// 自分の周囲の地形を調べる.
+			var collider: utils.Collider = player.collider;
+			var prect: utils.IRect = collider.getRect();
 			var map = this.map;
 			var xDiff = map.tileWidth;
 			var yDiff = map.tileHeight;
-			var xMin = player.x;
-			var yMin = player.y;
-			var xMax = player.x + player.width + (xDiff - 1);
-			var yMax = player.y + player.height + (yDiff - 1);
+			var xMin = prect.x;
+			var yMin = prect.y;
+			var xMax = prect.x + prect.width + (xDiff - 1);
+			var yMax = prect.y + prect.height + (yDiff - 1);
 			var hoge = 8;
 			var isHit = false;
 			for (var y = yMin; y < yMax; y += yDiff) {
@@ -1089,29 +1114,29 @@ module jp.osakana4242.kimiko.scenes {
 						map.tileWidth,
 						map.tileHeight
 					);
-					if (!utils.Rect.intersect(player, rect)) {
+					if (!utils.Rect.intersect(prect, rect)) {
 						continue;
 					}
 					// TODO: たま消しのときは無駄になってしまうので省略したい
-					if (!map.hitTest(x, y - yDiff) && 0 <= player.vy && player.y <= rect.y + hoge) {
+					if (!map.hitTest(x, y - yDiff) && 0 <= player.vy && prect.y <= rect.y + hoge) {
 						// top
-						player.y = rect.y - player.height;
+						player.y = rect.y - prect.height - collider.rect.y;
 						player.vy = 0;
 						//player.isOnMap = true;
 						isHit = true;
-					} else if (!map.hitTest(x, y + yDiff) && player.vy <= 0 && rect.y + rect.height - hoge < player.y + player.height) {
+					} else if (!map.hitTest(x, y + yDiff) && player.vy <= 0 && rect.y + rect.height - hoge < prect.y + prect.height) {
 						// bottom
-						player.y = rect.y + rect.height;
+						player.y = rect.y + rect.height - collider.rect.y;
 						player.vy = 0;
 						isHit = true;
-					} else if (!map.hitTest(x - xDiff, y) && 0 <= player.vx && player.x <= rect.x + hoge) {
+					} else if (!map.hitTest(x - xDiff, y) && 0 <= player.vx && prect.x <= rect.x + hoge) {
 						// left
-						player.x = rect.x - player.width;
+						player.x = rect.x - prect.width - collider.rect.x;
 						player.vx = 0;
 						isHit = true;
-					} else if (!map.hitTest(x + xDiff, y) && player.vx <= 0 && rect.x + rect.width - hoge < player.x + player.width) {
+					} else if (!map.hitTest(x + xDiff, y) && player.vx <= 0 && rect.x + rect.width - hoge < prect.x + prect.width) {
 						// right
-						player.x = rect.x + rect.width;
+						player.x = rect.x + rect.width - collider.rect.y;
 						player.vx = 0;
 						isHit = true;
 					}
@@ -1132,7 +1157,10 @@ module jp.osakana4242.kimiko.scenes {
 			if (player.isNeutral() || player.isAttack()) {
 				for (var i = 0, iNum = this.enemyBullets.length; i < iNum; ++i) {
 					var bullet = this.enemyBullets[i];
-					if (bullet.visible && player.life.isAlive() && player.intersect(bullet)) {
+					if (bullet.visible &&
+						player.life.isAlive() &&
+						player.collider.intersect(bullet.collider)) {
+						//
 						player.damage(bullet);
 						bullet.visible = false;
 						if (player.life.isDead()) {
@@ -1149,7 +1177,9 @@ module jp.osakana4242.kimiko.scenes {
 				}
 				for (var j = 0, jNum = this.ownBullets.length; j < jNum; ++j) {
 					var bullet = this.ownBullets[j];
-					if (bullet.visible && enemy.intersect(bullet)) {
+					if (bullet.visible &&
+						enemy.life.isAlive() &&
+						enemy.collider.intersect(bullet.collider)) {
 						enemy.damage(bullet);
 						scene.score += 10;
 						if (enemy.life.isDead()) {
