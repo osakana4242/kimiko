@@ -283,7 +283,7 @@ module jp.osakana4242.kimiko {
 		// スワイプ距離とキャラの移動距離の比率.
 		export var TOUCH_TO_CHARA_MOVE_RATE = 1.5;
 		// スワイプで1フレームにキャラが移動できる最大距離.
-		export var TOUCH_TO_CHARA_MOVE_LIMIT = 30;
+		export var TOUCH_TO_CHARA_MOVE_LIMIT = 320; // 30;
 		export var PLAYER_HP = 5;
 		// 最大連射数.
 		export var PLAYER_BULLET_NUM = 2;

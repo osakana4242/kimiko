@@ -257,7 +257,7 @@ var jp;
                 scenes.EnemyBullet = Class.create(scenes.Sprite, {
                     initialize: function () {
                         var _this = this;
-                        scenes.Sprite.call(this, 8, 8);
+                        scenes.Sprite.call(this, 12, 12);
                         this.vx = 0;
                         this.vy = 0;
                         this.collider = ((function () {
@@ -487,7 +487,7 @@ var jp;
                         this.collider = ((function () {
                             var c = new osakana4242.utils.Collider();
                             c.parent = _this;
-                            c.centerBottom(8, 24);
+                            c.centerBottom(12, 24);
                             return c;
                         })());
                         this.life.hpMax = kimiko.DF.PLAYER_HP;
@@ -569,16 +569,18 @@ var jp;
                         if(this.useGravity && !this.isOnMap) {
                             this.vy += kimiko.kimiko.dpsToDpf(kimiko.DF.GRAVITY);
                         }
-                        this.x += this.vx;
-                        this.y += this.vy;
-                        if(this.cx < kimiko.DF.SC_X1) {
-                            this.cx = kimiko.DF.SC_X1;
-                            this.vx = 0;
+                        var moveLimit = 8;
+                        var speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+                        var loopCnt = Math.floor((speed + moveLimit - 1) / moveLimit);
+                        for(var i = 0; i < loopCnt; ++i) {
+                            this.x += this.vx / loopCnt;
+                            this.y += this.vy / loopCnt;
+                            scene.checkMapCollision(this);
+                            osakana4242.utils.Rect.trimPos(this, this.limitRect, this.onTrim);
+                            if(this.vx === 0 && this.vy === 0) {
+                                break;
+                            }
                         }
-                        if(kimiko.DF.SC_X2 < this.cx) {
-                        }
-                        scene.checkMapCollision(this);
-                        osakana4242.utils.Rect.trimPos(this, this.limitRect, this.onTrim);
                         var touch = scene.touch;
                         if(touch.isTouching || flag !== 0) {
                             this.vx = 0;
@@ -1174,7 +1176,7 @@ var jp;
                                     player.vx = 0;
                                     isHit = true;
                                 } else if(!map.hitTest(x + xDiff, y) && player.vx <= 0 && rect.x + rect.width - hoge < prect.x + prect.width) {
-                                    player.x = rect.x + rect.width - collider.rect.y;
+                                    player.x = rect.x + rect.width - collider.rect.x;
                                     player.vx = 0;
                                     isHit = true;
                                 }
@@ -1477,7 +1479,7 @@ var jp;
                 DF.ANIM_ID_CHARA001_STAND = 11;
                 DF.ANIM_ID_CHARA002_WALK = 20;
                 DF.TOUCH_TO_CHARA_MOVE_RATE = 1.5;
-                DF.TOUCH_TO_CHARA_MOVE_LIMIT = 30;
+                DF.TOUCH_TO_CHARA_MOVE_LIMIT = 320;
                 DF.PLAYER_HP = 5;
                 DF.PLAYER_BULLET_NUM = 2;
                 DF.FONT_M = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';

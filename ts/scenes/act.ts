@@ -39,7 +39,7 @@ module jp.osakana4242.kimiko.scenes {
 	/** 敵弾 */
 	export var EnemyBullet: any = Class.create(Sprite, {
 		initialize: function () {
-			Sprite.call(this, 8, 8);
+			Sprite.call(this, 12, 12);
 			this.vx = 0;
 			this.vy = 0;
 			this.collider = (() => {
@@ -296,7 +296,8 @@ module jp.osakana4242.kimiko.scenes {
 			this.collider = (() => {
 				var c = new utils.Collider();
 				c.parent = this;
-				c.centerBottom(8, 24);
+				c.centerBottom(12, 24);
+				// c.rect.y -= 1;
 				return c;
 			}());
 			this.life.hpMax = DF.PLAYER_HP;
@@ -391,20 +392,22 @@ module jp.osakana4242.kimiko.scenes {
 			if (this.useGravity && !this.isOnMap) {
 				this.vy += kimiko.dpsToDpf(DF.GRAVITY);
 			}
-			this.x += this.vx;
-			this.y += this.vy;
-
-			if (this.cx < DF.SC_X1) {
-				this.cx = DF.SC_X1;
-				this.vx = 0;
+			
+			// 移動を数回に分ける.
+			var moveLimit = 8;
+			var speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+			var loopCnt = Math.floor((speed + moveLimit - 1) / moveLimit);
+			
+			for (var i = 0; i < loopCnt; ++i) {
+				this.x += this.vx / loopCnt;
+				this.y += this.vy / loopCnt;
+				scene.checkMapCollision(this);
+				utils.Rect.trimPos(this, this.limitRect, this.onTrim);
+				if (this.vx === 0 && this.vy === 0) {
+					// 壁にぶつかったので抜ける.
+					break;
+				}
 			}
-			if (DF.SC_X2 < this.cx) {
-				//this.cx = DF.SC_X2;
-				//this.vx = 0;
-			}
-
-			scene.checkMapCollision(this);
-			utils.Rect.trimPos(this, this.limitRect, this.onTrim);
 
 			var touch: utils.Touch = scene.touch;
 			if (touch.isTouching || flag !== 0) {
@@ -1136,7 +1139,7 @@ module jp.osakana4242.kimiko.scenes {
 						isHit = true;
 					} else if (!map.hitTest(x + xDiff, y) && player.vx <= 0 && rect.x + rect.width - hoge < prect.x + prect.width) {
 						// right
-						player.x = rect.x + rect.width - collider.rect.y;
+						player.x = rect.x + rect.width - collider.rect.x;
 						player.vx = 0;
 						isHit = true;
 					}
