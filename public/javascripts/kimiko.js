@@ -721,7 +721,7 @@ var jp;
                         var camera = this;
                         var player = this.scene.player;
                         var tx = player.cx - (camera.width / 2) + (player.dirX * 16);
-                        var ty = player.cy - (camera.height / 2);
+                        var ty = player.cy - (camera.height / 2) + 32;
                         var speed = kimiko.kimiko.dpsToDpf(8 * 60);
                         var dx = tx - camera.x;
                         var dy = ty - camera.y;

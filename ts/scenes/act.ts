@@ -568,7 +568,8 @@ module jp.osakana4242.kimiko.scenes {
 			// プレイヤーからどれだけずらすか。
 			// 前方は後方より少しだけ先が見えるようにする。
 			var tx: number = player.cx - (camera.width / 2) + (player.dirX * 16);
-			var ty: number = player.cy - (camera.height / 2);
+			// 指で操作する関係で下方向に余裕を持たせる.
+			var ty: number = player.cy - (camera.height / 2) + 32;
 			var speed = kimiko.dpsToDpf(8 * 60);
 			var dx = tx - camera.x;
 			var dy = ty - camera.y;
