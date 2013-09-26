@@ -393,19 +393,51 @@ module jp.osakana4242.kimiko.scenes {
 				this.vy += kimiko.dpsToDpf(DF.GRAVITY);
 			}
 			
-			// 移動を数回に分ける.
+			// 壁突き抜け防止のため、移動を数回に分ける.
 			var moveLimit = 8;
-			var speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-			var loopCnt = Math.floor((speed + moveLimit - 1) / moveLimit);
-			
-			for (var i = 0; i < loopCnt; ++i) {
-				this.x += this.vx / loopCnt;
-				this.y += this.vy / loopCnt;
-				scene.checkMapCollision(this);
-				utils.Rect.trimPos(this, this.limitRect, this.onTrim);
-				if (this.vx === 0 && this.vy === 0) {
-					// 壁にぶつかったので抜ける.
-					break;
+			if (true) {
+				var loopCnt = Math.floor(Math.max(Math.abs(this.vx), Math.abs(this.vy)) / moveLimit);
+				var totalMx = this.vx;
+				var totalMy = this.vy;
+				var mx = this.vx / loopCnt;
+				var my = this.vy / loopCnt;
+				
+				for (var i = 0, loopCnt; i <= loopCnt; ++i) {
+					if (i < loopCnt) {
+						this.x += mx;
+						this.y += my;
+						totalMx -= mx;
+						totalMy -= my;
+					} else {
+						// 最後のひと押し.
+						this.x += totalMx;
+						this.y += totalMy;
+					}
+					scene.checkMapCollision(this);
+					utils.Rect.trimPos(this, this.limitRect, this.onTrim);
+				}
+				// 0..7 = x1
+				// 8..15 = x2
+				// 16..23, x3
+			} else {
+				var speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+				var loopCnt = Math.floor((speed + moveLimit - 1) / moveLimit);
+				var sx = this.x;
+				var sy = this.y;
+				var tx = sx + this.vx;
+				var ty = sy + this.vy;
+
+				for (var i = 1, iMax = loopCnt; i <= iMax; ++i) {
+					var x = sx + (tx - sx) * i / iMax;
+					var y = sy + (ty - sy) * i / iMax;
+					this.x = x;
+					this.y = y;
+					scene.checkMapCollision(this);
+					utils.Rect.trimPos(this, this.limitRect, this.onTrim);
+					if (this.x !== x || this.y !== y) {
+						// 位置補正があったので抜ける.
+						break;
+					}
 				}
 			}
 
@@ -827,7 +859,7 @@ module jp.osakana4242.kimiko.scenes {
 			touchElpsedFrame = 0;
 			if (touchElpsedFrame < kimiko.secToFrame(0.5)) {
 				var moveLimit = DF.TOUCH_TO_CHARA_MOVE_LIMIT;
-				var moveRate = DF.TOUCH_TO_CHARA_MOVE_RATE;
+				var moveRate = kimiko.config.swipeToMoveRate;
 				if (DF.PLAYER_TOUCH_ANCHOR_ENABLE) {
 					var tv = new utils.Vector2D(
 						player.anchorX + touch.totalDiff.x * moveRate,

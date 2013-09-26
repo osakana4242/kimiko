@@ -280,8 +280,6 @@ module jp.osakana4242.kimiko {
 		export var ANIM_ID_CHARA001_WALK = 10;
 		export var ANIM_ID_CHARA001_STAND = 11;
 		export var ANIM_ID_CHARA002_WALK = 20;
-		// スワイプ距離とキャラの移動距離の比率.
-		export var TOUCH_TO_CHARA_MOVE_RATE = 1.5;
 		// スワイプで1フレームにキャラが移動できる最大距離.
 		export var TOUCH_TO_CHARA_MOVE_LIMIT = 320; // 30;
 		export var PLAYER_HP = 5;
@@ -341,6 +339,7 @@ module jp.osakana4242.kimiko {
 	export interface IConfig {
 		fps: number;
 		isSoundEnabled: bool;
+		swipeToMoveRate: number;
 		version: string;
 	}
 

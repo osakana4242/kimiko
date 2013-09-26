@@ -27,10 +27,12 @@
 				var isAndroid = (navigator.userAgent.indexOf('Android') > 0);
 				var isSp = isIos || isAndroid;
 				var isPc = !isSp;
-				
+				var isTouchEnabled = isSp;
+
 				var params = {};
 				params.version = "201309240230";
 				params.fps = isPc ? 60 : 20;
+				params.swipeToMoveRate = isTouchEnabled ? 1.25 : 1.5;
 				//params.isSoundEnabled = isPc;
 				params.isSoundEnabled = false;
 

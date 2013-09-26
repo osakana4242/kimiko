@@ -570,15 +570,42 @@ var jp;
                             this.vy += kimiko.kimiko.dpsToDpf(kimiko.DF.GRAVITY);
                         }
                         var moveLimit = 8;
-                        var speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-                        var loopCnt = Math.floor((speed + moveLimit - 1) / moveLimit);
-                        for(var i = 0; i < loopCnt; ++i) {
-                            this.x += this.vx / loopCnt;
-                            this.y += this.vy / loopCnt;
-                            scene.checkMapCollision(this);
-                            osakana4242.utils.Rect.trimPos(this, this.limitRect, this.onTrim);
-                            if(this.vx === 0 && this.vy === 0) {
-                                break;
+                        if(true) {
+                            var loopCnt = Math.floor(Math.max(Math.abs(this.vx), Math.abs(this.vy)) / moveLimit);
+                            var totalMx = this.vx;
+                            var totalMy = this.vy;
+                            var mx = this.vx / loopCnt;
+                            var my = this.vy / loopCnt;
+                            for(var i = 0, loopCnt; i <= loopCnt; ++i) {
+                                if(i < loopCnt) {
+                                    this.x += mx;
+                                    this.y += my;
+                                    totalMx -= mx;
+                                    totalMy -= my;
+                                } else {
+                                    this.x += totalMx;
+                                    this.y += totalMy;
+                                }
+                                scene.checkMapCollision(this);
+                                osakana4242.utils.Rect.trimPos(this, this.limitRect, this.onTrim);
+                            }
+                        } else {
+                            var speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+                            var loopCnt = Math.floor((speed + moveLimit - 1) / moveLimit);
+                            var sx = this.x;
+                            var sy = this.y;
+                            var tx = sx + this.vx;
+                            var ty = sy + this.vy;
+                            for(var i = 1, iMax = loopCnt; i <= iMax; ++i) {
+                                var x = sx + (tx - sx) * i / iMax;
+                                var y = sy + (ty - sy) * i / iMax;
+                                this.x = x;
+                                this.y = y;
+                                scene.checkMapCollision(this);
+                                osakana4242.utils.Rect.trimPos(this, this.limitRect, this.onTrim);
+                                if(this.x !== x || this.y !== y) {
+                                    break;
+                                }
                             }
                         }
                         var touch = scene.touch;
@@ -930,7 +957,7 @@ var jp;
                         touchElpsedFrame = 0;
                         if(touchElpsedFrame < kimiko.kimiko.secToFrame(0.5)) {
                             var moveLimit = kimiko.DF.TOUCH_TO_CHARA_MOVE_LIMIT;
-                            var moveRate = kimiko.DF.TOUCH_TO_CHARA_MOVE_RATE;
+                            var moveRate = kimiko.kimiko.config.swipeToMoveRate;
                             if(kimiko.DF.PLAYER_TOUCH_ANCHOR_ENABLE) {
                                 var tv = new osakana4242.utils.Vector2D(player.anchorX + touch.totalDiff.x * moveRate, player.anchorY + touch.totalDiff.y * moveRate);
                                 var v = new osakana4242.utils.Vector2D(tv.x - player.x, tv.y - player.y);
@@ -1478,7 +1505,6 @@ var jp;
                 DF.ANIM_ID_CHARA001_WALK = 10;
                 DF.ANIM_ID_CHARA001_STAND = 11;
                 DF.ANIM_ID_CHARA002_WALK = 20;
-                DF.TOUCH_TO_CHARA_MOVE_RATE = 1.5;
                 DF.TOUCH_TO_CHARA_MOVE_LIMIT = 320;
                 DF.PLAYER_HP = 5;
                 DF.PLAYER_BULLET_NUM = 2;
