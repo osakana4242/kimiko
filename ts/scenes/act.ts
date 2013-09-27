@@ -318,7 +318,7 @@ module jp.osakana4242.kimiko.scenes {
 					var srect = new utils.Rect();
 					srect.width = 256;
 					srect.height = 96;
-					srect.x = this.dirX < 0 ? this.x - srect.width : this.x;
+					srect.x = this.x + (this.width - srect.width) / 2;
 					srect.y = this.y - (srect.height / 2);
 					this.targetEnemy = scene.getNearEnemy(this, srect);
 				}

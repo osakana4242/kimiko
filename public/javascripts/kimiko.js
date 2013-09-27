@@ -526,7 +526,7 @@ var jp;
                                 var srect = new osakana4242.utils.Rect();
                                 srect.width = 256;
                                 srect.height = 96;
-                                srect.x = _this.dirX < 0 ? _this.x - srect.width : _this.x;
+                                srect.x = _this.x + (_this.width - srect.width) / 2;
                                 srect.y = _this.y - (srect.height / 2);
                                 _this.targetEnemy = scene.getNearEnemy(_this, srect);
                             }
