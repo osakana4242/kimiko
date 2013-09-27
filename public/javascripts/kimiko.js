@@ -106,6 +106,27 @@ var jp;
                         sprite.tl.delay(kimiko.kimiko.secToFrame(0.5)).moveBy(0, -16, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, 16, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, -8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).moveBy(0, 8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire).then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire).then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire).delay(kimiko.kimiko.secToFrame(0.5)).moveTo(sprite.anchor.x, sprite.anchor.y, kimiko.kimiko.secToFrame(0.5), Easing.LINEAR).loop();
                     }
                     EnemyBrains.brain3 = brain3;
+                    function brainBoss(sprite) {
+                        var anchor = sprite.anchor;
+                        var range = 16;
+                        var waitFire = function () {
+                            return !sprite.weapon.isStateFire();
+                        };
+                        function fireToPlayer() {
+                            var player = sprite.scene.player;
+                            var wp = sprite.weapon;
+                            wp.fireCount = 2;
+                            wp.wayNum = 3;
+                            wp.fireInterval = kimiko.kimiko.secToFrame(0.5);
+                            wp.speed = kimiko.kimiko.dpsToDpf(3 * kimiko.DF.BASE_FPS);
+                            wp.dir.x = player.x - sprite.x;
+                            wp.dir.y = player.y - sprite.y;
+                            osakana4242.utils.Vector2D.normalize(wp.dir);
+                            wp.startFire();
+                        }
+                        sprite.tl.delay(kimiko.kimiko.secToFrame(0.5)).moveBy(0, -16, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, 16, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, -8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).moveBy(0, 8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire).then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire).then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire).delay(kimiko.kimiko.secToFrame(0.5)).moveTo(sprite.anchor.x, sprite.anchor.y, kimiko.kimiko.secToFrame(0.5), Easing.LINEAR).loop();
+                    }
+                    EnemyBrains.brainBoss = brainBoss;
                 })(scenes.EnemyBrains || (scenes.EnemyBrains = {}));
                 var EnemyBrains = scenes.EnemyBrains;
                 scenes.EnemyData = {
@@ -128,9 +149,9 @@ var jp;
                         score: 100
                     },
                     15: {
-                        hpMax: 30,
+                        hpMax: 60,
                         body: EnemyBodys.body2,
-                        brain: EnemyBrains.brain3,
+                        brain: EnemyBrains.brainBoss,
                         score: 1000
                     }
                 };
@@ -487,7 +508,7 @@ var jp;
                         this.collider = ((function () {
                             var c = new osakana4242.utils.Collider();
                             c.parent = _this;
-                            c.centerBottom(12, 24);
+                            c.centerBottom(12, 28);
                             return c;
                         })());
                         this.life.hpMax = kimiko.DF.PLAYER_HP;
@@ -499,12 +520,17 @@ var jp;
                         this.targetEnemy = null;
                         this.limitRect = new osakana4242.utils.Rect(0, 0, kimiko.DF.SC_W, kimiko.DF.SC_H);
                         this.addEventListener(Event.ENTER_FRAME, function () {
+                            var scene = _this.scene;
                             _this.stepMove();
+                            if((_this.age % kimiko.kimiko.secToFrame(0.2)) === 0) {
+                                var srect = new osakana4242.utils.Rect();
+                                srect.width = 256;
+                                srect.height = 96;
+                                srect.x = _this.dirX < 0 ? _this.x - srect.width : _this.x;
+                                srect.y = _this.y - (srect.height / 2);
+                                _this.targetEnemy = scene.getNearEnemy(_this, srect);
+                            }
                             if(_this.targetEnemy === null) {
-                                var scene = _this.scene;
-                                if((_this.age % kimiko.kimiko.secToFrame(0.2)) === 0) {
-                                    _this.targetEnemy = scene.getNearEnemy(_this, 128 * 128);
-                                }
                             } else {
                                 if(_this.targetEnemy.life.isDead()) {
                                     _this.targetEnemy = null;
@@ -512,7 +538,7 @@ var jp;
                                 if(_this.targetEnemy !== null) {
                                     var distance = osakana4242.utils.Vector2D.distance(_this, _this.targetEnemy);
                                     distance = osakana4242.utils.Rect.distance(_this, _this.targetEnemy);
-                                    var threshold = kimiko.DF.SC_W / 2;
+                                    var threshold = kimiko.DF.SC_W;
                                     if(threshold < distance) {
                                         _this.targetEnemy = null;
                                     } else {
@@ -569,43 +595,30 @@ var jp;
                         if(this.useGravity && !this.isOnMap) {
                             this.vy += kimiko.kimiko.dpsToDpf(kimiko.DF.GRAVITY);
                         }
-                        var moveLimit = 8;
-                        if(true) {
-                            var loopCnt = Math.floor(Math.max(Math.abs(this.vx), Math.abs(this.vy)) / moveLimit);
-                            var totalMx = this.vx;
-                            var totalMy = this.vy;
-                            var mx = this.vx / loopCnt;
-                            var my = this.vy / loopCnt;
-                            for(var i = 0, loopCnt; i <= loopCnt; ++i) {
-                                if(i < loopCnt) {
-                                    this.x += mx;
-                                    this.y += my;
-                                    totalMx -= mx;
-                                    totalMy -= my;
-                                } else {
-                                    this.x += totalMx;
-                                    this.y += totalMy;
-                                }
-                                scene.checkMapCollision(this);
-                                osakana4242.utils.Rect.trimPos(this, this.limitRect, this.onTrim);
+                        var loopCnt = Math.floor(Math.max(Math.abs(this.vx), Math.abs(this.vy)) / kimiko.DF.PLAYER_MOVE_RESOLUTION);
+                        var totalMx = this.vx;
+                        var totalMy = this.vy;
+                        var mx = this.vx / loopCnt;
+                        var my = this.vy / loopCnt;
+                        for(var i = 0, loopCnt; i <= loopCnt; ++i) {
+                            if(i < loopCnt) {
+                                this.x += mx;
+                                this.y += my;
+                                totalMx -= mx;
+                                totalMy -= my;
+                            } else {
+                                this.x += totalMx;
+                                this.y += totalMy;
                             }
-                        } else {
-                            var speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-                            var loopCnt = Math.floor((speed + moveLimit - 1) / moveLimit);
-                            var sx = this.x;
-                            var sy = this.y;
-                            var tx = sx + this.vx;
-                            var ty = sy + this.vy;
-                            for(var i = 1, iMax = loopCnt; i <= iMax; ++i) {
-                                var x = sx + (tx - sx) * i / iMax;
-                                var y = sy + (ty - sy) * i / iMax;
-                                this.x = x;
-                                this.y = y;
-                                scene.checkMapCollision(this);
-                                osakana4242.utils.Rect.trimPos(this, this.limitRect, this.onTrim);
-                                if(this.x !== x || this.y !== y) {
-                                    break;
-                                }
+                            osakana4242.utils.Rect.trimPos(this, this.limitRect, this.onTrim);
+                            scene.checkMapCollision(this);
+                            if(this.vx === 0) {
+                                mx = 0;
+                                totalMx = 0;
+                            }
+                            if(this.vy === 0) {
+                                my = 0;
+                                totalMy = 0;
                             }
                         }
                         var touch = scene.touch;
@@ -1091,14 +1104,9 @@ var jp;
                         var scene = this;
                         scene.state = scene.stateGameClear;
                     },
-                    getNearEnemy: function (sprite, sqrDistanceThreshold) {
+                    getNearEnemy: function (sprite, searchRect) {
                         var mapCharaMgr = this.mapCharaMgr;
                         var enemys = mapCharaMgr.actives;
-                        var getSqrDistance = function (a, b) {
-                            var dx = a.cx - b.cx;
-                            var dy = a.cy - b.cy;
-                            return (dx * dx) + (dy * dy);
-                        };
                         var near = null;
                         var nearSqrDistance = 0;
                         for(var i = 0, iNum = enemys.length; i < iNum; ++i) {
@@ -1106,7 +1114,10 @@ var jp;
                             if(enemy.isDead()) {
                                 continue;
                             }
-                            var sqrDistance = getSqrDistance(sprite, enemy);
+                            if(!osakana4242.utils.Rect.intersect(searchRect, enemy)) {
+                                continue;
+                            }
+                            var sqrDistance = osakana4242.utils.Rect.distance(sprite, enemy);
                             if(near === null) {
                                 near = enemy;
                                 nearSqrDistance = sqrDistance;
@@ -1115,7 +1126,7 @@ var jp;
                                 nearSqrDistance = sqrDistance;
                             }
                         }
-                        return nearSqrDistance < sqrDistanceThreshold ? near : null;
+                        return near;
                     },
                     newEnemyBullet: function () {
                         var old = null;
@@ -1506,6 +1517,7 @@ var jp;
                 DF.ANIM_ID_CHARA001_STAND = 11;
                 DF.ANIM_ID_CHARA002_WALK = 20;
                 DF.TOUCH_TO_CHARA_MOVE_LIMIT = 320;
+                DF.PLAYER_MOVE_RESOLUTION = 8;
                 DF.PLAYER_HP = 5;
                 DF.PLAYER_BULLET_NUM = 2;
                 DF.FONT_M = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';

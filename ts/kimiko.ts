@@ -282,6 +282,8 @@ module jp.osakana4242.kimiko {
 		export var ANIM_ID_CHARA002_WALK = 20;
 		// スワイプで1フレームにキャラが移動できる最大距離.
 		export var TOUCH_TO_CHARA_MOVE_LIMIT = 320; // 30;
+		// 一度に移動できる最大ドット数.
+		export var PLAYER_MOVE_RESOLUTION = 8;
 		export var PLAYER_HP = 5;
 		// 最大連射数.
 		export var PLAYER_BULLET_NUM = 2;

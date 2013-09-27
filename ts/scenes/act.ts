@@ -296,7 +296,7 @@ module jp.osakana4242.kimiko.scenes {
 			this.collider = (() => {
 				var c = new utils.Collider();
 				c.parent = this;
-				c.centerBottom(12, 24);
+				c.centerBottom(12, 28);
 				// c.rect.y -= 1;
 				return c;
 			}());
@@ -310,13 +310,20 @@ module jp.osakana4242.kimiko.scenes {
 			this.limitRect = new utils.Rect( 0, 0, DF.SC_W, DF.SC_H );
 
 			this.addEventListener(Event.ENTER_FRAME, () => {
+				var scene = this.scene;
 				this.stepMove();
-					
+				if ((this.age % kimiko.secToFrame(0.2)) === 0) {
+					// 近い敵を探す.
+					// TODO: 矩形で検索.
+					var srect = new utils.Rect();
+					srect.width = 256;
+					srect.height = 96;
+					srect.x = this.dirX < 0 ? this.x - srect.width : this.x;
+					srect.y = this.y - (srect.height / 2);
+					this.targetEnemy = scene.getNearEnemy(this, srect);
+				}
+				
 				if (this.targetEnemy === null) {
-					var scene = this.scene;
-					if ((this.age % kimiko.secToFrame(0.2)) === 0) {
-						this.targetEnemy = scene.getNearEnemy(this, 128 * 128);
-					}
 				} else {
 					if (this.targetEnemy.life.isDead()) {
 						// 敵が死んでたら解除.
@@ -325,7 +332,7 @@ module jp.osakana4242.kimiko.scenes {
 					if (this.targetEnemy !== null) {
 						var distance = utils.Vector2D.distance(this, this.targetEnemy);
 						distance = utils.Rect.distance(this, this.targetEnemy);
-						var threshold = DF.SC_W / 2;
+						var threshold = DF.SC_W;
 						if (threshold < distance) {
 							// 敵が離れたら解除.
 							this.targetEnemy = null;
@@ -394,53 +401,38 @@ module jp.osakana4242.kimiko.scenes {
 			}
 			
 			// 壁突き抜け防止のため、移動を数回に分ける.
-			var moveLimit = 8;
-			if (true) {
-				var loopCnt = Math.floor(Math.max(Math.abs(this.vx), Math.abs(this.vy)) / moveLimit);
-				var totalMx = this.vx;
-				var totalMy = this.vy;
-				var mx = this.vx / loopCnt;
-				var my = this.vy / loopCnt;
-				
-				for (var i = 0, loopCnt; i <= loopCnt; ++i) {
-					if (i < loopCnt) {
-						this.x += mx;
-						this.y += my;
-						totalMx -= mx;
-						totalMy -= my;
-					} else {
-						// 最後のひと押し.
-						this.x += totalMx;
-						this.y += totalMy;
-					}
-					scene.checkMapCollision(this);
-					utils.Rect.trimPos(this, this.limitRect, this.onTrim);
+			var loopCnt = Math.floor(Math.max(Math.abs(this.vx), Math.abs(this.vy)) / DF.PLAYER_MOVE_RESOLUTION);
+			//
+			var totalMx = this.vx;
+			var totalMy = this.vy;
+			// 1回の移動量. 移動するごとに地形との当たり判定を行う.
+			var mx = this.vx / loopCnt;
+			var my = this.vy / loopCnt;
+			
+			for (var i = 0, loopCnt; i <= loopCnt; ++i) {
+				if (i < loopCnt) {
+					this.x += mx;
+					this.y += my;
+					totalMx -= mx;
+					totalMy -= my;
+				} else {
+					// 最後のひと押し.
+					this.x += totalMx;
+					this.y += totalMy;
 				}
-				// 0..7 = x1
-				// 8..15 = x2
-				// 16..23, x3
-			} else {
-				var speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-				var loopCnt = Math.floor((speed + moveLimit - 1) / moveLimit);
-				var sx = this.x;
-				var sy = this.y;
-				var tx = sx + this.vx;
-				var ty = sy + this.vy;
-
-				for (var i = 1, iMax = loopCnt; i <= iMax; ++i) {
-					var x = sx + (tx - sx) * i / iMax;
-					var y = sy + (ty - sy) * i / iMax;
-					this.x = x;
-					this.y = y;
-					scene.checkMapCollision(this);
-					utils.Rect.trimPos(this, this.limitRect, this.onTrim);
-					if (this.x !== x || this.y !== y) {
-						// 位置補正があったので抜ける.
-						break;
-					}
+				utils.Rect.trimPos(this, this.limitRect, this.onTrim);
+				scene.checkMapCollision(this);
+				if (this.vx === 0) {
+					mx = 0;
+					totalMx = 0;
+				}
+				if (this.vy === 0) {
+					my = 0;
+					totalMy = 0;
 				}
 			}
 
+			//
 			var touch: utils.Touch = scene.touch;
 			if (touch.isTouching || flag !== 0) {
 				this.vx = 0;
@@ -1029,15 +1021,9 @@ module jp.osakana4242.kimiko.scenes {
 			scene.state = scene.stateGameClear;
 		},
 		
-		getNearEnemy: function (sprite, sqrDistanceThreshold) {
+		getNearEnemy: function (sprite, searchRect: utils.IRect) {
 			var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
 			var enemys = mapCharaMgr.actives;
-			
-			var getSqrDistance = function ( a, b ) {
-				var dx = a.cx - b.cx;
-				var dy = a.cy - b.cy;
-				return (dx * dx) + (dy * dy);
-			};
 			
 			var near = null;
 			var nearSqrDistance = 0;
@@ -1046,7 +1032,10 @@ module jp.osakana4242.kimiko.scenes {
 				if (enemy.isDead()) {
 					continue;
 				}
-				var sqrDistance = getSqrDistance(sprite, enemy);
+				if (!utils.Rect.intersect(searchRect, enemy)) {
+					continue;
+				}
+				var sqrDistance = utils.Rect.distance(sprite, enemy);
 				if ( near === null ) {
 					near = enemy;
 					nearSqrDistance = sqrDistance;
@@ -1056,9 +1045,7 @@ module jp.osakana4242.kimiko.scenes {
 					
 				}
 			}
-			return nearSqrDistance < sqrDistanceThreshold
-				? near
-				: null;
+			return near;
 		},
 		
 		newEnemyBullet: function () {

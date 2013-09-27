@@ -149,6 +149,48 @@ module jp.osakana4242.kimiko.scenes {
 				.moveTo(sprite.anchor.x, sprite.anchor.y, kimiko.secToFrame(0.5), Easing.LINEAR)
 				.loop();
 		}
+		// BOSS.
+		export function brainBoss(sprite: any): void {
+			var anchor = sprite.anchor;
+			var range = 16;
+
+			var waitFire = () => { return !sprite.weapon.isStateFire(); };
+			function fireToPlayer() {
+				// プレイヤーの向きを求める.
+				var player = sprite.scene.player;
+				var wp: WeaponA = sprite.weapon;
+				wp.fireCount = 2;
+				wp.wayNum = 3;
+				wp.fireInterval = kimiko.secToFrame(0.5);
+				wp.speed = kimiko.dpsToDpf(3 * DF.BASE_FPS);
+				wp.dir.x = player.x - sprite.x;
+				wp.dir.y = player.y - sprite.y;
+				utils.Vector2D.normalize(wp.dir);
+				wp.startFire();
+			}
+			sprite.tl
+				.delay(kimiko.secToFrame(0.5))
+				.moveBy(0, -16, kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT)
+				.moveBy(0,  16, kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT)
+				.moveBy(0, -8, kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT)
+				.moveBy(0, 8, kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT)
+				.then(fireToPlayer)
+				.moveBy(8, 0, kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT)
+				.delay(kimiko.secToFrame(0.5))
+				.waitUntil(waitFire)
+				.then(fireToPlayer)
+				.moveBy(8, 0, kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT)
+				.delay(kimiko.secToFrame(0.5))
+				.waitUntil(waitFire)
+				.then(fireToPlayer)
+				.moveBy(8, 0, kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT)
+				.delay(kimiko.secToFrame(0.5))
+				.waitUntil(waitFire)
+				.delay(kimiko.secToFrame(0.5))
+				.moveTo(sprite.anchor.x, sprite.anchor.y, kimiko.secToFrame(0.5), Easing.LINEAR)
+				.loop();
+		}
+
 	}
 
 	export interface IEnemyData {
@@ -180,9 +222,9 @@ module jp.osakana4242.kimiko.scenes {
 		},
 		// boss.
 		0xf: {
-			hpMax: 30,
+			hpMax: 60,
 			body: EnemyBodys.body2,
-			brain: EnemyBrains.brain3,
+			brain: EnemyBrains.brainBoss,
 			score: 1000,
 		},
 	};

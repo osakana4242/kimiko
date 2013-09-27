@@ -29,17 +29,17 @@
 				var isPc = !isSp;
 				var isTouchEnabled = isSp;
 
-				var params = {};
-				params.version = "201309240230";
-				params.fps = isPc ? 60 : 20;
-				params.swipeToMoveRate = isTouchEnabled ? 1.25 : 1.5;
-				//params.isSoundEnabled = isPc;
-				params.isSoundEnabled = false;
+				var config = {};
+				config.version = "201309240230";
+				config.fps = isPc ? 60 : 20;
+				config.swipeToMoveRate = isTouchEnabled ? 1.25 : 1.5;
+				//config.isSoundEnabled = isPc;
+				config.isSoundEnabled = false;
 
 				if (!enchant.Core) {
 					enchant.Core = enchant.Game;
 				}
-				jp.osakana4242.kimiko.start(params);
+				jp.osakana4242.kimiko.start(config);
 			}());
 		</script>
 	</body>
