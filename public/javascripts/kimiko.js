@@ -523,12 +523,13 @@ var jp;
                             var scene = _this.scene;
                             _this.stepMove();
                             if((_this.age % kimiko.kimiko.secToFrame(0.2)) === 0) {
-                                var srect = new osakana4242.utils.Rect();
+                                var srect = osakana4242.utils.Rect.alloc();
                                 srect.width = 256;
                                 srect.height = 96;
                                 srect.x = _this.x + (_this.width - srect.width) / 2;
                                 srect.y = _this.y - (srect.height / 2);
                                 _this.targetEnemy = scene.getNearEnemy(_this, srect);
+                                osakana4242.utils.Rect.free(srect);
                             }
                             if(_this.targetEnemy === null) {
                             } else {
@@ -972,17 +973,19 @@ var jp;
                             var moveLimit = kimiko.DF.TOUCH_TO_CHARA_MOVE_LIMIT;
                             var moveRate = kimiko.kimiko.config.swipeToMoveRate;
                             if(kimiko.DF.PLAYER_TOUCH_ANCHOR_ENABLE) {
-                                var tv = new osakana4242.utils.Vector2D(player.anchorX + touch.totalDiff.x * moveRate, player.anchorY + touch.totalDiff.y * moveRate);
-                                var v = new osakana4242.utils.Vector2D(tv.x - player.x, tv.y - player.y);
+                                var tv = osakana4242.utils.Vector2D.alloc(player.anchorX + touch.totalDiff.x * moveRate.x, player.anchorY + touch.totalDiff.y * moveRate.y);
+                                var v = osakana4242.utils.Vector2D.alloc(tv.x - player.x, tv.y - player.y);
                                 var vm = Math.min(osakana4242.utils.Vector2D.magnitude(v), moveLimit);
                                 osakana4242.utils.Vector2D.normalize(v);
                                 v.x *= vm;
                                 v.y *= vm;
                                 player.vx = v.x;
                                 player.vy = v.y;
+                                osakana4242.utils.Vector2D.free(tv);
+                                osakana4242.utils.Vector2D.free(v);
                             } else {
-                                player.vx = kimiko.kimiko.numberUtil.trim(touch.diff.x * moveRate, -moveLimit, moveLimit);
-                                player.vy = kimiko.kimiko.numberUtil.trim(touch.diff.y * moveRate, -moveLimit, moveLimit);
+                                player.vx = kimiko.kimiko.numberUtil.trim(touch.diff.x * moveRate.x, -moveLimit, moveLimit);
+                                player.vy = kimiko.kimiko.numberUtil.trim(touch.diff.y * moveRate.y, -moveLimit, moveLimit);
                             }
                         }
                     },
@@ -1192,12 +1195,13 @@ var jp;
                         var yMax = prect.y + prect.height + (yDiff - 1);
                         var hoge = 8;
                         var isHit = false;
+                        var rect = osakana4242.utils.Rect.alloc();
                         for(var y = yMin; y < yMax; y += yDiff) {
                             for(var x = xMin; x < xMax; x += xDiff) {
                                 if(!map.hitTest(x, y)) {
                                     continue;
                                 }
-                                var rect = new osakana4242.utils.Rect(Math.floor(x / map.tileWidth) * map.tileWidth, Math.floor(y / map.tileHeight) * map.tileHeight, map.tileWidth, map.tileHeight);
+                                rect.reset(Math.floor(x / map.tileWidth) * map.tileWidth, Math.floor(y / map.tileHeight) * map.tileHeight, map.tileWidth, map.tileHeight);
                                 if(!osakana4242.utils.Rect.intersect(prect, rect)) {
                                     continue;
                                 }
@@ -1220,6 +1224,7 @@ var jp;
                                 }
                             }
                         }
+                        osakana4242.utils.Rect.free(rect);
                         if(isHit && player.onMapHit) {
                             player.onMapHit();
                         }
@@ -1282,7 +1287,26 @@ var jp;
                     this.x = x;
                     this.y = y;
                 }
-                Vector2D.hoge = function hoge() {
+                Vector2D.pool = ((function () {
+                    var pool = new Array();
+                    for(var i = 0, iNum = 64; i < iNum; ++i) {
+                        pool.push(new Vector2D());
+                    }
+                    return pool;
+                })());
+                Vector2D.alloc = function alloc(x, y) {
+                    if (typeof x === "undefined") { x = 0; }
+                    if (typeof y === "undefined") { y = 0; }
+                    var v = Vector2D.pool.pop();
+                    v.reset(x, y);
+                    return v;
+                };
+                Vector2D.free = function free(r) {
+                    Vector2D.pool.push(r);
+                };
+                Vector2D.prototype.reset = function (x, y) {
+                    this.x = x;
+                    this.y = y;
                 };
                 Vector2D.copyFrom = function copyFrom(dest, src) {
                     dest.x = src.x;
@@ -1328,6 +1352,35 @@ var jp;
                     this.width = width;
                     this.height = height;
                 }
+                Rect.pool = ((function () {
+                    var pool = new Array();
+                    for(var i = 0, iNum = 64; i < iNum; ++i) {
+                        pool.push(new Rect());
+                    }
+                    return pool;
+                })());
+                Rect.alloc = function alloc(x, y, width, height) {
+                    if (typeof x === "undefined") { x = 0; }
+                    if (typeof y === "undefined") { y = 0; }
+                    if (typeof width === "undefined") { width = 0; }
+                    if (typeof height === "undefined") { height = 0; }
+                    var v = Rect.pool.pop();
+                    v.reset(x, y, width, height);
+                    return v;
+                };
+                Rect.free = function free(r) {
+                    Rect.pool.push(r);
+                };
+                Rect.prototype.reset = function (x, y, width, height) {
+                    if (typeof x === "undefined") { x = 0; }
+                    if (typeof y === "undefined") { y = 0; }
+                    if (typeof width === "undefined") { width = 0; }
+                    if (typeof height === "undefined") { height = 0; }
+                    this.x = x;
+                    this.y = y;
+                    this.width = width;
+                    this.height = height;
+                };
                 Rect.copyFrom = function copyFrom(a, b) {
                     a.x = b.x;
                     a.y = b.y;

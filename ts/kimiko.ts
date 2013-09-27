@@ -11,12 +11,35 @@ module jp.osakana4242.utils {
 
 	export class Vector2D implements IVector2D {
 
+		static pool: Vector2D[] = (() => {
+			var pool = new Vector2D[]();
+			for (var i = 0, iNum = 64; i < iNum; ++i) {
+				pool.push(new Vector2D());
+			}
+			return pool;
+		}());
+
+		public static alloc(
+			x: number = 0,
+			y: number = 0): Vector2D {
+			var v = Vector2D.pool.pop();
+			v.reset(x, y);
+			return v;
+		}
+
+		public static free(r: Vector2D): void {
+			Vector2D.pool.push(r);
+		}
+
+
 		constructor(
 			public x: number = 0,
 			public y: number = 0) {
 		}
 		
-		public static hoge() :void {
+		public reset(x: number, y: number): void {
+			this.x = x;
+			this.y = y;
 		}
 
 		public static copyFrom(dest: IVector2D, src: IVector2D): void {
@@ -66,12 +89,45 @@ module jp.osakana4242.utils {
 	}
 
 	export class Rect implements IRect{
+		
+		static pool: Rect[] = (() => {
+			var pool = new Rect[]();
+			for (var i = 0, iNum = 64; i < iNum; ++i) {
+				pool.push(new Rect());
+			}
+			return pool;
+		}());
+
+		public static alloc(
+			x: number = 0,
+			y: number = 0,
+			width: number = 0,
+			height: number = 0): Rect {
+			var v = Rect.pool.pop();
+			v.reset(x, y, width, height);
+			return v;
+		}
+
+		public static free(r: Rect): void {
+			Rect.pool.push(r);
+		}
 
 		constructor(
 			public x: number = 0,
 			public y: number = 0,
 			public width: number = 0,
 			public height: number = 0) {
+		}
+
+		public reset(
+			x: number = 0,
+			y: number = 0,
+			width: number = 0,
+			height: number = 0): void {
+			this.x = x;
+			this.y = y;
+			this.width = width;
+			this.height = height;
 		}
 
 		public static copyFrom(a: IRect, b: IRect): void {
@@ -341,7 +397,7 @@ module jp.osakana4242.kimiko {
 	export interface IConfig {
 		fps: number;
 		isSoundEnabled: bool;
-		swipeToMoveRate: number;
+		swipeToMoveRate: utils.IVector2D;
 		version: string;
 	}
 

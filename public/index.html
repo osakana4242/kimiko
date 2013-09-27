@@ -32,7 +32,10 @@
 				var config = {};
 				config.version = "201309240230";
 				config.fps = isPc ? 60 : 20;
-				config.swipeToMoveRate = isTouchEnabled ? 1.25 : 1.5;
+				config.swipeToMoveRate = {
+					"x": isTouchEnabled ? 1.25 : 1.5,
+					"y": isTouchEnabled ? 1.75 : 2.0
+				};
 				//config.isSoundEnabled = isPc;
 				config.isSoundEnabled = false;
 

@@ -314,13 +314,13 @@ module jp.osakana4242.kimiko.scenes {
 				this.stepMove();
 				if ((this.age % kimiko.secToFrame(0.2)) === 0) {
 					// 近い敵を探す.
-					// TODO: 矩形で検索.
-					var srect = new utils.Rect();
+					var srect = utils.Rect.alloc();
 					srect.width = 256;
 					srect.height = 96;
 					srect.x = this.x + (this.width - srect.width) / 2;
 					srect.y = this.y - (srect.height / 2);
 					this.targetEnemy = scene.getNearEnemy(this, srect);
+					utils.Rect.free(srect);
 				}
 				
 				if (this.targetEnemy === null) {
@@ -854,22 +854,23 @@ module jp.osakana4242.kimiko.scenes {
 				var moveLimit = DF.TOUCH_TO_CHARA_MOVE_LIMIT;
 				var moveRate = kimiko.config.swipeToMoveRate;
 				if (DF.PLAYER_TOUCH_ANCHOR_ENABLE) {
-					var tv = new utils.Vector2D(
-						player.anchorX + touch.totalDiff.x * moveRate,
-						player.anchorY + touch.totalDiff.y * moveRate);
-					var v = new utils.Vector2D(
+					var tv = utils.Vector2D.alloc(
+						player.anchorX + touch.totalDiff.x * moveRate.x,
+						player.anchorY + touch.totalDiff.y * moveRate.y);
+					var v = utils.Vector2D.alloc(
 						tv.x - player.x,
-						tv.y - player.y
-						);
+						tv.y - player.y);
 					var vm = Math.min(utils.Vector2D.magnitude(v), moveLimit);
 					utils.Vector2D.normalize(v);
 					v.x *= vm;
 					v.y *= vm;
 					player.vx = v.x;
 					player.vy = v.y;
+					utils.Vector2D.free(tv);
+					utils.Vector2D.free(v);
 				} else {
-					player.vx = kimiko.numberUtil.trim(touch.diff.x * moveRate, -moveLimit, moveLimit);
-					player.vy = kimiko.numberUtil.trim(touch.diff.y * moveRate, -moveLimit, moveLimit);
+					player.vx = kimiko.numberUtil.trim(touch.diff.x * moveRate.x, -moveLimit, moveLimit);
+					player.vy = kimiko.numberUtil.trim(touch.diff.y * moveRate.y, -moveLimit, moveLimit);
 				}
 			}
 		},
@@ -1126,12 +1127,13 @@ module jp.osakana4242.kimiko.scenes {
 			var yMax = prect.y + prect.height + (yDiff - 1);
 			var hoge = 8;
 			var isHit = false;
+			var rect = utils.Rect.alloc();
 			for (var y = yMin; y < yMax; y += yDiff) {
 				for (var x = xMin; x < xMax; x += xDiff) {
 					if (!map.hitTest(x, y)) {
 						continue;
 					}
-					var rect = new utils.Rect(
+					rect.reset(
 						Math.floor(x / map.tileWidth) * map.tileWidth,
 						Math.floor(y / map.tileHeight) * map.tileHeight,
 						map.tileWidth,
@@ -1165,6 +1167,7 @@ module jp.osakana4242.kimiko.scenes {
 					}
 				}
 			}
+			utils.Rect.free(rect);
 			if (isHit && player.onMapHit) {
 					player.onMapHit();
 			}
