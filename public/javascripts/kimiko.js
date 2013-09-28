@@ -525,10 +525,13 @@ var jp;
                             if((_this.age % kimiko.kimiko.secToFrame(0.2)) === 0) {
                                 var srect = osakana4242.utils.Rect.alloc();
                                 srect.width = 256;
-                                srect.height = 96;
-                                srect.x = _this.x + (_this.width - srect.width) / 2;
-                                srect.y = _this.y - (srect.height / 2);
-                                _this.targetEnemy = scene.getNearEnemy(_this, srect);
+                                srect.height = _this.height * 2;
+                                srect.x = _this.x + ((_this.width - srect.width) / 2);
+                                srect.y = _this.y + ((_this.height - srect.height) / 2);
+                                var enemy = scene.getNearEnemy(_this, srect);
+                                if(enemy) {
+                                    _this.targetEnemy = enemy;
+                                }
                                 osakana4242.utils.Rect.free(srect);
                             }
                             if(_this.targetEnemy === null) {
@@ -537,18 +540,23 @@ var jp;
                                     _this.targetEnemy = null;
                                 }
                                 if(_this.targetEnemy !== null) {
-                                    var distance = osakana4242.utils.Vector2D.distance(_this, _this.targetEnemy);
-                                    distance = osakana4242.utils.Rect.distance(_this, _this.targetEnemy);
-                                    var threshold = kimiko.DF.SC_W;
+                                    var distance = osakana4242.utils.Rect.distance(_this, _this.targetEnemy);
+                                    var threshold = kimiko.DF.SC1_W;
                                     if(threshold < distance) {
                                         _this.targetEnemy = null;
                                     } else {
                                         _this.dirX = kimiko.kimiko.numberUtil.sign(_this.targetEnemy.x - _this.x);
                                         _this.scaleX = _this.dirX;
                                         if((_this.age % kimiko.kimiko.secToFrame(0.2)) === 0) {
-                                            if(distance < 128) {
+                                            var srect = osakana4242.utils.Rect.alloc();
+                                            srect.width = kimiko.DF.SC1_W;
+                                            srect.height = _this.height * 2;
+                                            srect.x = _this.cx + (_this.dirX < 0 ? -srect.width : 0);
+                                            srect.y = _this.y + ((_this.height - srect.height) / 2);
+                                            if(osakana4242.utils.Rect.intersect(srect, _this.targetEnemy)) {
                                                 _this.attack();
                                             }
+                                            osakana4242.utils.Rect.free(srect);
                                         }
                                     }
                                 }
@@ -1177,7 +1185,7 @@ var jp;
                         var mapCharaMgr = this.mapCharaMgr;
                         var texts = this.statusTexts;
                         texts[0][0] = "SC " + scene.score + " " + "TIME " + Math.floor(kimiko.kimiko.frameToSec(this.timeLimit - this.timeLimitCounter));
-                        texts[1][0] = "LIFE " + player.life.hp;
+                        texts[1][0] = "LIFE " + player.life.hp + " " + (player.targetEnemy ? "LOCK" : "");
                         for(var i = 0, iNum = texts.length; i < iNum; ++i) {
                             var line = texts[i].join(" ");
                             this.labels[i].text = line;

@@ -313,43 +313,55 @@ module jp.osakana4242.kimiko.scenes {
 				var scene = this.scene;
 				this.stepMove();
 				if ((this.age % kimiko.secToFrame(0.2)) === 0) {
+					// TODO: ロックオン済みの敵がいる場合は索敵間隔を遅らせたほうがいいかも.
 					// 近い敵を探す.
 					var srect = utils.Rect.alloc();
 					srect.width = 256;
-					srect.height = 96;
-					srect.x = this.x + (this.width - srect.width) / 2;
-					srect.y = this.y - (srect.height / 2);
-					this.targetEnemy = scene.getNearEnemy(this, srect);
+					srect.height = this.height * 2;
+					srect.x = this.x + ((this.width - srect.width) / 2);
+					srect.y = this.y + ((this.height - srect.height) / 2);
+					var enemy = scene.getNearEnemy(this, srect);
+					if (enemy) {
+						this.targetEnemy = enemy;
+					}	
 					utils.Rect.free(srect);
 				}
 				
 				if (this.targetEnemy === null) {
+					//
 				} else {
 					if (this.targetEnemy.life.isDead()) {
 						// 敵が死んでたら解除.
 						this.targetEnemy = null;
 					}
 					if (this.targetEnemy !== null) {
-						var distance = utils.Vector2D.distance(this, this.targetEnemy);
-						distance = utils.Rect.distance(this, this.targetEnemy);
-						var threshold = DF.SC_W;
+						var distance = utils.Rect.distance(this, this.targetEnemy);
+						var threshold = DF.SC1_W;
 						if (threshold < distance) {
 							// 敵が離れたら解除.
 							this.targetEnemy = null;
 						} else {
+							// ロックオン状態. 常に敵を見る.
 							this.dirX = kimiko.numberUtil.sign(this.targetEnemy.x - this.x);
 							this.scaleX = this.dirX;
 							if ((this.age % kimiko.secToFrame(0.2)) === 0) {
-								if (distance < 128) {
+								// TODO: 敵同様にweaponクラス化.
+								var srect = utils.Rect.alloc();
+								srect.width = DF.SC1_W;
+								srect.height = this.height * 2;
+								srect.x = this.cx + (this.dirX < 0 ? - srect.width : 0); 
+								srect.y = this.y + ((this.height - srect.height) / 2);
+								if (utils.Rect.intersect(srect, this.targetEnemy)) {
 									this.attack();
 								}
+								utils.Rect.free(srect);
 							}
 						}
 					}
 				}
 			});
 		},
-
+		
 		stateToString: function () {
 			var str = Attacker.prototype.stateToString.call(this);
 			str += " hp:" + this.life.hp + " L:" + (this.targetEnemy !== null ? "o" : "x");
@@ -1102,7 +1114,8 @@ module jp.osakana4242.kimiko.scenes {
 			var texts: string[][] = this.statusTexts;
 			texts[0][0] = "SC " + scene.score + " " +
 				"TIME " + Math.floor(kimiko.frameToSec(this.timeLimit - this.timeLimitCounter));	
-			texts[1][0] = "LIFE " + player.life.hp;
+			texts[1][0] = "LIFE " + player.life.hp + " " +
+				(player.targetEnemy ? "LOCK" : "");
 			//texts[1][0] = player.stateToString()
 			//texts[2][0] = "actives:" + mapCharaMgr.actives.length + " " +
 			//	"sleeps:" + mapCharaMgr.sleeps.length;
