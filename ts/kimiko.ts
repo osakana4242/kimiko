@@ -84,6 +84,21 @@ module jp.osakana4242.utils {
 
 	}
 
+	export class RectCenter extends Vector2D {
+		constructor(
+			public rect: IRect) {
+			super();
+		}
+
+		get x(): number {
+			return this.rect.x + (this.rect.width / 2);
+		}
+
+		get y(): number {
+			return this.rect.y + (this.rect.height / 2);
+		}
+	}
+
 	export interface IRect {
 		x: number;
 		y: number;
@@ -115,11 +130,14 @@ module jp.osakana4242.utils {
 			Rect.pool.push(r);
 		}
 
+		center: Vector2D;
+
 		constructor(
 			public x: number = 0,
 			public y: number = 0,
 			public width: number = 0,
 			public height: number = 0) {
+			this.center = new RectCenter(this);
 		}
 
 		public reset(

@@ -93,8 +93,8 @@ module jp.osakana4242.kimiko.scenes {
 					// プレイヤーの向きを求める.
 					var player = sprite.scene.player;
 					var wp: WeaponA = sprite.weapon;
-					wp.dir.x = player.x - sprite.x;
-					wp.dir.y = player.y - sprite.y;
+					wp.dir.x = player.center.x - sprite.center.x;
+					wp.dir.y = player.center.y - sprite.center.y;
 					utils.Vector2D.normalize(wp.dir);
 					wp.startFire();
 				})
@@ -122,8 +122,8 @@ module jp.osakana4242.kimiko.scenes {
 				var wp: WeaponA = sprite.weapon;
 				wp.fireCount = 1;
 				wp.wayNum = 1;
-				wp.dir.x = player.x - sprite.x;
-				wp.dir.y = player.y - sprite.y;
+				wp.dir.x = player.center.x - sprite.center.x;
+				wp.dir.y = player.center.y - sprite.center.y;
 				utils.Vector2D.normalize(wp.dir);
 				wp.startFire();
 			}
@@ -163,8 +163,8 @@ module jp.osakana4242.kimiko.scenes {
 				wp.wayNum = 3;
 				wp.fireInterval = kimiko.secToFrame(0.5);
 				wp.speed = kimiko.dpsToDpf(3 * DF.BASE_FPS);
-				wp.dir.x = player.x - sprite.x;
-				wp.dir.y = player.y - sprite.y;
+				wp.dir.x = player.center.x - sprite.center.x;
+				wp.dir.y = player.center.y - sprite.center.y;
 				utils.Vector2D.normalize(wp.dir);
 				wp.startFire();
 			}

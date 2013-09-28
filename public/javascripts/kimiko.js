@@ -75,8 +75,8 @@ var jp;
                         }).waitUntil(waitFire).then(function () {
                             var player = sprite.scene.player;
                             var wp = sprite.weapon;
-                            wp.dir.x = player.x - sprite.x;
-                            wp.dir.y = player.y - sprite.y;
+                            wp.dir.x = player.center.x - sprite.center.x;
+                            wp.dir.y = player.center.y - sprite.center.y;
                             osakana4242.utils.Vector2D.normalize(wp.dir);
                             wp.startFire();
                         }).waitUntil(waitFire).moveTo(sprite.anchor.x, sprite.anchor.y - 32, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).then(function () {
@@ -98,8 +98,8 @@ var jp;
                             var wp = sprite.weapon;
                             wp.fireCount = 1;
                             wp.wayNum = 1;
-                            wp.dir.x = player.x - sprite.x;
-                            wp.dir.y = player.y - sprite.y;
+                            wp.dir.x = player.center.x - sprite.center.x;
+                            wp.dir.y = player.center.y - sprite.center.y;
                             osakana4242.utils.Vector2D.normalize(wp.dir);
                             wp.startFire();
                         }
@@ -119,8 +119,8 @@ var jp;
                             wp.wayNum = 3;
                             wp.fireInterval = kimiko.kimiko.secToFrame(0.5);
                             wp.speed = kimiko.kimiko.dpsToDpf(3 * kimiko.DF.BASE_FPS);
-                            wp.dir.x = player.x - sprite.x;
-                            wp.dir.y = player.y - sprite.y;
+                            wp.dir.x = player.center.x - sprite.center.x;
+                            wp.dir.y = player.center.y - sprite.center.y;
                             osakana4242.utils.Vector2D.normalize(wp.dir);
                             wp.startFire();
                         }
@@ -257,6 +257,7 @@ var jp;
                 scenes.Sprite = Class.create(enchant.Sprite, {
                     initialize: function (w, h) {
                         enchant.Sprite.call(this, w, h);
+                        this.center = new osakana4242.utils.RectCenter(this);
                     },
                     cx: {
                         get: function () {
@@ -1335,6 +1336,11 @@ var jp;
     })(jp.osakana4242 || (jp.osakana4242 = {}));
     var osakana4242 = jp.osakana4242;
 })(jp || (jp = {}));
+var __extends = this.__extends || function (d, b) {
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
 var jp;
 (function (jp) {
     (function (osakana4242) {
@@ -1402,6 +1408,29 @@ var jp;
                 return Vector2D;
             })();
             utils.Vector2D = Vector2D;            
+            var RectCenter = (function (_super) {
+                __extends(RectCenter, _super);
+                function RectCenter(rect) {
+                                _super.call(this);
+                    this.rect = rect;
+                }
+                Object.defineProperty(RectCenter.prototype, "x", {
+                    get: function () {
+                        return this.rect.x + (this.rect.width / 2);
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(RectCenter.prototype, "y", {
+                    get: function () {
+                        return this.rect.y + (this.rect.height / 2);
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                return RectCenter;
+            })(Vector2D);
+            utils.RectCenter = RectCenter;            
             var Rect = (function () {
                 function Rect(x, y, width, height) {
                     if (typeof x === "undefined") { x = 0; }
@@ -1412,6 +1441,7 @@ var jp;
                     this.y = y;
                     this.width = width;
                     this.height = height;
+                    this.center = new RectCenter(this);
                 }
                 Rect.pool = ((function () {
                     var pool = new Array();

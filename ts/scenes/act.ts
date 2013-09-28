@@ -17,6 +17,7 @@ module jp.osakana4242.kimiko.scenes {
 	export var Sprite: any = Class.create(enchant.Sprite, {
 		initialize: function (w: number, h: number) {
 			enchant.Sprite.call(this, w, h);
+			this.center = new utils.RectCenter(this);
 		},
 		cx: {
 			get: function () {
