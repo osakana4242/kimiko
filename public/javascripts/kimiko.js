@@ -306,7 +306,7 @@ var jp;
                             this.visible = false;
                             return;
                         }
-                        scene.checkMapCollision(this);
+                        scene.checkMapCollision(this, this.onMapHit);
                     },
                     onMapHit: function () {
                         this.visible = false;
@@ -347,7 +347,7 @@ var jp;
                             this.visibleCnt = 0;
                             return;
                         }
-                        scene.checkMapCollision(this);
+                        scene.checkMapCollision(this, this.onMapHit);
                     },
                     onMapHit: function () {
                         this.visible = false;
@@ -500,17 +500,40 @@ var jp;
                         var _this = this;
                         scenes.Attacker.call(this);
                         this.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_CHARA001];
-                        this.animWalk = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA001_WALK);
-                        this.animStand = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA001_STAND);
-                        this.frame = this.animStand;
                         this.width = 32;
                         this.height = 32;
-                        this.collider = ((function () {
-                            var c = new osakana4242.utils.Collider();
-                            c.parent = _this;
-                            c.centerBottom(12, 28);
-                            return c;
+                        this.bodyStyles = ((function () {
+                            var animWalk = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA001_WALK);
+                            var animStand = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA001_STAND);
+                            var animSquat = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA001_SQUAT);
+                            var colliderA = ((function () {
+                                var c = new osakana4242.utils.Collider();
+                                c.parent = _this;
+                                c.centerBottom(12, 28);
+                                return c;
+                            })());
+                            var colliderB = ((function () {
+                                var c = new osakana4242.utils.Collider();
+                                c.parent = _this;
+                                c.centerBottom(12, 14);
+                                return c;
+                            })());
+                            return {
+                                "stand": {
+                                    "anim": animStand,
+                                    "collider": colliderA
+                                },
+                                "walk": {
+                                    "anim": animWalk,
+                                    "collider": colliderA
+                                },
+                                "squat": {
+                                    "anim": animSquat,
+                                    "collider": colliderB
+                                }
+                            };
                         })());
+                        this.bodyStyle = this.bodyStyles.stand;
                         this.life.hpMax = kimiko.DF.PLAYER_HP;
                         this.life.hp = this.life.hpMax;
                         this.anchorX = 0;
@@ -519,6 +542,7 @@ var jp;
                         this.isOnMap = false;
                         this.targetEnemy = null;
                         this.limitRect = new osakana4242.utils.Rect(0, 0, kimiko.DF.SC_W, kimiko.DF.SC_H);
+                        this.wallPushDir = new osakana4242.utils.Vector2D();
                         this.addEventListener(Event.ENTER_FRAME, function () {
                             var scene = _this.scene;
                             _this.stepMove();
@@ -563,6 +587,16 @@ var jp;
                             }
                         });
                     },
+                    bodyStyle: {
+                        get: function () {
+                            return this._bodyStyle;
+                        },
+                        set: function (v) {
+                            this._bodyStyle = v;
+                            this.frame = v.anim;
+                            this.collider = v.collider;
+                        }
+                    },
                     stateToString: function () {
                         var str = scenes.Attacker.prototype.stateToString.call(this);
                         str += " hp:" + this.life.hp + " L:" + (this.targetEnemy !== null ? "o" : "x");
@@ -602,18 +636,21 @@ var jp;
                                 this.scaleX = this.dirX;
                             }
                         }
-                        if(this.vx !== 0 || this.vy !== 0) {
-                            if(this.animWalk !== this.frame) {
-                                this.frame = this.animWalk;
-                            }
+                        var nextBodyStyle = this.bodyStyle;
+                        if(Math.abs(this.vx) < 2 && 0 < this.wallPushDir.y) {
+                            nextBodyStyle = this.bodyStyles.squat;
+                        } else if(this.vx !== 0 || this.vy !== 0) {
+                            nextBodyStyle = this.bodyStyles.walk;
                         } else {
-                            if(this.animStand !== this.frame) {
-                                this.frame = this.animStand;
-                            }
+                            nextBodyStyle = this.bodyStyles.stand;
                         }
-                        if(this.useGravity && !this.isOnMap && !isSlow) {
+                        if(this.bodyStyle !== nextBodyStyle) {
+                            this.bodyStyle = nextBodyStyle;
+                        }
+                        if(this.useGravity && !this.isOnMap) {
                             this.vy += kimiko.kimiko.dpsToDpf(kimiko.DF.GRAVITY);
                         }
+                        osakana4242.utils.Vector2D.copyFrom(this.wallPushDir, osakana4242.utils.Vector2D.zero);
                         var loopCnt = Math.floor(Math.max(Math.abs(this.vx), Math.abs(this.vy)) / kimiko.DF.PLAYER_MOVE_RESOLUTION);
                         var totalMx = this.vx;
                         var totalMy = this.vy;
@@ -630,7 +667,7 @@ var jp;
                                 this.y += totalMy;
                             }
                             osakana4242.utils.Rect.trimPos(this, this.limitRect, this.onTrim);
-                            scene.checkMapCollision(this);
+                            scene.checkMapCollision(this, this.onTrim);
                             if(this.vx === 0) {
                                 mx = 0;
                                 totalMx = 0;
@@ -648,9 +685,15 @@ var jp;
                     },
                     onTrim: function (x, y) {
                         if(x !== 0) {
+                            if(1 < Math.abs(this.vx)) {
+                                this.wallPushDir.x = x;
+                            }
                             this.vx = 0;
                         }
                         if(y !== 0) {
+                            if(1 < Math.abs(this.vy)) {
+                                this.wallPushDir.y = y;
+                            }
                             this.vy = 0;
                         }
                     }
@@ -979,33 +1022,6 @@ var jp;
                     ontouchmove: function (event) {
                         var touch = this.touch;
                         touch.saveTouchMove(event);
-                        var player = this.player;
-                        var playerOldX = player.x;
-                        var playerOldY = player.y;
-                        if(player.animWalk !== player.frame) {
-                            player.frame = player.animWalk;
-                        }
-                        var touchElpsedFrame = touch.getTouchElpsedFrame();
-                        touchElpsedFrame = 0;
-                        if(touchElpsedFrame < kimiko.kimiko.secToFrame(0.5)) {
-                            var moveLimit = kimiko.DF.TOUCH_TO_CHARA_MOVE_LIMIT;
-                            var moveRate = kimiko.kimiko.config.swipeToMoveRate;
-                            if(kimiko.DF.PLAYER_TOUCH_ANCHOR_ENABLE) {
-                                var tv = osakana4242.utils.Vector2D.alloc(player.anchorX + touch.totalDiff.x * moveRate.x, player.anchorY + touch.totalDiff.y * moveRate.y);
-                                var v = osakana4242.utils.Vector2D.alloc(tv.x - player.x, tv.y - player.y);
-                                var vm = Math.min(osakana4242.utils.Vector2D.magnitude(v), moveLimit);
-                                osakana4242.utils.Vector2D.normalize(v);
-                                v.x *= vm;
-                                v.y *= vm;
-                                player.vx = v.x;
-                                player.vy = v.y;
-                                osakana4242.utils.Vector2D.free(tv);
-                                osakana4242.utils.Vector2D.free(v);
-                            } else {
-                                player.vx = kimiko.kimiko.numberUtil.trim(touch.diff.x * moveRate.x, -moveLimit, moveLimit);
-                                player.vy = kimiko.kimiko.numberUtil.trim(touch.diff.y * moveRate.y, -moveLimit, moveLimit);
-                            }
-                        }
                     },
                     ontouchend: function (event) {
                         var touch = this.touch;
@@ -1041,6 +1057,7 @@ var jp;
                     },
                     stateNormal: function () {
                         var player = this.player;
+                        this.checkTouch();
                         var mapCharaMgr = this.mapCharaMgr;
                         mapCharaMgr.step();
                         this.checkCollision();
@@ -1055,6 +1072,36 @@ var jp;
                     stateGameClear: function () {
                         kimiko.kimiko.core.pushScene(new scenes.GameClear());
                         this.state = this.stateGameStart;
+                    },
+                    checkTouch: function () {
+                        var touch = this.touch;
+                        if(!touch.isTouching) {
+                            return;
+                        }
+                        var player = this.player;
+                        var playerOldX = player.x;
+                        var playerOldY = player.y;
+                        var touchElpsedFrame = touch.getTouchElpsedFrame();
+                        touchElpsedFrame = 0;
+                        if(touchElpsedFrame < kimiko.kimiko.secToFrame(0.5)) {
+                            var moveLimit = kimiko.DF.TOUCH_TO_CHARA_MOVE_LIMIT;
+                            var moveRate = kimiko.kimiko.config.swipeToMoveRate;
+                            if(kimiko.DF.PLAYER_TOUCH_ANCHOR_ENABLE) {
+                                var tv = osakana4242.utils.Vector2D.alloc(player.anchorX + touch.totalDiff.x * moveRate.x, player.anchorY + touch.totalDiff.y * moveRate.y);
+                                var v = osakana4242.utils.Vector2D.alloc(tv.x - player.x, tv.y - player.y);
+                                var vm = Math.min(osakana4242.utils.Vector2D.magnitude(v), moveLimit);
+                                osakana4242.utils.Vector2D.normalize(v);
+                                v.x *= vm;
+                                v.y *= vm;
+                                player.vx = v.x;
+                                player.vy = v.y;
+                                osakana4242.utils.Vector2D.free(tv);
+                                osakana4242.utils.Vector2D.free(v);
+                            } else {
+                                player.vx = kimiko.kimiko.numberUtil.trim(touch.diff.x * moveRate.x, -moveLimit, moveLimit);
+                                player.vy = kimiko.kimiko.numberUtil.trim(touch.diff.y * moveRate.y, -moveLimit, moveLimit);
+                            }
+                        }
                     },
                     loadMapData: function (mapData) {
                         var _this = this;
@@ -1195,13 +1242,13 @@ var jp;
                         var mapCharaMgr = this.mapCharaMgr;
                         var texts = this.statusTexts;
                         texts[0][0] = "SC " + scene.score + " " + "TIME " + Math.floor(kimiko.kimiko.frameToSec(this.timeLimit - this.timeLimitCounter));
-                        texts[1][0] = "LIFE " + player.life.hp + " " + (player.targetEnemy ? "LOCK" : "");
+                        texts[1][0] = "LIFE " + player.life.hp + " " + "WALL " + player.wallPushDir.x + "," + player.wallPushDir.y + " " + (player.targetEnemy ? "LOCK" : "    ") + " " + "";
                         for(var i = 0, iNum = texts.length; i < iNum; ++i) {
                             var line = texts[i].join(" ");
                             this.labels[i].text = line;
                         }
                     },
-                    checkMapCollision: function (player) {
+                    checkMapCollision: function (player, onTrim) {
                         var collider = player.collider;
                         var prect = collider.getRect();
                         var map = this.map;
@@ -1212,7 +1259,6 @@ var jp;
                         var xMax = prect.x + prect.width + (xDiff - 1);
                         var yMax = prect.y + prect.height + (yDiff - 1);
                         var hoge = 8;
-                        var isHit = false;
                         var rect = osakana4242.utils.Rect.alloc();
                         for(var y = yMin; y < yMax; y += yDiff) {
                             for(var x = xMin; x < xMax; x += xDiff) {
@@ -1225,27 +1271,22 @@ var jp;
                                 }
                                 if(!map.hitTest(x, y - yDiff) && 0 <= player.vy && prect.y <= rect.y + hoge) {
                                     player.y = rect.y - prect.height - collider.rect.y;
+                                    onTrim.call(player, 0, 1);
                                     player.vy = 0;
-                                    isHit = true;
                                 } else if(!map.hitTest(x, y + yDiff) && player.vy <= 0 && rect.y + rect.height - hoge < prect.y + prect.height) {
                                     player.y = rect.y + rect.height - collider.rect.y;
+                                    onTrim.call(player, 0, -1);
                                     player.vy = 0;
-                                    isHit = true;
                                 } else if(!map.hitTest(x - xDiff, y) && 0 <= player.vx && prect.x <= rect.x + hoge) {
                                     player.x = rect.x - prect.width - collider.rect.x;
-                                    player.vx = 0;
-                                    isHit = true;
+                                    onTrim.call(player, 1, 0);
                                 } else if(!map.hitTest(x + xDiff, y) && player.vx <= 0 && rect.x + rect.width - hoge < prect.x + prect.width) {
                                     player.x = rect.x + rect.width - collider.rect.x;
-                                    player.vx = 0;
-                                    isHit = true;
+                                    onTrim.call(player, -1, 0);
                                 }
                             }
                         }
                         osakana4242.utils.Rect.free(rect);
-                        if(isHit && player.onMapHit) {
-                            player.onMapHit();
-                        }
                     },
                     checkCollision: function () {
                         var scene = this;
@@ -1305,6 +1346,8 @@ var jp;
                     this.x = x;
                     this.y = y;
                 }
+                Vector2D.zero = new Vector2D(0, 0);
+                Vector2D.one = new Vector2D(1, 1);
                 Vector2D.pool = ((function () {
                     var pool = new Array();
                     for(var i = 0, iNum = 64; i < iNum; ++i) {
@@ -1514,6 +1557,8 @@ var jp;
                     Vector2D.copyFrom(this.start, pos);
                     Vector2D.copyFrom(this.end, this.start);
                     this.startFrame = enchant.Core.instance.frame;
+                    this.totalDiff.x = 0;
+                    this.totalDiff.y = 0;
                     this.isTouching = true;
                 };
                 Touch.prototype.saveTouchMove = function (pos) {
@@ -1586,6 +1631,7 @@ var jp;
                 DF.ENEMY_ID_BOSS = 0xf;
                 DF.ANIM_ID_CHARA001_WALK = 10;
                 DF.ANIM_ID_CHARA001_STAND = 11;
+                DF.ANIM_ID_CHARA001_SQUAT = 12;
                 DF.ANIM_ID_CHARA002_WALK = 20;
                 DF.TOUCH_TO_CHARA_MOVE_LIMIT = 320;
                 DF.PLAYER_MOVE_RESOLUTION = 8;
@@ -1710,10 +1756,13 @@ var jp;
                         1, 
                         0, 
                         2
-                    ], 0.2);
+                    ], 0.1);
                     this.registerAnimFrames(DF.ANIM_ID_CHARA001_STAND, [
                         0
-                    ], 0.2);
+                    ], 0.1);
+                    this.registerAnimFrames(DF.ANIM_ID_CHARA001_SQUAT, [
+                        1
+                    ], 0.1);
                     this.registerAnimFrames(DF.ANIM_ID_CHARA002_WALK, [
                         0, 
                         1, 

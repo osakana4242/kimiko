@@ -73,7 +73,7 @@ module jp.osakana4242.kimiko.scenes {
 				this.visible = false;
 				return;
 			}
-			scene.checkMapCollision(this);
+			scene.checkMapCollision(this, this.onMapHit);
 		},
 			
 		onMapHit: function () {
@@ -121,7 +121,7 @@ module jp.osakana4242.kimiko.scenes {
 				return;
 			}
 
-			scene.checkMapCollision(this);
+			scene.checkMapCollision(this, this.onMapHit);
 
 		},
 
@@ -285,21 +285,48 @@ module jp.osakana4242.kimiko.scenes {
 	});
 		
 	export var Player: any = Class.create(Attacker, {
+
 		initialize: function () {
 			Attacker.call(this);
 			this.image = kimiko.core.assets[Assets.IMAGE_CHARA001]
-			this.animWalk = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_WALK);
-			this.animStand = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_STAND);
-			this.frame = this.animStand;
 			this.width = 32;
 			this.height = 32;
-			this.collider = (() => {
-				var c = new utils.Collider();
-				c.parent = this;
-				c.centerBottom(12, 28);
-				// c.rect.y -= 1;
-				return c;
+			
+			this.bodyStyles = (() => {
+				var animWalk = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_WALK);
+				var animStand = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_STAND);
+				var animSquat = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_SQUAT);
+				var colliderA = (() => {
+					var c = new utils.Collider();
+					c.parent = this;
+					c.centerBottom(12, 28);
+					return c;
+				}());
+				var colliderB = (() => {
+					var c = new utils.Collider();
+					c.parent = this;
+					c.centerBottom(12, 14);
+					return c;
+				}());
+
+				return {
+					"stand": {
+						"anim": animStand,
+						"collider": colliderA,
+					},
+					"walk": {
+						"anim": animWalk,
+						"collider": colliderA,
+					},
+					"squat": {
+						"anim": animSquat,
+						"collider": colliderB,
+					},
+				};
 			}());
+			
+			this.bodyStyle = this.bodyStyles.stand;
+
 			this.life.hpMax = DF.PLAYER_HP;
 			this.life.hp = this.life.hpMax;
 			this.anchorX = 0;
@@ -308,6 +335,8 @@ module jp.osakana4242.kimiko.scenes {
 			this.isOnMap = false;
 			this.targetEnemy = null;
 			this.limitRect = new utils.Rect( 0, 0, DF.SC_W, DF.SC_H );
+			/** 壁を押している方向. */
+			this.wallPushDir = new utils.Vector2D();
 
 			this.addEventListener(Event.ENTER_FRAME, () => {
 				var scene = this.scene;
@@ -362,9 +391,19 @@ module jp.osakana4242.kimiko.scenes {
 			});
 		},
 		
+		bodyStyle: {
+			get: function () { return this._bodyStyle; },
+			set: function (v) { 
+				this._bodyStyle = v;
+				this.frame = v.anim;
+				this.collider = v.collider;
+			},
+		},
+
 		stateToString: function () {
 			var str = Attacker.prototype.stateToString.call(this);
-			str += " hp:" + this.life.hp + " L:" + (this.targetEnemy !== null ? "o" : "x");
+			str += " hp:" + this.life.hp +
+				" L:" + (this.targetEnemy !== null ? "o" : "x");
 			return str;
 		},
 
@@ -381,6 +420,7 @@ module jp.osakana4242.kimiko.scenes {
 
 		stepMove: function () {
 			var scene = this.scene;
+
 			var input = kimiko.core.input;
 			var flag =
 				((input.left  ? 1 : 0) << 0) |
@@ -408,21 +448,28 @@ module jp.osakana4242.kimiko.scenes {
 					this.scaleX = this.dirX;
 				}
 			}
-
-			if (this.vx !== 0 || this.vy !== 0) {
-				if (this.animWalk !== this.frame) {
-					this.frame = this.animWalk;
-				}
+			// body style
+			var nextBodyStyle = this.bodyStyle;
+			if (Math.abs(this.vx) < 2 && 0 < this.wallPushDir.y) {
+				// しゃがみ判定.
+				// 横の移動量が規定範囲内 + 接地した状態で地面方向に力がかかってる状態.
+				nextBodyStyle = this.bodyStyles.squat;
+			} else if (this.vx !== 0 || this.vy !== 0) {
+				nextBodyStyle = this.bodyStyles.walk;
 			} else {
-				if (this.animStand !== this.frame) {
-					this.frame = this.animStand;
-				}
+				nextBodyStyle = this.bodyStyles.stand;
 			}
-
-			if (this.useGravity && !this.isOnMap && !isSlow) {
+			if (this.bodyStyle !== nextBodyStyle) {
+				this.bodyStyle = nextBodyStyle;
+			}
+			//
+			if (this.useGravity && !this.isOnMap) {
 				this.vy += kimiko.dpsToDpf(DF.GRAVITY);
 			}
-			
+
+			// 壁衝突状態リセット.
+			utils.Vector2D.copyFrom(this.wallPushDir, utils.Vector2D.zero);
+
 			// 壁突き抜け防止のため、移動を数回に分ける.
 			var loopCnt = Math.floor(Math.max(Math.abs(this.vx), Math.abs(this.vy)) / DF.PLAYER_MOVE_RESOLUTION);
 			//
@@ -444,7 +491,7 @@ module jp.osakana4242.kimiko.scenes {
 					this.y += totalMy;
 				}
 				utils.Rect.trimPos(this, this.limitRect, this.onTrim);
-				scene.checkMapCollision(this);
+				scene.checkMapCollision(this, this.onTrim);
 				if (this.vx === 0) {
 					mx = 0;
 					totalMx = 0;
@@ -464,8 +511,19 @@ module jp.osakana4242.kimiko.scenes {
 		},
 			
 		onTrim: function (x: number, y: number) {
-			if (x !== 0) { this.vx = 0; }
-			if (y !== 0) { this.vy = 0; }
+			if (x !== 0) {
+				if (1 < Math.abs(this.vx)) {
+					this.wallPushDir.x = x;
+				}
+				this.vx = 0;
+			}
+
+			if (y !== 0) {
+				if (1 < Math.abs(this.vy)) {
+					this.wallPushDir.y = y;
+				}
+				this.vy = 0;
+			}
 		},
 
 	});
@@ -864,38 +922,6 @@ module jp.osakana4242.kimiko.scenes {
 		ontouchmove: function (event) {
 			var touch: utils.Touch = this.touch;
 			touch.saveTouchMove(event);
-			var player = this.player;
-			var playerOldX = player.x;
-			var playerOldY = player.y;
-			if (player.animWalk !== player.frame) {
-				player.frame = player.animWalk;
-			}
-
-			var touchElpsedFrame = touch.getTouchElpsedFrame();
-			touchElpsedFrame = 0;
-			if (touchElpsedFrame < kimiko.secToFrame(0.5)) {
-				var moveLimit = DF.TOUCH_TO_CHARA_MOVE_LIMIT;
-				var moveRate = kimiko.config.swipeToMoveRate;
-				if (DF.PLAYER_TOUCH_ANCHOR_ENABLE) {
-					var tv = utils.Vector2D.alloc(
-						player.anchorX + touch.totalDiff.x * moveRate.x,
-						player.anchorY + touch.totalDiff.y * moveRate.y);
-					var v = utils.Vector2D.alloc(
-						tv.x - player.x,
-						tv.y - player.y);
-					var vm = Math.min(utils.Vector2D.magnitude(v), moveLimit);
-					utils.Vector2D.normalize(v);
-					v.x *= vm;
-					v.y *= vm;
-					player.vx = v.x;
-					player.vy = v.y;
-					utils.Vector2D.free(tv);
-					utils.Vector2D.free(v);
-				} else {
-					player.vx = kimiko.numberUtil.trim(touch.diff.x * moveRate.x, -moveLimit, moveLimit);
-					player.vy = kimiko.numberUtil.trim(touch.diff.y * moveRate.y, -moveLimit, moveLimit);
-				}
-			}
 		},
 
 		ontouchend: function (event) {
@@ -943,6 +969,8 @@ module jp.osakana4242.kimiko.scenes {
 		stateNormal: function () {
 			var player = this.player;
 			//
+			this.checkTouch();
+			//
 			var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
 			mapCharaMgr.step();
 			//
@@ -965,6 +993,43 @@ module jp.osakana4242.kimiko.scenes {
 		},
 
 		//---------------------------------------------------------------------------
+		
+		checkTouch: function () {
+			var touch: utils.Touch = this.touch;
+			if (!touch.isTouching) {
+				return;
+			}
+
+			var player = this.player;
+			var playerOldX = player.x;
+			var playerOldY = player.y;
+
+			var touchElpsedFrame = touch.getTouchElpsedFrame();
+			touchElpsedFrame = 0;
+			if (touchElpsedFrame < kimiko.secToFrame(0.5)) {
+				var moveLimit = DF.TOUCH_TO_CHARA_MOVE_LIMIT;
+				var moveRate = kimiko.config.swipeToMoveRate;
+				if (DF.PLAYER_TOUCH_ANCHOR_ENABLE) {
+					var tv = utils.Vector2D.alloc(
+						player.anchorX + touch.totalDiff.x * moveRate.x,
+						player.anchorY + touch.totalDiff.y * moveRate.y);
+					var v = utils.Vector2D.alloc(
+						tv.x - player.x,
+						tv.y - player.y);
+					var vm = Math.min(utils.Vector2D.magnitude(v), moveLimit);
+					utils.Vector2D.normalize(v);
+					v.x *= vm;
+					v.y *= vm;
+					player.vx = v.x;
+					player.vy = v.y;
+					utils.Vector2D.free(tv);
+					utils.Vector2D.free(v);
+				} else {
+					player.vx = kimiko.numberUtil.trim(touch.diff.x * moveRate.x, -moveLimit, moveLimit);
+					player.vy = kimiko.numberUtil.trim(touch.diff.y * moveRate.y, -moveLimit, moveLimit);
+				}
+			}
+		},
 
 		loadMapData: function (mapData: utils.IMapData) {
 			var map = this.map;
@@ -1126,7 +1191,10 @@ module jp.osakana4242.kimiko.scenes {
 			texts[0][0] = "SC " + scene.score + " " +
 				"TIME " + Math.floor(kimiko.frameToSec(this.timeLimit - this.timeLimitCounter));	
 			texts[1][0] = "LIFE " + player.life.hp + " " +
-				(player.targetEnemy ? "LOCK" : "");
+				"WALL " + player.wallPushDir.x + "," + player.wallPushDir.y + " " +
+				(player.targetEnemy ? "LOCK" : "    ") + " " +
+				"";
+
 			//texts[1][0] = player.stateToString()
 			//texts[2][0] = "actives:" + mapCharaMgr.actives.length + " " +
 			//	"sleeps:" + mapCharaMgr.sleeps.length;
@@ -1137,7 +1205,7 @@ module jp.osakana4242.kimiko.scenes {
 			}
 		},
 
-		checkMapCollision: function (player) {
+		checkMapCollision: function (player, onTrim: (x: number, y: number) => void) {
 			// 地形とプレイヤーの衝突判定.
 			// 自分の周囲の地形を調べる.
 			var collider: utils.Collider = player.collider;
@@ -1150,7 +1218,6 @@ module jp.osakana4242.kimiko.scenes {
 			var xMax = prect.x + prect.width + (xDiff - 1);
 			var yMax = prect.y + prect.height + (yDiff - 1);
 			var hoge = 8;
-			var isHit = false;
 			var rect = utils.Rect.alloc();
 			for (var y = yMin; y < yMax; y += yDiff) {
 				for (var x = xMin; x < xMax; x += xDiff) {
@@ -1170,31 +1237,26 @@ module jp.osakana4242.kimiko.scenes {
 					if (!map.hitTest(x, y - yDiff) && 0 <= player.vy && prect.y <= rect.y + hoge) {
 						// top
 						player.y = rect.y - prect.height - collider.rect.y;
+						onTrim.call(player, 0, 1);
 						player.vy = 0;
 						//player.isOnMap = true;
-						isHit = true;
 					} else if (!map.hitTest(x, y + yDiff) && player.vy <= 0 && rect.y + rect.height - hoge < prect.y + prect.height) {
 						// bottom
 						player.y = rect.y + rect.height - collider.rect.y;
+						onTrim.call(player, 0, -1);
 						player.vy = 0;
-						isHit = true;
 					} else if (!map.hitTest(x - xDiff, y) && 0 <= player.vx && prect.x <= rect.x + hoge) {
 						// left
 						player.x = rect.x - prect.width - collider.rect.x;
-						player.vx = 0;
-						isHit = true;
+						onTrim.call(player, 1, 0);
 					} else if (!map.hitTest(x + xDiff, y) && player.vx <= 0 && rect.x + rect.width - hoge < prect.x + prect.width) {
 						// right
 						player.x = rect.x + rect.width - collider.rect.x;
-						player.vx = 0;
-						isHit = true;
+						onTrim.call(player, -1, 0);
 					}
 				}
 			}
 			utils.Rect.free(rect);
-			if (isHit && player.onMapHit) {
-					player.onMapHit();
-			}
 		},
 
 		checkCollision: function () {

@@ -11,6 +11,9 @@ module jp.osakana4242.utils {
 
 	export class Vector2D implements IVector2D {
 
+		public static zero = new Vector2D(0, 0);
+		public static one = new Vector2D(1, 1);
+
 		static pool: Vector2D[] = (() => {
 			var pool = new Vector2D[]();
 			for (var i = 0, iNum = 64; i < iNum; ++i) {
@@ -255,6 +258,8 @@ module jp.osakana4242.utils {
 			Vector2D.copyFrom(this.start, pos);
 			Vector2D.copyFrom(this.end, this.start);
 			this.startFrame = enchant.Core.instance.frame;
+			this.totalDiff.x = 0;
+			this.totalDiff.y = 0;
 			this.isTouching = true;
 		}
 		
@@ -335,6 +340,7 @@ module jp.osakana4242.kimiko {
 
 		export var ANIM_ID_CHARA001_WALK = 10;
 		export var ANIM_ID_CHARA001_STAND = 11;
+		export var ANIM_ID_CHARA001_SQUAT = 12;
 		export var ANIM_ID_CHARA002_WALK = 20;
 		// スワイプで1フレームにキャラが移動できる最大距離.
 		export var TOUCH_TO_CHARA_MOVE_LIMIT = 320; // 30;
@@ -439,8 +445,9 @@ module jp.osakana4242.kimiko {
 			}
 			
 			// anim
-			this.registerAnimFrames(DF.ANIM_ID_CHARA001_WALK,  [0, 1, 0, 2], 0.2);
-			this.registerAnimFrames(DF.ANIM_ID_CHARA001_STAND, [0], 0.2);
+			this.registerAnimFrames(DF.ANIM_ID_CHARA001_WALK,  [0, 1, 0, 2], 0.1);
+			this.registerAnimFrames(DF.ANIM_ID_CHARA001_STAND, [0], 0.1);
+			this.registerAnimFrames(DF.ANIM_ID_CHARA001_SQUAT, [1], 0.1);
 			this.registerAnimFrames(DF.ANIM_ID_CHARA002_WALK, [0, 1, 2, 3], 0.1);
 			
 			// key bind
