@@ -413,7 +413,7 @@ module jp.osakana4242.kimiko.scenes {
 			if (bullet === null) {
 				return;
 			}
-			bullet.vx = this.dirX * kimiko.dpsToDpf(8 * 60);
+			bullet.vx = this.dirX * kimiko.dpsToDpf(6 * 60);
 			bullet.vy = 0;
 			bullet.cx = this.cx;
 			bullet.cy = this.cy;

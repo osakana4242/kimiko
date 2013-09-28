@@ -366,7 +366,7 @@ module jp.osakana4242.kimiko {
 		export var PLAYER_MOVE_RESOLUTION = 8;
 		export var PLAYER_HP = 5;
 		// 最大連射数.
-		export var PLAYER_BULLET_NUM = 2;
+		export var PLAYER_BULLET_NUM = 1;
 
 		export var FONT_M: string = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
 		export var GRAVITY: number = 0.25 * 60;

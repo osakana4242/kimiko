@@ -152,43 +152,60 @@ module jp.osakana4242.kimiko.scenes {
 		// BOSS.
 		export function brainBoss(sprite: any): void {
 			var anchor = sprite.anchor;
-			var range = 16;
+			var range = 196;
 
 			var waitFire = () => { return !sprite.weapon.isStateFire(); };
-			function fireToPlayer() {
-				// プレイヤーの向きを求める.
+			function lookAtPlayer(wp: WeaponA) {
 				var player = sprite.scene.player;
-				var wp: WeaponA = sprite.weapon;
-				wp.fireCount = 2;
-				wp.wayNum = 3;
-				wp.fireInterval = kimiko.secToFrame(0.5);
-				wp.speed = kimiko.dpsToDpf(3 * DF.BASE_FPS);
 				wp.dir.x = player.center.x - sprite.center.x;
 				wp.dir.y = player.center.y - sprite.center.y;
 				utils.Vector2D.normalize(wp.dir);
+			}
+			function fireToPlayer() {
+				var wp: WeaponA = sprite.weapon;
+				wp.fireCount = 3;
+				wp.wayNum = 6;
+				wp.fireInterval = kimiko.secToFrame(0.3);
+				wp.speed = kimiko.dpsToDpf(3 * DF.BASE_FPS);
+
+				lookAtPlayer(wp);
 				wp.startFire();
 			}
-			sprite.tl
-				.delay(kimiko.secToFrame(0.5))
-				.moveBy(0, -16, kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT)
-				.moveBy(0,  16, kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT)
-				.moveBy(0, -8, kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT)
-				.moveBy(0, 8, kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT)
-				.then(fireToPlayer)
-				.moveBy(8, 0, kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT)
-				.delay(kimiko.secToFrame(0.5))
-				.waitUntil(waitFire)
-				.then(fireToPlayer)
-				.moveBy(8, 0, kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT)
-				.delay(kimiko.secToFrame(0.5))
-				.waitUntil(waitFire)
-				.then(fireToPlayer)
-				.moveBy(8, 0, kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT)
-				.delay(kimiko.secToFrame(0.5))
-				.waitUntil(waitFire)
-				.delay(kimiko.secToFrame(0.5))
-				.moveTo(sprite.anchor.x, sprite.anchor.y, kimiko.secToFrame(0.5), Easing.LINEAR)
-				.loop();
+			function fireToPlayer2() {
+				var wp: WeaponA = sprite.weapon;
+				wp.fireCount = 3;
+				wp.wayNum = 1;
+				wp.fireInterval = kimiko.secToFrame(0.2);
+				wp.speed = kimiko.dpsToDpf(5 * DF.BASE_FPS);
+
+				lookAtPlayer(wp);
+				wp.startFire();
+			}
+
+			function fire1() {
+				return sprite.tl.
+					moveBy(0, -24, kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).
+					moveBy(0,  24, kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).
+					moveBy(0, -8, kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).
+					moveBy(0, 8, kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).
+					then(fireToPlayer).
+					moveBy(8, 0, kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).
+					delay(kimiko.secToFrame(0.5)).
+					waitUntil(waitFire);
+			}
+			function fire2() {
+				return sprite.tl.
+					then(fireToPlayer2).
+					waitUntil(waitFire);
+			}
+			sprite.tl.
+				moveTo(anchor.x - range, anchor.y, kimiko.secToFrame(2.0), Easing.CUBIC_EASEIN);
+			fire1().
+				moveTo(sprite.anchor.x - range / 2, sprite.anchor.y - 32, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN);
+			fire2().
+				moveTo(sprite.anchor.x, sprite.anchor.y, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN);
+			fire1().
+				loop();
 		}
 
 	}
@@ -201,28 +218,28 @@ module jp.osakana4242.kimiko.scenes {
 	}
 	export var EnemyData: { [index: number]: IEnemyData; } = <any>{
 		0x0: {
-			hpMax: 10,
+			hpMax: 5,
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain1,
 			score: 100,
 		},
 
 		0x1: {
-			hpMax: 10,
+			hpMax: 5,
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain2,
 			score: 100,
 	},
 
 		0x2: {
-			hpMax: 10,
+			hpMax: 5,
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain3,
 			score: 100,
 		},
 		// boss.
 		0xf: {
-			hpMax: 60,
+			hpMax: 100,
 			body: EnemyBodys.body2,
 			brain: EnemyBrains.brainBoss,
 			score: 1000,

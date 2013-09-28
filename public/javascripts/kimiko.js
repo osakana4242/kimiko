@@ -108,48 +108,69 @@ var jp;
                     EnemyBrains.brain3 = brain3;
                     function brainBoss(sprite) {
                         var anchor = sprite.anchor;
-                        var range = 16;
+                        var range = 196;
                         var waitFire = function () {
                             return !sprite.weapon.isStateFire();
                         };
-                        function fireToPlayer() {
+                        function lookAtPlayer(wp) {
                             var player = sprite.scene.player;
-                            var wp = sprite.weapon;
-                            wp.fireCount = 2;
-                            wp.wayNum = 3;
-                            wp.fireInterval = kimiko.kimiko.secToFrame(0.5);
-                            wp.speed = kimiko.kimiko.dpsToDpf(3 * kimiko.DF.BASE_FPS);
                             wp.dir.x = player.center.x - sprite.center.x;
                             wp.dir.y = player.center.y - sprite.center.y;
                             osakana4242.utils.Vector2D.normalize(wp.dir);
+                        }
+                        function fireToPlayer() {
+                            var wp = sprite.weapon;
+                            wp.fireCount = 3;
+                            wp.wayNum = 6;
+                            wp.fireInterval = kimiko.kimiko.secToFrame(0.3);
+                            wp.speed = kimiko.kimiko.dpsToDpf(3 * kimiko.DF.BASE_FPS);
+                            lookAtPlayer(wp);
                             wp.startFire();
                         }
-                        sprite.tl.delay(kimiko.kimiko.secToFrame(0.5)).moveBy(0, -16, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, 16, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, -8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).moveBy(0, 8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire).then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire).then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire).delay(kimiko.kimiko.secToFrame(0.5)).moveTo(sprite.anchor.x, sprite.anchor.y, kimiko.kimiko.secToFrame(0.5), Easing.LINEAR).loop();
+                        function fireToPlayer2() {
+                            var wp = sprite.weapon;
+                            wp.fireCount = 3;
+                            wp.wayNum = 1;
+                            wp.fireInterval = kimiko.kimiko.secToFrame(0.2);
+                            wp.speed = kimiko.kimiko.dpsToDpf(5 * kimiko.DF.BASE_FPS);
+                            lookAtPlayer(wp);
+                            wp.startFire();
+                        }
+                        function fire1() {
+                            return sprite.tl.moveBy(0, -24, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, 24, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, -8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).moveBy(0, 8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire);
+                        }
+                        function fire2() {
+                            return sprite.tl.then(fireToPlayer2).waitUntil(waitFire);
+                        }
+                        sprite.tl.moveTo(anchor.x - range, anchor.y, kimiko.kimiko.secToFrame(2.0), Easing.CUBIC_EASEIN);
+                        fire1().moveTo(sprite.anchor.x - range / 2, sprite.anchor.y - 32, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN);
+                        fire2().moveTo(sprite.anchor.x, sprite.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN);
+                        fire1().loop();
                     }
                     EnemyBrains.brainBoss = brainBoss;
                 })(scenes.EnemyBrains || (scenes.EnemyBrains = {}));
                 var EnemyBrains = scenes.EnemyBrains;
                 scenes.EnemyData = {
                     0: {
-                        hpMax: 10,
+                        hpMax: 5,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain1,
                         score: 100
                     },
                     1: {
-                        hpMax: 10,
+                        hpMax: 5,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain2,
                         score: 100
                     },
                     2: {
-                        hpMax: 10,
+                        hpMax: 5,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain3,
                         score: 100
                     },
                     15: {
-                        hpMax: 60,
+                        hpMax: 100,
                         body: EnemyBodys.body2,
                         brain: EnemyBrains.brainBoss,
                         score: 1000
@@ -608,7 +629,7 @@ var jp;
                         if(bullet === null) {
                             return;
                         }
-                        bullet.vx = this.dirX * kimiko.kimiko.dpsToDpf(8 * 60);
+                        bullet.vx = this.dirX * kimiko.kimiko.dpsToDpf(6 * 60);
                         bullet.vy = 0;
                         bullet.cx = this.cx;
                         bullet.cy = this.cy;
@@ -1666,7 +1687,7 @@ var jp;
                 DF.TOUCH_TO_CHARA_MOVE_LIMIT = 320;
                 DF.PLAYER_MOVE_RESOLUTION = 8;
                 DF.PLAYER_HP = 5;
-                DF.PLAYER_BULLET_NUM = 2;
+                DF.PLAYER_BULLET_NUM = 1;
                 DF.FONT_M = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
                 DF.GRAVITY = 0.25 * 60;
                 DF.PLAYER_TOUCH_ANCHOR_ENABLE = true;
