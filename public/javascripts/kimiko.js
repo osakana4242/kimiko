@@ -582,9 +582,19 @@ var jp;
                         var scene = this.scene;
                         var input = kimiko.kimiko.core.input;
                         var flag = ((input.left ? 1 : 0) << 0) | ((input.right ? 1 : 0) << 1) | ((input.up ? 1 : 0) << 2) | ((input.down ? 1 : 0) << 3);
+                        var isSlow = kimiko.kimiko.core.input.a;
+                        if(isSlow) {
+                            this.vx = 0;
+                            this.vy = 0;
+                        }
                         if(flag !== 0) {
-                            this.vx = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].x * 4;
-                            this.vy = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * 4;
+                            if(isSlow) {
+                                this.vx = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].x * 2;
+                                this.vy = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * 2;
+                            } else {
+                                this.vx = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].x * 4;
+                                this.vy = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * 4;
+                            }
                         }
                         if(!this.targetEnemy) {
                             if(0 !== this.vx) {
@@ -601,7 +611,7 @@ var jp;
                                 this.frame = this.animStand;
                             }
                         }
-                        if(this.useGravity && !this.isOnMap) {
+                        if(this.useGravity && !this.isOnMap && !isSlow) {
                             this.vy += kimiko.kimiko.dpsToDpf(kimiko.DF.GRAVITY);
                         }
                         var loopCnt = Math.floor(Math.max(Math.abs(this.vx), Math.abs(this.vy)) / kimiko.DF.PLAYER_MOVE_RESOLUTION);

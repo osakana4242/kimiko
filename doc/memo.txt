@@ -1,60 +1,56 @@
 develop
 
-�C���X�g�[��
+インストール
 node.js
 nginx
 
-# �V���{���b�N�����N�쐬
-nginx\html>mklink /d kimiko C:\Users\osakana4242\prj\kimiko\kimiko\project\kimiko\public
-# nginx �̋N���A�ċN��
+# シンボリックリンク作成
+nginx¥html>mklink /d kimiko C:¥Users¥osakana4242¥prj¥kimiko¥kimiko¥project¥kimiko¥public
+# nginx の起動、再起動
 nginx>start nginx
 nginx>nginx -s reload
 
 ----
 
-�߂�ǂ��������ƍl�������Ȃ��̂ŁA
-�n�`�̉e�����󂯂�̂̓v���C���[�̂݁I
+めんどくさいこと考えたくないので、
+地形の影響を受けるのはプレイヤーのみ！
 
-���Ƃ݂͂�Ȍ��܂������[�����Ȃ��邾���B
+あとはみんな決まったレールをなぞるだけ。
 
-�E�X�}�z�ŗV�ׂȂ����Ƃɂ͈Ӗ����Ȃ�
-�E�E��FPS�Ή�
-�E�E�}�E�X�̃h���b�O����
-�E�E�G���b�N�I��
-�Eenchant�̃}�b�v
-�E�����X�^�[�̌����Ή�
-�E�^�C���̕��𒴂��鋗����1�t���[���ȓ��ɂ͈ړ��ł��Ȃ�
-�E�J�����̈ړ������B�}�b�v���Ɏ��܂�悤�ɁB
+・スマホで遊べないことには意味がない
+・・可変FPS対応
+・・マウスのドラッグ距離
+・enchantのマップ
+・モンスターの向き対応
 
-�@�\
-	�Q�[���ɂ���
-		�N���A�����̎���
-			�G��S�łŃN���A
-			�{�X���j�ŃN���A
-		�Q�[���I�[�o�[�����̎���
-			�^�C���I�[�o�[
-			���S
-	�X�R�A
-	���~����e
-	���Ⴊ��
-	�c��HP���O���t�B�J���ɕ\��
-	�X�y�[�X�L�[�������ςƂ��Ńv���C���[�Œ�
+機能
+	ゲームにする
+		クリア条件の実装
+			敵を全滅でクリア
+			ボス撃破でクリア
+		ゲームオーバー条件の実装
+			タイムオーバー
+			死亡
+	下降する弾
+	しゃがみ
+	残りHPをグラフィカルに表示
+	スペースキーおしっぱとかでプレイヤー固定
 
-�ۑ�
-	�G�̎��S�G�t�F�N�g
-	�Q�[���f�U�C��
-	ipod x enchant.v0.7.x.js x �^�b�`�ŕ`�悪�~�܂�I
-		enchant.v0.5.x.js �Ȃ炾������Ԃ������B
-	�}�b�v�ƃX�v���C�g���ړ����ɂ����B�V�m�r�_�b�V�����Ă�Ƃ�������Ԃ����Ȃ̂ŁA�Ȃ�Ƃ��Ȃ�͂��B
+課題
+	敵の死亡エフェクト
+	ゲームデザイン
+	ipod x enchant.v0.7.x.js x タッチで描画が止まる！
+		enchant.v0.5.x.js ならだいじょぶだった。
+	マップとスプライトが移動時にずれる。シノビダッシュ見てるとだいじょぶそうなので、なんとかなるはず。
 
-�^�C�g���āF
-	���݂��̃i�C�g���A
+タイトル案：
+	きみこのナイトメア
 	
 	
-�X�e�[�W
-	�_��
-	�p�a�@
-	��̊w�Z
-	�d�Ԃ̒�
+ステージ
+	神社
+	廃病院
+	夜の学校
+	電車の中
 
 
