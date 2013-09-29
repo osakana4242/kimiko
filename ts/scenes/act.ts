@@ -317,8 +317,7 @@ module jp.osakana4242.kimiko.scenes {
 
 			this.life.hpMax = DF.PLAYER_HP;
 			this.life.hp = this.life.hpMax;
-			this.anchorX = 0;
-			this.anchorY = 0;
+			this.touchStartAnchor = new utils.Vector2D();
 			this.useGravity = true;
 			this.isOnMap = false;
 			this.targetEnemy = null;
@@ -533,8 +532,8 @@ module jp.osakana4242.kimiko.scenes {
 				var moveRate = kimiko.config.swipeToMoveRate;
 				if (DF.PLAYER_TOUCH_ANCHOR_ENABLE) {
 					var tv = utils.Vector2D.alloc(
-						player.anchorX + touch.totalDiff.x * moveRate.x,
-						player.anchorY + touch.totalDiff.y * moveRate.y);
+						player.touchStartAnchor.x + touch.totalDiff.x * moveRate.x,
+						player.touchStartAnchor.y + touch.totalDiff.y * moveRate.y);
 					var v = utils.Vector2D.alloc(
 						tv.x - player.x,
 						tv.y - player.y);
@@ -937,8 +936,8 @@ module jp.osakana4242.kimiko.scenes {
 			var touch: utils.Touch = this.touch;
 			touch.saveTouchStart(event);
 			var player = this.player;
-			player.anchorX = player.x;
-			player.anchorY = player.y;
+			player.touchStartAnchor.x = player.x;
+			player.touchStartAnchor.y = player.y;
 			player.force.x = 0;
 			player.force.y = 0;
 			player.useGravity = false;
@@ -1068,11 +1067,10 @@ module jp.osakana4242.kimiko.scenes {
 							
 							var center = left + (enemy.width / 2);
 							var bottom = top + (DF.MAP_TILE_H - enemy.height);
-							var anchor = new utils.Vector2D(center, bottom);
-							utils.Vector2D.copyFrom(enemy.anchor, anchor);
-							enemy.x = anchor.x;
-							enemy.y = anchor.y;
-						data.brain(enemy);
+							var anchor = utils.Vector2D.alloc(center, bottom);
+							enemy.x = enemy.anchor.x = center;
+							enemy.y = enemy.anchor.y = bottom;
+							data.brain(enemy);
 							mapCharaMgr.addSleep(enemy);
 						}
 					}
