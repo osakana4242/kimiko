@@ -1800,7 +1800,7 @@ var jp;
                         0
                     ], 0.1);
                     this.registerAnimFrames(DF.ANIM_ID_CHARA001_SQUAT, [
-                        1
+                        4
                     ], 0.1);
                     this.registerAnimFrames(DF.ANIM_ID_CHARA002_WALK, [
                         0, 
