@@ -567,6 +567,7 @@ var jp;
                         this.wallPushDir = new osakana4242.utils.Vector2D();
                         this.addEventListener(Event.ENTER_FRAME, function () {
                             var scene = _this.scene;
+                            _this.checkTouchInput();
                             _this.stepMove();
                             if((_this.age % kimiko.kimiko.secToFrame(0.2)) === 0) {
                                 var srect = osakana4242.utils.Rect.alloc();
@@ -717,6 +718,37 @@ var jp;
                                 this.wallPushDir.y = y;
                             }
                             this.vy = 0;
+                        }
+                    },
+                    checkTouchInput: function () {
+                        var scene = this.scene;
+                        var touch = scene.touch;
+                        if(!touch.isTouching) {
+                            return;
+                        }
+                        var player = this;
+                        var playerOldX = player.x;
+                        var playerOldY = player.y;
+                        var touchElpsedFrame = touch.getTouchElpsedFrame();
+                        touchElpsedFrame = 0;
+                        if(touchElpsedFrame < kimiko.kimiko.secToFrame(0.5)) {
+                            var moveLimit = kimiko.DF.TOUCH_TO_CHARA_MOVE_LIMIT;
+                            var moveRate = kimiko.kimiko.config.swipeToMoveRate;
+                            if(kimiko.DF.PLAYER_TOUCH_ANCHOR_ENABLE) {
+                                var tv = osakana4242.utils.Vector2D.alloc(player.anchorX + touch.totalDiff.x * moveRate.x, player.anchorY + touch.totalDiff.y * moveRate.y);
+                                var v = osakana4242.utils.Vector2D.alloc(tv.x - player.x, tv.y - player.y);
+                                var vm = Math.min(osakana4242.utils.Vector2D.magnitude(v), moveLimit);
+                                osakana4242.utils.Vector2D.normalize(v);
+                                v.x *= vm;
+                                v.y *= vm;
+                                player.vx = v.x;
+                                player.vy = v.y;
+                                osakana4242.utils.Vector2D.free(tv);
+                                osakana4242.utils.Vector2D.free(v);
+                            } else {
+                                player.vx = kimiko.kimiko.numberUtil.trim(touch.diff.x * moveRate.x, -moveLimit, moveLimit);
+                                player.vy = kimiko.kimiko.numberUtil.trim(touch.diff.y * moveRate.y, -moveLimit, moveLimit);
+                            }
                         }
                     }
                 });
@@ -1079,7 +1111,6 @@ var jp;
                     },
                     stateNormal: function () {
                         var player = this.player;
-                        this.checkTouch();
                         var mapCharaMgr = this.mapCharaMgr;
                         mapCharaMgr.step();
                         this.checkCollision();
@@ -1094,36 +1125,6 @@ var jp;
                     stateGameClear: function () {
                         kimiko.kimiko.core.pushScene(new scenes.GameClear());
                         this.state = this.stateGameStart;
-                    },
-                    checkTouch: function () {
-                        var touch = this.touch;
-                        if(!touch.isTouching) {
-                            return;
-                        }
-                        var player = this.player;
-                        var playerOldX = player.x;
-                        var playerOldY = player.y;
-                        var touchElpsedFrame = touch.getTouchElpsedFrame();
-                        touchElpsedFrame = 0;
-                        if(touchElpsedFrame < kimiko.kimiko.secToFrame(0.5)) {
-                            var moveLimit = kimiko.DF.TOUCH_TO_CHARA_MOVE_LIMIT;
-                            var moveRate = kimiko.kimiko.config.swipeToMoveRate;
-                            if(kimiko.DF.PLAYER_TOUCH_ANCHOR_ENABLE) {
-                                var tv = osakana4242.utils.Vector2D.alloc(player.anchorX + touch.totalDiff.x * moveRate.x, player.anchorY + touch.totalDiff.y * moveRate.y);
-                                var v = osakana4242.utils.Vector2D.alloc(tv.x - player.x, tv.y - player.y);
-                                var vm = Math.min(osakana4242.utils.Vector2D.magnitude(v), moveLimit);
-                                osakana4242.utils.Vector2D.normalize(v);
-                                v.x *= vm;
-                                v.y *= vm;
-                                player.vx = v.x;
-                                player.vy = v.y;
-                                osakana4242.utils.Vector2D.free(tv);
-                                osakana4242.utils.Vector2D.free(v);
-                            } else {
-                                player.vx = kimiko.kimiko.numberUtil.trim(touch.diff.x * moveRate.x, -moveLimit, moveLimit);
-                                player.vy = kimiko.kimiko.numberUtil.trim(touch.diff.y * moveRate.y, -moveLimit, moveLimit);
-                            }
-                        }
                     },
                     loadMapData: function (mapData) {
                         var _this = this;
