@@ -516,18 +516,30 @@ module jp.osakana4242.kimiko.scenes {
 
 		checkTouchInput: function () {
 			var scene = this.scene;
+			var player = this;
 			var touch: utils.Touch = scene.touch;
 			if (!touch.isTouching) {
-				return;
-			}
-
-			var player = this;
-			var playerOldX = player.x;
-			var playerOldY = player.y;
-
-			var touchElpsedFrame = touch.getTouchElpsedFrame();
-			touchElpsedFrame = 0;
-			if (touchElpsedFrame < kimiko.secToFrame(0.5)) {
+				var input = kimiko.core.input;
+				var flag =
+					((input.left  ? 1 : 0) << 0) |
+					((input.right ? 1 : 0) << 1) |
+					((input.up    ? 1 : 0) << 2) |
+					((input.down  ? 1 : 0) << 3);
+				var isSlow: bool = kimiko.core.input.a;
+				if (isSlow) {
+					player.force.x = 0;
+					player.force.y = 0;
+				}
+				if (flag !== 0) {
+					if (isSlow) {
+						player.force.x = DF.DIR_FLAG_TO_VECTOR2D[flag].x * 2;
+						player.force.y = DF.DIR_FLAG_TO_VECTOR2D[flag].y * 2;
+					} else {
+						player.force.x = DF.DIR_FLAG_TO_VECTOR2D[flag].x * 4;
+						player.force.y = DF.DIR_FLAG_TO_VECTOR2D[flag].y * 4;
+					}
+				}
+			} else {
 				var moveLimit = DF.TOUCH_TO_CHARA_MOVE_LIMIT;
 				var moveRate = kimiko.config.swipeToMoveRate;
 				if (DF.PLAYER_TOUCH_ANCHOR_ENABLE) {

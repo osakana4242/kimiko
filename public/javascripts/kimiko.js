@@ -711,16 +711,26 @@ var jp;
                     },
                     checkTouchInput: function () {
                         var scene = this.scene;
+                        var player = this;
                         var touch = scene.touch;
                         if(!touch.isTouching) {
-                            return;
-                        }
-                        var player = this;
-                        var playerOldX = player.x;
-                        var playerOldY = player.y;
-                        var touchElpsedFrame = touch.getTouchElpsedFrame();
-                        touchElpsedFrame = 0;
-                        if(touchElpsedFrame < kimiko.kimiko.secToFrame(0.5)) {
+                            var input = kimiko.kimiko.core.input;
+                            var flag = ((input.left ? 1 : 0) << 0) | ((input.right ? 1 : 0) << 1) | ((input.up ? 1 : 0) << 2) | ((input.down ? 1 : 0) << 3);
+                            var isSlow = kimiko.kimiko.core.input.a;
+                            if(isSlow) {
+                                player.force.x = 0;
+                                player.force.y = 0;
+                            }
+                            if(flag !== 0) {
+                                if(isSlow) {
+                                    player.force.x = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].x * 2;
+                                    player.force.y = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * 2;
+                                } else {
+                                    player.force.x = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].x * 4;
+                                    player.force.y = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * 4;
+                                }
+                            }
+                        } else {
                             var moveLimit = kimiko.DF.TOUCH_TO_CHARA_MOVE_LIMIT;
                             var moveRate = kimiko.kimiko.config.swipeToMoveRate;
                             if(kimiko.DF.PLAYER_TOUCH_ANCHOR_ENABLE) {
@@ -1614,7 +1624,7 @@ var jp;
                     this.totalDiff.x = this.end.x - this.start.x;
                     this.totalDiff.y = this.end.y - this.start.y;
                 };
-                Touch.prototype.getTouchElpsedFrame = function () {
+                Touch.prototype.getTouchElapsedFrame = function () {
                     return enchant.Core.instance.frame - this.startFrame;
                 };
                 return Touch;

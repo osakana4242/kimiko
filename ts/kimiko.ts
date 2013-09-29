@@ -307,7 +307,7 @@ module jp.osakana4242.utils {
 			this.totalDiff.y = this.end.y - this.start.y;
 		}
 		
-		getTouchElpsedFrame() { return enchant.Core.instance.frame - this.startFrame; }
+		getTouchElapsedFrame() { return enchant.Core.instance.frame - this.startFrame; }
 	}
 
 	export interface IMapData {
@@ -475,7 +475,7 @@ module jp.osakana4242.kimiko {
 			this.registerAnimFrames(DF.ANIM_ID_CHARA001_STAND, [0], 0.1);
 			this.registerAnimFrames(DF.ANIM_ID_CHARA001_SQUAT, [4], 0.1);
 			this.registerAnimFrames(DF.ANIM_ID_CHARA002_WALK, [0, 1, 2, 3], 0.1);
-			
+
 			// key bind
 			core.keybind(" ".charCodeAt(0), "a");	
 			core.keybind("A".charCodeAt(0), "left");	
