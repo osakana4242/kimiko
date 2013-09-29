@@ -127,6 +127,9 @@ var jp;
                             lookAtPlayer(wp);
                             wp.startFire();
                         }
+                        function runup() {
+                            return sprite.tl.moveBy(0, -24, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, 24, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, -8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).moveBy(0, 8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5));
+                        }
                         function fireToPlayer2() {
                             var wp = sprite.weapon;
                             wp.fireCount = 3;
@@ -137,10 +140,10 @@ var jp;
                             wp.startFire();
                         }
                         function fire1() {
-                            return sprite.tl.moveBy(0, -24, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, 24, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, -8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).moveBy(0, 8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire);
+                            return runup().then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire);
                         }
                         function fire2() {
-                            return sprite.tl.then(fireToPlayer2).waitUntil(waitFire);
+                            return runup().then(fireToPlayer2).waitUntil(waitFire);
                         }
                         sprite.tl.moveTo(anchor.x - range, anchor.y, kimiko.kimiko.secToFrame(2.0), Easing.CUBIC_EASEIN);
                         fire1().moveTo(sprite.anchor.x - range / 2, sprite.anchor.y - 32, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN);
@@ -239,10 +242,10 @@ var jp;
                             var deg = startDeg + (degInterval * i);
                             var rad = deg * degToRad;
                             var speed = this.speed;
-                            bullet.vx = (this.dir.x * Math.cos(rad) - (this.dir.y * Math.sin(rad))) * speed;
-                            bullet.vy = (this.dir.y * Math.cos(rad) + (this.dir.x * Math.sin(rad))) * speed;
-                            bullet.cx = parent.cx;
-                            bullet.cy = parent.cy;
+                            bullet.force.x = (this.dir.x * Math.cos(rad) - (this.dir.y * Math.sin(rad))) * speed;
+                            bullet.force.y = (this.dir.y * Math.cos(rad) + (this.dir.x * Math.sin(rad))) * speed;
+                            bullet.center.x = parent.center.x;
+                            bullet.center.y = parent.center.y;
                         }
                     };
                     WeaponA.prototype.startFire = function () {
@@ -279,30 +282,15 @@ var jp;
                     initialize: function (w, h) {
                         enchant.Sprite.call(this, w, h);
                         this.center = new osakana4242.utils.RectCenter(this);
-                    },
-                    cx: {
-                        get: function () {
-                            return this.x + this.width / 2;
-                        },
-                        set: function (v) {
-                            this.x = v - this.width / 2;
-                        }
-                    },
-                    cy: {
-                        get: function () {
-                            return this.y + this.height / 2;
-                        },
-                        set: function (v) {
-                            this.y = v - this.height / 2;
-                        }
                     }
                 });
                 scenes.EnemyBullet = Class.create(scenes.Sprite, {
                     initialize: function () {
                         var _this = this;
                         scenes.Sprite.call(this, 12, 12);
-                        this.vx = 0;
-                        this.vy = 0;
+                        this.force = new osakana4242.utils.Vector2D();
+                        this.force.x = 0;
+                        this.force.y = 0;
                         this.collider = ((function () {
                             var c = new osakana4242.utils.Collider();
                             c.parent = _this;
@@ -316,8 +304,8 @@ var jp;
                         if(!this.visible) {
                             return;
                         }
-                        this.x += this.vx;
-                        this.y += this.vy;
+                        this.x += this.force.x;
+                        this.y += this.force.y;
                         var scene = this.scene;
                         var camera = this.scene.camera;
                         if(camera.isOutsideSleepRect(this)) {
@@ -338,8 +326,9 @@ var jp;
                     initialize: function () {
                         var _this = this;
                         scenes.Sprite.call(this, 8, 8);
-                        this.vx = 0;
-                        this.vy = 0;
+                        this.force = new osakana4242.utils.Vector2D();
+                        this.force.x = 0;
+                        this.force.y = 0;
                         this.visibleCnt = 0;
                         this.collider = ((function () {
                             var c = new osakana4242.utils.Collider();
@@ -354,8 +343,8 @@ var jp;
                         if(!this.visible) {
                             return;
                         }
-                        this.x += this.vx;
-                        this.y += this.vy;
+                        this.x += this.force.x;
+                        this.y += this.force.y;
                         var scene = this.scene;
                         var camera = this.scene.camera;
                         ++this.visibleCnt;
@@ -411,8 +400,9 @@ var jp;
                         var _this = this;
                         scenes.Sprite.call(this);
                         this.dirX = 1;
-                        this.vx = 0;
-                        this.vy = 0;
+                        this.force = new osakana4242.utils.Vector2D();
+                        this.force.x = 0;
+                        this.force.y = 0;
                         this.attackCnt = 0;
                         this.useGravity = true;
                         this.life = new Life();
@@ -441,9 +431,9 @@ var jp;
                             dir, 
                             this.state.stateName, 
                             'cx', 
-                            Math.round(this.cx), 
+                            Math.round(this.center.x), 
                             'cy', 
-                            Math.round(this.cy)
+                            Math.round(this.center.y)
                         ]).join();
                     },
                     stateNeutral: function () {
@@ -497,8 +487,8 @@ var jp;
                         scenes.Sprite.call(this);
                         this.width = attacker.width;
                         this.height = attacker.height;
-                        this.cx = attacker.cx;
-                        this.cy = attacker.cy;
+                        this.center.x = attacker.center.x;
+                        this.center.y = attacker.center.y;
                         this.backgroundColor = attacker.backgroundColor;
                         var effectTime = kimiko.kimiko.secToFrame(0.5);
                         this.visible = false;
@@ -598,7 +588,7 @@ var jp;
                                             var srect = osakana4242.utils.Rect.alloc();
                                             srect.width = kimiko.DF.SC1_W;
                                             srect.height = _this.height * 2;
-                                            srect.x = _this.cx + (_this.dirX < 0 ? -srect.width : 0);
+                                            srect.x = _this.center.x + (_this.dirX < 0 ? -srect.width : 0);
                                             srect.y = _this.y + ((_this.height - srect.height) / 2);
                                             if(osakana4242.utils.Rect.intersect(srect, _this.targetEnemy)) {
                                                 _this.attack();
@@ -630,10 +620,10 @@ var jp;
                         if(bullet === null) {
                             return;
                         }
-                        bullet.vx = this.dirX * kimiko.kimiko.dpsToDpf(6 * 60);
-                        bullet.vy = 0;
-                        bullet.cx = this.cx;
-                        bullet.cy = this.cy;
+                        bullet.force.x = this.dirX * kimiko.kimiko.dpsToDpf(6 * 60);
+                        bullet.force.y = 0;
+                        bullet.center.x = this.center.x;
+                        bullet.center.y = this.center.y;
                     },
                     stepMove: function () {
                         var scene = this.scene;
@@ -641,28 +631,28 @@ var jp;
                         var flag = ((input.left ? 1 : 0) << 0) | ((input.right ? 1 : 0) << 1) | ((input.up ? 1 : 0) << 2) | ((input.down ? 1 : 0) << 3);
                         var isSlow = kimiko.kimiko.core.input.a;
                         if(isSlow) {
-                            this.vx = 0;
-                            this.vy = 0;
+                            this.force.x = 0;
+                            this.force.y = 0;
                         }
                         if(flag !== 0) {
                             if(isSlow) {
-                                this.vx = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].x * 2;
-                                this.vy = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * 2;
+                                this.force.x = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].x * 2;
+                                this.force.y = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * 2;
                             } else {
-                                this.vx = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].x * 4;
-                                this.vy = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * 4;
+                                this.force.x = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].x * 4;
+                                this.force.y = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * 4;
                             }
                         }
                         if(!this.targetEnemy) {
-                            if(0 !== this.vx) {
-                                this.dirX = kimiko.kimiko.numberUtil.sign(this.vx);
+                            if(0 !== this.force.x) {
+                                this.dirX = kimiko.kimiko.numberUtil.sign(this.force.x);
                                 this.scaleX = this.dirX;
                             }
                         }
                         var nextBodyStyle = this.bodyStyle;
-                        if(Math.abs(this.vx) < 2 && 0 < this.wallPushDir.y) {
+                        if(Math.abs(this.force.x) < 2 && 0 < this.wallPushDir.y) {
                             nextBodyStyle = this.bodyStyles.squat;
-                        } else if(this.vx !== 0 || this.vy !== 0) {
+                        } else if(this.force.x !== 0 || this.force.y !== 0) {
                             nextBodyStyle = this.bodyStyles.walk;
                         } else {
                             nextBodyStyle = this.bodyStyles.stand;
@@ -671,14 +661,14 @@ var jp;
                             this.bodyStyle = nextBodyStyle;
                         }
                         if(this.useGravity && !this.isOnMap) {
-                            this.vy += kimiko.kimiko.dpsToDpf(kimiko.DF.GRAVITY);
+                            this.force.y += kimiko.kimiko.dpsToDpf(kimiko.DF.GRAVITY);
                         }
                         osakana4242.utils.Vector2D.copyFrom(this.wallPushDir, osakana4242.utils.Vector2D.zero);
-                        var loopCnt = Math.floor(Math.max(Math.abs(this.vx), Math.abs(this.vy)) / kimiko.DF.PLAYER_MOVE_RESOLUTION);
-                        var totalMx = this.vx;
-                        var totalMy = this.vy;
-                        var mx = this.vx / loopCnt;
-                        var my = this.vy / loopCnt;
+                        var loopCnt = Math.floor(Math.max(Math.abs(this.force.x), Math.abs(this.force.y)) / kimiko.DF.PLAYER_MOVE_RESOLUTION);
+                        var totalMx = this.force.x;
+                        var totalMy = this.force.y;
+                        var mx = this.force.x / loopCnt;
+                        var my = this.force.y / loopCnt;
                         for(var i = 0, loopCnt; i <= loopCnt; ++i) {
                             if(i < loopCnt) {
                                 this.x += mx;
@@ -691,33 +681,33 @@ var jp;
                             }
                             osakana4242.utils.Rect.trimPos(this, this.limitRect, this.onTrim);
                             scene.checkMapCollision(this, this.onTrim);
-                            if(this.vx === 0) {
+                            if(this.force.x === 0) {
                                 mx = 0;
                                 totalMx = 0;
                             }
-                            if(this.vy === 0) {
+                            if(this.force.y === 0) {
                                 my = 0;
                                 totalMy = 0;
                             }
                         }
                         var touch = scene.touch;
                         if(touch.isTouching || flag !== 0) {
-                            this.vx = 0;
-                            this.vy = 0;
+                            this.force.x = 0;
+                            this.force.y = 0;
                         }
                     },
                     onTrim: function (x, y) {
                         if(x !== 0) {
-                            if(1 < Math.abs(this.vx)) {
+                            if(1 < Math.abs(this.force.x)) {
                                 this.wallPushDir.x = x;
                             }
-                            this.vx = 0;
+                            this.force.x = 0;
                         }
                         if(y !== 0) {
-                            if(1 < Math.abs(this.vy)) {
+                            if(1 < Math.abs(this.force.y)) {
                                 this.wallPushDir.y = y;
                             }
-                            this.vy = 0;
+                            this.force.y = 0;
                         }
                     },
                     checkTouchInput: function () {
@@ -741,13 +731,13 @@ var jp;
                                 osakana4242.utils.Vector2D.normalize(v);
                                 v.x *= vm;
                                 v.y *= vm;
-                                player.vx = v.x;
-                                player.vy = v.y;
+                                player.force.x = v.x;
+                                player.force.y = v.y;
                                 osakana4242.utils.Vector2D.free(tv);
                                 osakana4242.utils.Vector2D.free(v);
                             } else {
-                                player.vx = kimiko.kimiko.numberUtil.trim(touch.diff.x * moveRate.x, -moveLimit, moveLimit);
-                                player.vy = kimiko.kimiko.numberUtil.trim(touch.diff.y * moveRate.y, -moveLimit, moveLimit);
+                                player.force.x = kimiko.kimiko.numberUtil.trim(touch.diff.x * moveRate.x, -moveLimit, moveLimit);
+                                player.force.y = kimiko.kimiko.numberUtil.trim(touch.diff.y * moveRate.y, -moveLimit, moveLimit);
                             }
                         }
                     }
@@ -849,8 +839,8 @@ var jp;
                     onenterframe: function () {
                         var camera = this;
                         var player = this.scene.player;
-                        var tx = player.cx - (camera.width / 2) + (player.dirX * 16);
-                        var ty = player.cy - (camera.height / 2) + 32;
+                        var tx = player.center.x - (camera.width / 2) + (player.dirX * 16);
+                        var ty = player.center.y - (camera.height / 2) + 32;
                         var speed = kimiko.kimiko.dpsToDpf(8 * 60);
                         var dx = tx - camera.x;
                         var dy = ty - camera.y;
@@ -1068,8 +1058,8 @@ var jp;
                         var player = this.player;
                         player.anchorX = player.x;
                         player.anchorY = player.y;
-                        player.vx = 0;
-                        player.vy = 0;
+                        player.force.x = 0;
+                        player.force.y = 0;
                         player.useGravity = false;
                         player.isOnMap = false;
                     },
@@ -1082,8 +1072,8 @@ var jp;
                         touch.saveTouchEnd(event);
                         var player = this.player;
                         player.frame = player.animStand;
-                        player.vx = 0;
-                        player.vy = 0;
+                        player.force.x = 0;
+                        player.force.y = 0;
                         if(Math.abs(touch.totalDiff.x) + Math.abs(touch.totalDiff.y) < 16) {
                             player.attack();
                         }
@@ -1245,9 +1235,9 @@ var jp;
                     },
                     intersectActiveArea: function (sprite) {
                         var player = this.player;
-                        var minX = player.cx - kimiko.DF.SC1_W;
-                        var maxX = player.cx + kimiko.DF.SC1_W;
-                        if(minX <= sprite.cx && sprite.cx <= maxX) {
+                        var minX = player.center.x - kimiko.DF.SC1_W;
+                        var maxX = player.center.x + kimiko.DF.SC1_W;
+                        if(minX <= sprite.center.x && sprite.center.x <= maxX) {
                             return true;
                         }
                         return false;
@@ -1292,18 +1282,18 @@ var jp;
                                 if(!osakana4242.utils.Rect.intersect(prect, rect)) {
                                     continue;
                                 }
-                                if(!map.hitTest(x, y - yDiff) && 0 <= player.vy && prect.y <= rect.y + hoge) {
+                                if(!map.hitTest(x, y - yDiff) && 0 <= player.force.y && prect.y <= rect.y + hoge) {
                                     player.y = rect.y - prect.height - collider.rect.y;
                                     onTrim.call(player, 0, 1);
-                                    player.vy = 0;
-                                } else if(!map.hitTest(x, y + yDiff) && player.vy <= 0 && rect.y + rect.height - hoge < prect.y + prect.height) {
+                                    player.force.y = 0;
+                                } else if(!map.hitTest(x, y + yDiff) && player.force.y <= 0 && rect.y + rect.height - hoge < prect.y + prect.height) {
                                     player.y = rect.y + rect.height - collider.rect.y;
                                     onTrim.call(player, 0, -1);
-                                    player.vy = 0;
-                                } else if(!map.hitTest(x - xDiff, y) && 0 <= player.vx && prect.x <= rect.x + hoge) {
+                                    player.force.y = 0;
+                                } else if(!map.hitTest(x - xDiff, y) && 0 <= player.force.x && prect.x <= rect.x + hoge) {
                                     player.x = rect.x - prect.width - collider.rect.x;
                                     onTrim.call(player, 1, 0);
-                                } else if(!map.hitTest(x + xDiff, y) && player.vx <= 0 && rect.x + rect.width - hoge < prect.x + prect.width) {
+                                } else if(!map.hitTest(x + xDiff, y) && player.force.x <= 0 && rect.x + rect.width - hoge < prect.x + prect.width) {
                                     player.x = rect.x + rect.width - collider.rect.x;
                                     onTrim.call(player, -1, 0);
                                 }
@@ -1358,11 +1348,6 @@ var jp;
     })(jp.osakana4242 || (jp.osakana4242 = {}));
     var osakana4242 = jp.osakana4242;
 })(jp || (jp = {}));
-var __extends = this.__extends || function (d, b) {
-    function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
-};
 var jp;
 (function (jp) {
     (function (osakana4242) {
@@ -1430,15 +1415,16 @@ var jp;
                 return Vector2D;
             })();
             utils.Vector2D = Vector2D;            
-            var RectCenter = (function (_super) {
-                __extends(RectCenter, _super);
+            var RectCenter = (function () {
                 function RectCenter(rect) {
-                                _super.call(this);
                     this.rect = rect;
                 }
                 Object.defineProperty(RectCenter.prototype, "x", {
                     get: function () {
                         return this.rect.x + (this.rect.width / 2);
+                    },
+                    set: function (v) {
+                        this.rect.x = v - (this.rect.width / 2);
                     },
                     enumerable: true,
                     configurable: true
@@ -1447,11 +1433,14 @@ var jp;
                     get: function () {
                         return this.rect.y + (this.rect.height / 2);
                     },
+                    set: function (v) {
+                        this.rect.y = v - (this.rect.height / 2);
+                    },
                     enumerable: true,
                     configurable: true
                 });
                 return RectCenter;
-            })(Vector2D);
+            })();
             utils.RectCenter = RectCenter;            
             var Rect = (function () {
                 function Rect(x, y, width, height) {

@@ -161,6 +161,7 @@ module jp.osakana4242.kimiko.scenes {
 				wp.dir.y = player.center.y - sprite.center.y;
 				utils.Vector2D.normalize(wp.dir);
 			}
+
 			function fireToPlayer() {
 				var wp: WeaponA = sprite.weapon;
 				wp.fireCount = 3;
@@ -171,6 +172,17 @@ module jp.osakana4242.kimiko.scenes {
 				lookAtPlayer(wp);
 				wp.startFire();
 			}
+			
+			// 発砲の予備動作.
+			function runup() {
+				return sprite.tl.
+					moveBy(0, -24, kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).
+					moveBy(0,  24, kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).
+					moveBy(0, -8, kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).
+					moveBy(0, 8, kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).
+					delay(kimiko.secToFrame(0.5));
+			}
+
 			function fireToPlayer2() {
 				var wp: WeaponA = sprite.weapon;
 				wp.fireCount = 3;
@@ -181,20 +193,17 @@ module jp.osakana4242.kimiko.scenes {
 				lookAtPlayer(wp);
 				wp.startFire();
 			}
-
+			
 			function fire1() {
-				return sprite.tl.
-					moveBy(0, -24, kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).
-					moveBy(0,  24, kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).
-					moveBy(0, -8, kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).
-					moveBy(0, 8, kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).
+				return runup().
 					then(fireToPlayer).
 					moveBy(8, 0, kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).
 					delay(kimiko.secToFrame(0.5)).
 					waitUntil(waitFire);
 			}
+
 			function fire2() {
-				return sprite.tl.
+				return runup().
 					then(fireToPlayer2).
 					waitUntil(waitFire);
 			}

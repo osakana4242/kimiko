@@ -71,10 +71,10 @@ module jp.osakana4242.kimiko.scenes {
 				var deg = startDeg + (degInterval * i);
 				var rad = deg * degToRad;
 				var speed = this.speed;
-				bullet.vx = (this.dir.x * Math.cos(rad) - (this.dir.y * Math.sin(rad))) * speed;
-				bullet.vy = (this.dir.y * Math.cos(rad) + (this.dir.x * Math.sin(rad))) * speed;
-				bullet.cx = parent.cx;
-				bullet.cy = parent.cy;
+				bullet.force.x = (this.dir.x * Math.cos(rad) - (this.dir.y * Math.sin(rad))) * speed;
+				bullet.force.y = (this.dir.y * Math.cos(rad) + (this.dir.x * Math.sin(rad))) * speed;
+				bullet.center.x = parent.center.x;
+				bullet.center.y = parent.center.y;
 			}
 		}
 
