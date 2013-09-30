@@ -239,6 +239,9 @@ var jp;
                         var startDeg = -degInterval * ((wayNum - 1) / 2);
                         for(var i = 0, iNum = wayNum; i < iNum; ++i) {
                             var bullet = parent.scene.newEnemyBullet();
+                            if(!bullet) {
+                                continue;
+                            }
                             var deg = startDeg + (degInterval * i);
                             var rad = deg * degToRad;
                             var speed = this.speed;
@@ -289,6 +292,7 @@ var jp;
                     initialize: function () {
                         var _this = this;
                         scenes.Sprite.call(this, 16, 16);
+                        this.ageMax = 0;
                         this.force = new osakana4242.utils.Vector2D();
                         this.force.x = 0;
                         this.force.y = 0;
@@ -302,35 +306,36 @@ var jp;
                         this.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_BULLET002);
                     },
                     onenterframe: function () {
-                        if(!this.visible) {
-                            return;
-                        }
                         this.x += this.force.x;
                         this.y += this.force.y;
                         var scene = this.scene;
                         var camera = this.scene.camera;
+                        if(this.ageMax < this.age) {
+                            this.free();
+                            return;
+                        }
                         if(camera.isOutsideSleepRect(this)) {
-                            this.visible = false;
+                            this.free();
                             return;
                         }
                         if(!this.scene.intersectActiveArea(this)) {
-                            this.visible = false;
+                            this.free();
                             return;
                         }
-                        scene.checkMapCollision(this, this.onMapHit);
+                        scene.checkMapCollision(this, this.free);
                     },
-                    onMapHit: function () {
-                        this.visible = false;
+                    free: function () {
+                        this.scene.enemyBulletPool.free(this);
                     }
                 });
                 scenes.OwnBullet = Class.create(scenes.Sprite, {
                     initialize: function () {
                         var _this = this;
                         scenes.Sprite.call(this, 16, 16);
+                        this.ageMax = 0;
                         this.force = new osakana4242.utils.Vector2D();
                         this.force.x = 0;
                         this.force.y = 0;
-                        this.visibleCnt = 0;
                         this.collider = ((function () {
                             var c = new osakana4242.utils.Collider();
                             c.parent = _this;
@@ -341,29 +346,26 @@ var jp;
                         this.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_BULLET001);
                     },
                     onenterframe: function () {
-                        if(!this.visible) {
-                            return;
-                        }
                         this.x += this.force.x;
                         this.y += this.force.y;
                         var scene = this.scene;
                         var camera = this.scene.camera;
-                        ++this.visibleCnt;
+                        if(this.ageMax <= this.age) {
+                            this.free();
+                            return;
+                        }
                         if(camera.isOutsideSleepRect(this)) {
-                            this.visible = false;
-                            this.visibleCnt = 0;
+                            this.free();
                             return;
                         }
                         if(!this.scene.intersectActiveArea(this)) {
-                            this.visible = false;
-                            this.visibleCnt = 0;
+                            this.free();
                             return;
                         }
-                        scene.checkMapCollision(this, this.onMapHit);
+                        scene.checkMapCollision(this, this.free);
                     },
-                    onMapHit: function () {
-                        this.visible = false;
-                        this.visibleCnt = 0;
+                    free: function () {
+                        this.scene.ownBulletPool.free(this);
                     }
                 });
                 var Life = (function () {
@@ -1016,20 +1018,6 @@ var jp;
                         this.camera = camera;
                         camera.targetGroup = world;
                         world.addChild(camera);
-                        this.ownBullets = [];
-                        for(var i = 0, iNum = kimiko.DF.PLAYER_BULLET_NUM; i < iNum; ++i) {
-                            sprite = new scenes.OwnBullet();
-                            world.addChild(sprite);
-                            this.ownBullets.push(sprite);
-                            sprite.visible = false;
-                        }
-                        this.enemyBullets = [];
-                        for(var i = 0, iNum = 32; i < iNum; ++i) {
-                            sprite = new scenes.EnemyBullet();
-                            world.addChild(sprite);
-                            this.enemyBullets.push(sprite);
-                            sprite.visible = false;
-                        }
                         sprite = new scenes.Player();
                         this.player = sprite;
                         world.addChild(sprite);
@@ -1058,6 +1046,14 @@ var jp;
                                 sprite.y = 12 * i;
                             }
                         })());
+                        this.ownBulletPool = new osakana4242.utils.SpritePool(kimiko.DF.PLAYER_BULLET_NUM, function () {
+                            var spr = new scenes.OwnBullet();
+                            return spr;
+                        });
+                        this.enemyBulletPool = new osakana4242.utils.SpritePool(32, function () {
+                            var spr = new scenes.EnemyBullet();
+                            return spr;
+                        });
                         this.effectPool = new osakana4242.utils.SpritePool(64, function () {
                             var spr = new scenes.Sprite(16, 16);
                             spr.ageMax = 0;
@@ -1227,28 +1223,22 @@ var jp;
                         return near;
                     },
                     newEnemyBullet: function () {
-                        var old = null;
-                        for(var i = 0, iNum = this.enemyBullets.length; i < iNum; ++i) {
-                            var bullet = this.enemyBullets[i];
-                            if(!bullet.visible) {
-                                bullet.visible = true;
-                                return bullet;
-                            }
-                            old = bullet;
+                        var bullet = this.enemyBulletPool.alloc();
+                        if(!bullet) {
+                            return null;
                         }
+                        bullet.ageMax = kimiko.kimiko.secToFrame(5);
+                        this.world.addChild(bullet);
                         return bullet;
                     },
                     newOwnBullet: function () {
-                        var old = null;
-                        for(var i = 0, iNum = this.ownBullets.length; i < iNum; ++i) {
-                            var bullet = this.ownBullets[i];
-                            if(!bullet.visible) {
-                                bullet.visible = true;
-                                return bullet;
-                            }
-                            old = bullet;
+                        var bullet = this.ownBulletPool.alloc();
+                        if(!bullet) {
+                            return null;
                         }
-                        return null;
+                        bullet.ageMax = kimiko.kimiko.secToFrame(2);
+                        this.world.addChild(bullet);
+                        return bullet;
                     },
                     intersectActiveArea: function (sprite) {
                         var player = this.player;
@@ -1324,8 +1314,9 @@ var jp;
                         var player = this.player;
                         var enemys = mapCharaMgr.actives;
                         if(player.isNeutral() || player.isAttack()) {
-                            for(var i = 0, iNum = this.enemyBullets.length; i < iNum; ++i) {
-                                var bullet = this.enemyBullets[i];
+                            var bullets = this.enemyBulletPool.actives;
+                            for(var i = bullets.length - 1; 0 <= i; --i) {
+                                var bullet = bullets[i];
                                 if(bullet.visible && player.life.isAlive() && player.collider.intersect(bullet.collider)) {
                                     player.damage(bullet);
                                     var effect = scene.effectPool.alloc();
@@ -1335,10 +1326,10 @@ var jp;
                                         osakana4242.utils.Vector2D.copyFrom(effect.center, bullet.center);
                                         scene.world.addChild(effect);
                                     }
-                                    bullet.visible = false;
                                     if(player.life.isDead()) {
                                         this.onPlayerDead();
                                     }
+                                    bullet.free();
                                 }
                             }
                         }
@@ -1347,8 +1338,9 @@ var jp;
                             if(enemy.isDead() || enemy.isDamage()) {
                                 continue;
                             }
-                            for(var j = 0, jNum = this.ownBullets.length; j < jNum; ++j) {
-                                var bullet = this.ownBullets[j];
+                            var bullets = this.ownBulletPool.actives;
+                            for(var j = bullets.length - 1; 0 <= j; --j) {
+                                var bullet = bullets[j];
                                 if(bullet.visible && enemy.life.isAlive() && enemy.collider.intersect(bullet.collider)) {
                                     enemy.damage(bullet);
                                     var effect = scene.effectPool.alloc();
@@ -1366,7 +1358,7 @@ var jp;
                                             scene.onBossDead();
                                         }
                                     }
-                                    bullet.visible = false;
+                                    bullet.free();
                                 }
                             }
                         }
@@ -1741,6 +1733,8 @@ var jp;
                     var spr = this.sleeps.shift();
                     if(spr) {
                         spr.age = 0;
+                        spr.visible = true;
+                        this.actives.push(spr);
                         return spr;
                     } else {
                         return null;
@@ -1749,6 +1743,13 @@ var jp;
                 SpritePool.prototype.free = function (spr) {
                     spr.tl.clear();
                     spr.parentNode.removeChild(spr);
+                    spr.x = 0x7fffffff;
+                    spr.y = 0x7fffffff;
+                    spr.visible = false;
+                    var index = this.actives.indexOf(spr);
+                    if(index !== -1) {
+                        this.actives.splice(index, 1);
+                    }
                     this.sleeps.push(spr);
                 };
                 return SpritePool;

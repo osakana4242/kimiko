@@ -68,6 +68,9 @@ module jp.osakana4242.kimiko.scenes {
 			var startDeg = -degInterval * ((wayNum - 1) / 2);
 			for (var i = 0, iNum = wayNum; i < iNum; ++i) {
 				var bullet = parent.scene.newEnemyBullet();
+				if (!bullet) {
+					continue;
+				}
 				var deg = startDeg + (degInterval * i);
 				var rad = deg * degToRad;
 				var speed = this.speed;

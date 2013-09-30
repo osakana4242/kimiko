@@ -418,7 +418,8 @@ module jp.osakana4242.utils {
 			var spr = this.sleeps.shift();
 			if (spr) {
 				spr.age = 0;
-				//this.actives.push(spr);
+				spr.visible = true;
+				this.actives.push(spr);
 				return spr;
 			} else {
 				return null;
@@ -430,6 +431,15 @@ module jp.osakana4242.utils {
 			spr.tl.
 				clear();
 			spr.parentNode.removeChild(spr);
+			spr.x = 0x7fffffff;
+			spr.y = 0x7fffffff;
+			spr.visible = false;
+			//
+			var index = this.actives.indexOf(spr);
+			if (index !== -1) {
+				this.actives.splice(index, 1);
+			}
+			//
 			this.sleeps.push(spr);
 		}
 	}

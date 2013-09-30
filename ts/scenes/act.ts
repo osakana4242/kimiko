@@ -26,6 +26,7 @@ module jp.osakana4242.kimiko.scenes {
 	export var EnemyBullet: any = Class.create(Sprite, {
 		initialize: function () {
 			Sprite.call(this, 16, 16);
+			this.ageMax = 0;
 			this.force = new utils.Vector2D();
 			this.force.x = 0;
 			this.force.y = 0;
@@ -40,40 +41,44 @@ module jp.osakana4242.kimiko.scenes {
 		},
 
 		onenterframe: function () {
-			if (!this.visible) {
-				return;
-			}
 			this.x += this.force.x;
 			this.y += this.force.y;
 
 			var scene = this.scene;
 			var camera = this.scene.camera;
-
+			
+			if (this.ageMax < this.age) {
+				this.free();
+				return;	
+			}
+			
 			if (camera.isOutsideSleepRect(this)) {
-					this.visible = false;
-					return;
+				this.free();
+				return;
 			}
 					
 			if (!this.scene.intersectActiveArea(this)) {
-				this.visible = false;
+				this.free();
 				return;
 			}
-			scene.checkMapCollision(this, this.onMapHit);
+
+			scene.checkMapCollision(this, this.free);
 		},
 			
-		onMapHit: function () {
-				this.visible = false;
+		free: function () {
+			this.scene.enemyBulletPool.free(this);
 		},
+
 	});
 		
 	/** 自弾 */
 	export var OwnBullet: any = Class.create(Sprite, {
 		initialize: function () {
 			Sprite.call(this, 16, 16);
+			this.ageMax = 0;
 			this.force = new utils.Vector2D();
 			this.force.x = 0;
 			this.force.y = 0;
-			this.visibleCnt = 0;
 			this.collider = (() => {
 				var c = new utils.Collider();
 				c.parent = this;
@@ -83,35 +88,34 @@ module jp.osakana4242.kimiko.scenes {
 			this.image = kimiko.core.assets[Assets.IMAGE_BULLET];
 			this.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_BULLET001);
 		},
+
 		onenterframe: function () {
-			if (!this.visible) {
-				return;
-			}
 			this.x += this.force.x;
 			this.y += this.force.y;
 			var scene = this.scene;
 			var camera = this.scene.camera;
-			++this.visibleCnt;
-
-			if (camera.isOutsideSleepRect(this)) {
-					this.visible = false;
-					this.visibleCnt = 0;
-					return;
-			}
-					
-			if (!this.scene.intersectActiveArea(this)) {
-				this.visible = false;
-				this.visibleCnt = 0;
+			
+			if (this.ageMax <= this.age) {
+				this.free();
 				return;
 			}
 
-			scene.checkMapCollision(this, this.onMapHit);
+			if (camera.isOutsideSleepRect(this)) {
+				this.free();
+				return;
+			}
+					
+			if (!this.scene.intersectActiveArea(this)) {
+				this.free();
+				return;
+			}
+
+			scene.checkMapCollision(this, this.free);
 
 		},
-
-		onMapHit: function () {
-			this.visible = false;
-			this.visibleCnt = 0;
+		
+		free: function () {
+			this.scene.ownBulletPool.free(this);
 		},
 	});
 
@@ -882,22 +886,6 @@ module jp.osakana4242.kimiko.scenes {
 			camera.targetGroup = world;
 			world.addChild(camera);
 
-			this.ownBullets = [];
-			for (var i: number = 0, iNum: number = DF.PLAYER_BULLET_NUM; i < iNum; ++i) {
-				sprite = new OwnBullet();
-				world.addChild(sprite);
-				this.ownBullets.push(sprite);
-				sprite.visible = false;
-			}
-			
-			this.enemyBullets = [];
-			for (var i: number = 0, iNum: number = 32; i < iNum; ++i) {
-				sprite = new EnemyBullet();
-				world.addChild(sprite);
-				this.enemyBullets.push(sprite);
-				sprite.visible = false;
-			}
-			
 			sprite = new Player();
 			this.player = sprite;
 			world.addChild(sprite);
@@ -933,6 +921,17 @@ module jp.osakana4242.kimiko.scenes {
 				}
 
 			}());
+
+			this.ownBulletPool = new utils.SpritePool(DF.PLAYER_BULLET_NUM, () => {
+				var spr = new OwnBullet();
+				return spr;
+			});
+			
+			this.enemyBulletPool = new utils.SpritePool(32, () => {
+				var spr = new EnemyBullet();
+				return spr;
+			});
+	
 			this.effectPool = new utils.SpritePool(64, () => {
 				var spr = new Sprite(16, 16);
 				spr.ageMax = 0;
@@ -1141,30 +1140,25 @@ module jp.osakana4242.kimiko.scenes {
 		},
 		
 		newEnemyBullet: function () {
-			var old = null;
-			for (var i = 0, iNum = this.enemyBullets.length; i < iNum; ++i) {
-				var bullet = this.enemyBullets[i];
-				if (!bullet.visible) {
-					bullet.visible = true;
-					return bullet;
-				}
-				old = bullet;
+			var bullet = this.enemyBulletPool.alloc();
+			if (!bullet) {
+				return null;
 			}
+			bullet.ageMax = kimiko.secToFrame(5);
+			this.world.addChild(bullet);
 			return bullet;
 		},
+
 		newOwnBullet: function () {
-			var old = null;
-			for (var i = 0, iNum = this.ownBullets.length; i < iNum; ++i) {
-				var bullet = this.ownBullets[i];
-				if (!bullet.visible) {
-					bullet.visible = true;
-					return bullet;
-				}
-				old = bullet;
+			var bullet = this.ownBulletPool.alloc();
+			if (!bullet) {
+				return null;
 			}
-			// return bullet; // 弾が消えるまで再利用不可に.
-			return null;
+			bullet.ageMax = kimiko.secToFrame(2);
+			this.world.addChild(bullet);
+			return bullet;
 		},
+
 		intersectActiveArea: function (sprite) {
 			var player = this.player;
 			var minX: number = player.center.x - DF.SC1_W;
@@ -1270,8 +1264,9 @@ module jp.osakana4242.kimiko.scenes {
 
 			// プレイヤーと敵弾の衝突判定.
 			if (player.isNeutral() || player.isAttack()) {
-				for (var i = 0, iNum = this.enemyBullets.length; i < iNum; ++i) {
-					var bullet = this.enemyBullets[i];
+				var bullets = this.enemyBulletPool.actives;
+				for (var i = bullets.length - 1; 0 <= i; --i) {
+					var bullet = bullets[i];
 					if (bullet.visible &&
 						player.life.isAlive() &&
 						player.collider.intersect(bullet.collider)) {
@@ -1284,10 +1279,10 @@ module jp.osakana4242.kimiko.scenes {
 							utils.Vector2D.copyFrom(effect.center, bullet.center);
 							scene.world.addChild(effect);
 						}
-						bullet.visible = false;
 						if (player.life.isDead()) {
 							this.onPlayerDead();
 						}
+						bullet.free();
 					}
 				}
 			}
@@ -1297,8 +1292,9 @@ module jp.osakana4242.kimiko.scenes {
 				if (enemy.isDead() || enemy.isDamage()) {
 					continue;
 				}
-				for (var j = 0, jNum = this.ownBullets.length; j < jNum; ++j) {
-					var bullet = this.ownBullets[j];
+				var bullets = this.ownBulletPool.actives;
+				for (var j = bullets.length - 1; 0 <= j; --j) {
+					var bullet = bullets[j];
 					if (bullet.visible &&
 						enemy.life.isAlive() &&
 						enemy.collider.intersect(bullet.collider)) {
@@ -1318,7 +1314,7 @@ module jp.osakana4242.kimiko.scenes {
 								scene.onBossDead();
 							}
 						}
-						bullet.visible = false;
+						bullet.free();
 					}
 				}
 			}
