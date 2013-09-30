@@ -416,14 +416,21 @@ module jp.osakana4242.utils {
 
 		alloc() {
 			var spr = this.sleeps.shift();
-			spr.age = 0;
-			return spr;
+			if (spr) {
+				spr.age = 0;
+				//this.actives.push(spr);
+				return spr;
+			} else {
+				return null;
+			}
 		}
 
 		// 勝手にシーンから取り除く.
 		free(spr: any) {
-			spr.tl.removeFromScene();
-			this.actives.push(spr);
+			spr.tl.
+				clear();
+			spr.parentNode.removeChild(spr);
+			this.sleeps.push(spr);
 		}
 	}
 }

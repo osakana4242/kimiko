@@ -1061,9 +1061,10 @@ var jp;
                         this.effectPool = new osakana4242.utils.SpritePool(64, function () {
                             var spr = new scenes.Sprite(16, 16);
                             spr.ageMax = 0;
-                            spr.loopListener = function () {
+                            spr.anim.loopListener = function () {
                                 _this.effectPool.free(spr);
                             };
+                            return spr;
                         });
                         this.mapCharaMgr = new MapCharaManager(this);
                         this.touch = new osakana4242.utils.Touch();
@@ -1327,6 +1328,13 @@ var jp;
                                 var bullet = this.enemyBullets[i];
                                 if(bullet.visible && player.life.isAlive() && player.collider.intersect(bullet.collider)) {
                                     player.damage(bullet);
+                                    var effect = scene.effectPool.alloc();
+                                    if(effect) {
+                                        effect.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_EFFECT];
+                                        effect.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_DAMAGE);
+                                        osakana4242.utils.Vector2D.copyFrom(effect.center, bullet.center);
+                                        scene.world.addChild(effect);
+                                    }
                                     bullet.visible = false;
                                     if(player.life.isDead()) {
                                         this.onPlayerDead();
@@ -1343,6 +1351,13 @@ var jp;
                                 var bullet = this.ownBullets[j];
                                 if(bullet.visible && enemy.life.isAlive() && enemy.collider.intersect(bullet.collider)) {
                                     enemy.damage(bullet);
+                                    var effect = scene.effectPool.alloc();
+                                    if(effect) {
+                                        effect.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_EFFECT];
+                                        effect.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_DAMAGE);
+                                        osakana4242.utils.Vector2D.copyFrom(effect.center, bullet.center);
+                                        scene.world.addChild(effect);
+                                    }
                                     scene.score += 10;
                                     if(enemy.life.isDead()) {
                                         var ed = enemy.getEnemyData();
@@ -1724,12 +1739,17 @@ var jp;
                 }
                 SpritePool.prototype.alloc = function () {
                     var spr = this.sleeps.shift();
-                    spr.age = 0;
-                    return spr;
+                    if(spr) {
+                        spr.age = 0;
+                        return spr;
+                    } else {
+                        return null;
+                    }
                 };
                 SpritePool.prototype.free = function (spr) {
-                    spr.tl.removeFromScene();
-                    this.actives.push(spr);
+                    spr.tl.clear();
+                    spr.parentNode.removeChild(spr);
+                    this.sleeps.push(spr);
                 };
                 return SpritePool;
             })();

@@ -936,9 +936,10 @@ module jp.osakana4242.kimiko.scenes {
 			this.effectPool = new utils.SpritePool(64, () => {
 				var spr = new Sprite(16, 16);
 				spr.ageMax = 0;
-				spr.loopListener = () => {
+				spr.anim.loopListener = () => {
 					this.effectPool.free(spr);
 				};
+				return spr;
 			});
 			
 			this.mapCharaMgr = new MapCharaManager(this);
@@ -1276,6 +1277,13 @@ module jp.osakana4242.kimiko.scenes {
 						player.collider.intersect(bullet.collider)) {
 						//
 						player.damage(bullet);
+						var effect = scene.effectPool.alloc();
+						if (effect) {
+							effect.image = kimiko.core.assets[Assets.IMAGE_EFFECT];
+							effect.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_DAMAGE);
+							utils.Vector2D.copyFrom(effect.center, bullet.center);
+							scene.world.addChild(effect);
+						}
 						bullet.visible = false;
 						if (player.life.isDead()) {
 							this.onPlayerDead();
@@ -1295,6 +1303,13 @@ module jp.osakana4242.kimiko.scenes {
 						enemy.life.isAlive() &&
 						enemy.collider.intersect(bullet.collider)) {
 						enemy.damage(bullet);
+						var effect = scene.effectPool.alloc();
+						if (effect) {
+							effect.image = kimiko.core.assets[Assets.IMAGE_EFFECT];
+							effect.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_DAMAGE);
+							utils.Vector2D.copyFrom(effect.center, bullet.center);
+							scene.world.addChild(effect);
+						}
 						scene.score += 10;
 						if (enemy.life.isDead()) {
 							var ed: IEnemyData = enemy.getEnemyData();
