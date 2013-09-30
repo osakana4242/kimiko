@@ -319,6 +319,113 @@ module jp.osakana4242.utils {
 		layers: { name: string; tiles: number[][]; }[];
 	}
 	
+	export class AnimSequence {
+		frameTime: number;
+		frameNum: number;
+		frameList: number[];
+	
+		constructor(frameTime: number, frameList: number[]) {
+			this.frameTime = frameTime; // 1フレームにかける秒数。
+			this.frameNum = frameList.length;
+			this.frameList = frameList;
+		}
+	}
+
+	export class AnimSequencer {
+		sprite: any;
+		waitCnt: number;
+		speed: number;
+		frameIdx: number;
+		sequence_: AnimSequence;
+		loopCnt: number;
+		loopListener: () => void;
+		
+		constructor(sprite: any) {
+			this.sprite = sprite;
+			this.waitCnt = 0.0;
+			this.speed = 1.0;
+			
+			this.frameIdx = 0;
+			this.sequence_ = null;
+			this.loopCnt = 0;
+			
+			sprite.addEventListener(enchant.Event.ENTER_FRAME, () => {
+				this.step();
+				this.sprite.frame = this.curFrame;
+			});
+		}
+		
+		get sequence(): AnimSequence {
+			return this.sequence_;
+		}
+		
+		set sequence(v: AnimSequence) {
+			this.sequence_ = v;
+			this.waitCnt = 0;
+			this.frameIdx = 0;
+			this.speed = 1.0;
+			this.loopCnt = 0;
+		}
+		
+		get curFrame(): number {
+			if (this.sequence_) {
+				return this.sequence_.frameList[this.frameIdx];
+			} else {
+				return 0;
+			}
+		}
+		
+		get isOneLoopEnd() { return 0 < this.loopCnt; }
+
+		step(): void {
+			if (this.sequence_ == null) {
+				return;
+			}
+			
+			this.waitCnt += 1;
+			if (kimiko.kimiko.secToFrame(this.sequence_.frameTime) / this.speed <= this.waitCnt) {
+				this.frameIdx += 1;
+				if (this.sequence_.frameNum <= this.frameIdx) {
+					this.frameIdx = 0;
+					++this.loopCnt;
+					if (this.loopListener) {
+						this.loopListener();
+					}
+				}
+				this.waitCnt = 0;
+			}
+		}
+	}
+	
+	export class SpritePool {
+		actives: any[];
+		sleeps: any[];
+
+		constructor(capacity: number, makeSprite: () => any) {
+			this.sleeps = [];
+			this.actives = [];
+
+			for (var i = 0, iNum = capacity; i < iNum; ++i) {
+				var spr = makeSprite();
+				this.sleeps.push(spr);
+			}
+		}
+
+		// シーンに追加する必要あり.
+		// 取得出来ない場合は null を返す.
+
+		alloc() {
+			var spr = this.sleeps.shift();
+			spr.age = 0;
+			return spr;
+		}
+
+		// 勝手にシーンから取り除く.
+		free(spr: any) {
+			spr.tl.removeFromScene();
+			this.actives.push(spr);
+		}
+	}
 }
 
 module jp.osakana4242.kimiko {
@@ -335,6 +442,8 @@ module jp.osakana4242.kimiko {
 		export var IMAGE_MAP = "./images/map.png";
 		export var IMAGE_CHARA001 = "./images/chara001.png";
 		export var IMAGE_CHARA002 = "./images/chara002.png";
+		export var IMAGE_BULLET = "./images/bullet.png";
+		export var IMAGE_EFFECT = "./images/bullet.png";
 		export var SOUND_BGM = "./sounds/bgm.mp3";
 	}
 
@@ -368,6 +477,10 @@ module jp.osakana4242.kimiko {
 		export var ANIM_ID_CHARA001_STAND = 11;
 		export var ANIM_ID_CHARA001_SQUAT = 12;
 		export var ANIM_ID_CHARA002_WALK = 20;
+		export var ANIM_ID_BULLET001 = 30;
+		export var ANIM_ID_BULLET002 = 31;
+		export var ANIM_ID_DAMAGE = 40;
+	
 		// スワイプで1フレームにキャラが移動できる最大距離.
 		export var TOUCH_TO_CHARA_MOVE_LIMIT = 320; // 30;
 		// 一度に移動できる最大ドット数.
@@ -475,6 +588,9 @@ module jp.osakana4242.kimiko {
 			this.registerAnimFrames(DF.ANIM_ID_CHARA001_STAND, [0], 0.1);
 			this.registerAnimFrames(DF.ANIM_ID_CHARA001_SQUAT, [4], 0.1);
 			this.registerAnimFrames(DF.ANIM_ID_CHARA002_WALK, [0, 1, 2, 3], 0.1);
+			this.registerAnimFrames(DF.ANIM_ID_BULLET001, [0, 1, 2, 3], 0.1);
+			this.registerAnimFrames(DF.ANIM_ID_BULLET002, [4, 5, 6, 7], 0.1);
+			this.registerAnimFrames(DF.ANIM_ID_DAMAGE, [8, 9, 10, 11], 0.1);
 
 			// key bind
 			core.keybind(" ".charCodeAt(0), "a");	
@@ -490,17 +606,10 @@ module jp.osakana4242.kimiko {
 			};
 		}
 
-		animFrames: { [index: number]: number[]; } = <any>{};
+		animFrames: { [index: number]: utils.AnimSequence; } = <any>{};
 
 		registerAnimFrames(animId: number, arr: number[], frameSec: number = 0.1) {
-			var frameNum = Math.floor(this.core.fps * frameSec);
-			var dest = [];
-			for (var i = 0, iNum = arr.length; i < iNum; ++i) {
-				for (var j = 0, jNum = frameNum; j < jNum; ++j) {
-					dest.push(arr[i]);
-				}
-			}
-			this.animFrames[animId] = dest;
+			this.animFrames[animId] = new utils.AnimSequence(frameSec, arr);
 		}
 
 		getAnimFrames(animId: number) {

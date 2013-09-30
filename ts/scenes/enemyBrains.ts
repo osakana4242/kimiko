@@ -17,7 +17,7 @@ module jp.osakana4242.kimiko.scenes {
 			sprite.width = 32;
 			sprite.height = 32;
 			sprite.image = kimiko.core.assets[Assets.IMAGE_CHARA002]
-			sprite.frame = kimiko.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
+			sprite.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
 			sprite.collider.centerBottom(28, 28);
 		}
 

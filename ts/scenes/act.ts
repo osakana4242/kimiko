@@ -18,13 +18,14 @@ module jp.osakana4242.kimiko.scenes {
 		initialize: function (w: number, h: number) {
 			enchant.Sprite.call(this, w, h);
 			this.center = new utils.RectCenter(this);
+			this.anim = new utils.AnimSequencer(this);
 		},
 	});
 
 	/** 敵弾 */
 	export var EnemyBullet: any = Class.create(Sprite, {
 		initialize: function () {
-			Sprite.call(this, 12, 12);
+			Sprite.call(this, 16, 16);
 			this.force = new utils.Vector2D();
 			this.force.x = 0;
 			this.force.y = 0;
@@ -34,10 +35,8 @@ module jp.osakana4242.kimiko.scenes {
 				c.centerMiddle(4, 4);
 				return c;
 			}());
-			this.backgroundColor = 'rgb(255, 64, 64)';
-			this.tl.scaleTo(1.0, kimiko.core.fps * 0.1)
-				.scaleTo(0.75, kimiko.core.fps * 0.1)
-				.loop();
+			this.image = kimiko.core.assets[Assets.IMAGE_BULLET];
+			this.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_BULLET002);
 		},
 
 		onenterframe: function () {
@@ -70,7 +69,7 @@ module jp.osakana4242.kimiko.scenes {
 	/** 自弾 */
 	export var OwnBullet: any = Class.create(Sprite, {
 		initialize: function () {
-			Sprite.call(this, 8, 8);
+			Sprite.call(this, 16, 16);
 			this.force = new utils.Vector2D();
 			this.force.x = 0;
 			this.force.y = 0;
@@ -81,10 +80,8 @@ module jp.osakana4242.kimiko.scenes {
 				c.centerMiddle(8, 8);
 				return c;
 			}());
-			this.backgroundColor = 'rgb(64, 255, 255)';
-			this.tl.scaleTo(0.75, kimiko.secToFrame(0.1))
-				.scaleTo(1.0, kimiko.secToFrame(0.1))
-				.loop();
+			this.image = kimiko.core.assets[Assets.IMAGE_BULLET];
+			this.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_BULLET001);
 		},
 		onenterframe: function () {
 			if (!this.visible) {
@@ -383,7 +380,7 @@ module jp.osakana4242.kimiko.scenes {
 			get: function () { return this._bodyStyle; },
 			set: function (v) { 
 				this._bodyStyle = v;
-				this.frame = v.anim;
+				this.anim.sequence = v.anim;
 				this.collider = v.collider;
 			},
 		},
@@ -936,6 +933,13 @@ module jp.osakana4242.kimiko.scenes {
 				}
 
 			}());
+			this.effectPool = new utils.SpritePool(64, () => {
+				var spr = new Sprite(16, 16);
+				spr.ageMax = 0;
+				spr.loopListener = () => {
+					this.effectPool.free(spr);
+				};
+			});
 			
 			this.mapCharaMgr = new MapCharaManager(this);
 			this.touch = new utils.Touch();
@@ -968,7 +972,7 @@ module jp.osakana4242.kimiko.scenes {
 			// this.statusTexts[0][1] = (<any[]>["touch end diff", Math.floor(touch.totalDiff.x), Math.floor(touch.totalDiff.y)]).join();
 			
 			var player = this.player;
-			player.frame = player.animStand;
+			player.anim.sequence = player.animStand;
 			player.force.x = 0;
 			player.force.y = 0;
 			//player.force.x += NumUtil.trim(touch.diffX * 0.05, -16, 16);

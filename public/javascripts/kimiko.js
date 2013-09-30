@@ -14,7 +14,7 @@ var jp;
                         sprite.width = 32;
                         sprite.height = 32;
                         sprite.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_CHARA002];
-                        sprite.frame = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA002_WALK);
+                        sprite.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA002_WALK);
                         sprite.collider.centerBottom(28, 28);
                     }
                     EnemyBodys.body1 = body1;
@@ -282,12 +282,13 @@ var jp;
                     initialize: function (w, h) {
                         enchant.Sprite.call(this, w, h);
                         this.center = new osakana4242.utils.RectCenter(this);
+                        this.anim = new osakana4242.utils.AnimSequencer(this);
                     }
                 });
                 scenes.EnemyBullet = Class.create(scenes.Sprite, {
                     initialize: function () {
                         var _this = this;
-                        scenes.Sprite.call(this, 12, 12);
+                        scenes.Sprite.call(this, 16, 16);
                         this.force = new osakana4242.utils.Vector2D();
                         this.force.x = 0;
                         this.force.y = 0;
@@ -297,8 +298,8 @@ var jp;
                             c.centerMiddle(4, 4);
                             return c;
                         })());
-                        this.backgroundColor = 'rgb(255, 64, 64)';
-                        this.tl.scaleTo(1.0, kimiko.kimiko.core.fps * 0.1).scaleTo(0.75, kimiko.kimiko.core.fps * 0.1).loop();
+                        this.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_BULLET];
+                        this.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_BULLET002);
                     },
                     onenterframe: function () {
                         if(!this.visible) {
@@ -325,7 +326,7 @@ var jp;
                 scenes.OwnBullet = Class.create(scenes.Sprite, {
                     initialize: function () {
                         var _this = this;
-                        scenes.Sprite.call(this, 8, 8);
+                        scenes.Sprite.call(this, 16, 16);
                         this.force = new osakana4242.utils.Vector2D();
                         this.force.x = 0;
                         this.force.y = 0;
@@ -336,8 +337,8 @@ var jp;
                             c.centerMiddle(8, 8);
                             return c;
                         })());
-                        this.backgroundColor = 'rgb(64, 255, 255)';
-                        this.tl.scaleTo(0.75, kimiko.kimiko.secToFrame(0.1)).scaleTo(1.0, kimiko.kimiko.secToFrame(0.1)).loop();
+                        this.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_BULLET];
+                        this.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_BULLET001);
                     },
                     onenterframe: function () {
                         if(!this.visible) {
@@ -605,7 +606,7 @@ var jp;
                         },
                         set: function (v) {
                             this._bodyStyle = v;
-                            this.frame = v.anim;
+                            this.anim.sequence = v.anim;
                             this.collider = v.collider;
                         }
                     },
@@ -1057,6 +1058,13 @@ var jp;
                                 sprite.y = 12 * i;
                             }
                         })());
+                        this.effectPool = new osakana4242.utils.SpritePool(64, function () {
+                            var spr = new scenes.Sprite(16, 16);
+                            spr.ageMax = 0;
+                            spr.loopListener = function () {
+                                _this.effectPool.free(spr);
+                            };
+                        });
                         this.mapCharaMgr = new MapCharaManager(this);
                         this.touch = new osakana4242.utils.Touch();
                         this.loadMapData(jp.osakana4242.kimiko["mapData"]);
@@ -1080,7 +1088,7 @@ var jp;
                         var touch = this.touch;
                         touch.saveTouchEnd(event);
                         var player = this.player;
-                        player.frame = player.animStand;
+                        player.anim.sequence = player.animStand;
                         player.force.x = 0;
                         player.force.y = 0;
                         if(Math.abs(touch.totalDiff.x) + Math.abs(touch.totalDiff.y) < 16) {
@@ -1630,6 +1638,102 @@ var jp;
                 return Touch;
             })();
             utils.Touch = Touch;            
+            var AnimSequence = (function () {
+                function AnimSequence(frameTime, frameList) {
+                    this.frameTime = frameTime;
+                    this.frameNum = frameList.length;
+                    this.frameList = frameList;
+                }
+                return AnimSequence;
+            })();
+            utils.AnimSequence = AnimSequence;            
+            var AnimSequencer = (function () {
+                function AnimSequencer(sprite) {
+                    var _this = this;
+                    this.sprite = sprite;
+                    this.waitCnt = 0.0;
+                    this.speed = 1.0;
+                    this.frameIdx = 0;
+                    this.sequence_ = null;
+                    this.loopCnt = 0;
+                    sprite.addEventListener(enchant.Event.ENTER_FRAME, function () {
+                        _this.step();
+                        _this.sprite.frame = _this.curFrame;
+                    });
+                }
+                Object.defineProperty(AnimSequencer.prototype, "sequence", {
+                    get: function () {
+                        return this.sequence_;
+                    },
+                    set: function (v) {
+                        this.sequence_ = v;
+                        this.waitCnt = 0;
+                        this.frameIdx = 0;
+                        this.speed = 1.0;
+                        this.loopCnt = 0;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(AnimSequencer.prototype, "curFrame", {
+                    get: function () {
+                        if(this.sequence_) {
+                            return this.sequence_.frameList[this.frameIdx];
+                        } else {
+                            return 0;
+                        }
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(AnimSequencer.prototype, "isOneLoopEnd", {
+                    get: function () {
+                        return 0 < this.loopCnt;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                AnimSequencer.prototype.step = function () {
+                    if(this.sequence_ == null) {
+                        return;
+                    }
+                    this.waitCnt += 1;
+                    if(osakana4242.kimiko.kimiko.secToFrame(this.sequence_.frameTime) / this.speed <= this.waitCnt) {
+                        this.frameIdx += 1;
+                        if(this.sequence_.frameNum <= this.frameIdx) {
+                            this.frameIdx = 0;
+                            ++this.loopCnt;
+                            if(this.loopListener) {
+                                this.loopListener();
+                            }
+                        }
+                        this.waitCnt = 0;
+                    }
+                };
+                return AnimSequencer;
+            })();
+            utils.AnimSequencer = AnimSequencer;            
+            var SpritePool = (function () {
+                function SpritePool(capacity, makeSprite) {
+                    this.sleeps = [];
+                    this.actives = [];
+                    for(var i = 0, iNum = capacity; i < iNum; ++i) {
+                        var spr = makeSprite();
+                        this.sleeps.push(spr);
+                    }
+                }
+                SpritePool.prototype.alloc = function () {
+                    var spr = this.sleeps.shift();
+                    spr.age = 0;
+                    return spr;
+                };
+                SpritePool.prototype.free = function (spr) {
+                    spr.tl.removeFromScene();
+                    this.actives.push(spr);
+                };
+                return SpritePool;
+            })();
+            utils.SpritePool = SpritePool;            
         })(osakana4242.utils || (osakana4242.utils = {}));
         var utils = osakana4242.utils;
     })(jp.osakana4242 || (jp.osakana4242 = {}));
@@ -1650,6 +1754,8 @@ var jp;
                 Assets.IMAGE_MAP = "./images/map.png";
                 Assets.IMAGE_CHARA001 = "./images/chara001.png";
                 Assets.IMAGE_CHARA002 = "./images/chara002.png";
+                Assets.IMAGE_BULLET = "./images/bullet.png";
+                Assets.IMAGE_EFFECT = "./images/bullet.png";
                 Assets.SOUND_BGM = "./sounds/bgm.mp3";
             })(kimiko.Assets || (kimiko.Assets = {}));
             var Assets = kimiko.Assets;
@@ -1682,6 +1788,9 @@ var jp;
                 DF.ANIM_ID_CHARA001_STAND = 11;
                 DF.ANIM_ID_CHARA001_SQUAT = 12;
                 DF.ANIM_ID_CHARA002_WALK = 20;
+                DF.ANIM_ID_BULLET001 = 30;
+                DF.ANIM_ID_BULLET002 = 31;
+                DF.ANIM_ID_DAMAGE = 40;
                 DF.TOUCH_TO_CHARA_MOVE_LIMIT = 320;
                 DF.PLAYER_MOVE_RESOLUTION = 8;
                 DF.PLAYER_HP = 5;
@@ -1818,6 +1927,24 @@ var jp;
                         2, 
                         3
                     ], 0.1);
+                    this.registerAnimFrames(DF.ANIM_ID_BULLET001, [
+                        0, 
+                        1, 
+                        2, 
+                        3
+                    ], 0.1);
+                    this.registerAnimFrames(DF.ANIM_ID_BULLET002, [
+                        4, 
+                        5, 
+                        6, 
+                        7
+                    ], 0.1);
+                    this.registerAnimFrames(DF.ANIM_ID_DAMAGE, [
+                        8, 
+                        9, 
+                        10, 
+                        11
+                    ], 0.1);
                     core.keybind(" ".charCodeAt(0), "a");
                     core.keybind("A".charCodeAt(0), "left");
                     core.keybind("D".charCodeAt(0), "right");
@@ -1831,14 +1958,7 @@ var jp;
                 Kimiko.instance = null;
                 Kimiko.prototype.registerAnimFrames = function (animId, arr, frameSec) {
                     if (typeof frameSec === "undefined") { frameSec = 0.1; }
-                    var frameNum = Math.floor(this.core.fps * frameSec);
-                    var dest = [];
-                    for(var i = 0, iNum = arr.length; i < iNum; ++i) {
-                        for(var j = 0, jNum = frameNum; j < jNum; ++j) {
-                            dest.push(arr[i]);
-                        }
-                    }
-                    this.animFrames[animId] = dest;
+                    this.animFrames[animId] = new osakana4242.utils.AnimSequence(frameSec, arr);
                 };
                 Kimiko.prototype.getAnimFrames = function (animId) {
                     return this.animFrames[animId];
