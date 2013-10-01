@@ -850,18 +850,8 @@ var jp;
                         this.width = kimiko.DF.SC1_W;
                         this.height = kimiko.DF.SC1_H;
                         this.limitRect = new osakana4242.utils.Rect(0, 0, 320, 320);
-                        this.sleepRect = {
-                            x: 0,
-                            y: 0,
-                            width: this.width + 128,
-                            height: this.height + 128
-                        };
-                        this.spawnRect = {
-                            x: 0,
-                            y: 0,
-                            width: this.width + 32,
-                            height: this.height + 32
-                        };
+                        this.sleepRect = new osakana4242.utils.Rect(0, 0, this.width + kimiko.DF.ENEMY_SLEEP_RECT_MARGIN, this.height + kimiko.DF.ENEMY_SLEEP_RECT_MARGIN);
+                        this.spawnRect = new osakana4242.utils.Rect(0, 0, this.width + kimiko.DF.ENEMY_SPAWN_RECT_MARGIN, this.height + kimiko.DF.ENEMY_SPAWN_RECT_MARGIN);
                         this.targetGroup = null;
                     },
                     onenterframe: function () {
@@ -898,7 +888,7 @@ var jp;
                         var rect = this.spawnRect;
                         rect.x = this.x - ((rect.width - this.width) / 2);
                         rect.y = this.y - ((rect.height - this.height) / 2);
-                        return osakana4242.utils.Rect.inside(rect, entity);
+                        return osakana4242.utils.Rect.intersect(rect, entity);
                     },
                     isOutsideSleepRect: function (entity) {
                         var rect = this.sleepRect;
@@ -1810,6 +1800,8 @@ var jp;
                 DF.SC2_Y1 = 240;
                 DF.SC2_X2 = DF.SC2_X1 + DF.SC2_W;
                 DF.SC2_Y2 = DF.SC2_Y1 + DF.SC2_H;
+                DF.ENEMY_SPAWN_RECT_MARGIN = 64;
+                DF.ENEMY_SLEEP_RECT_MARGIN = 128;
                 DF.MAP_TILE_W = 32;
                 DF.MAP_TILE_H = 32;
                 DF.PLAYER_COLOR = "rgb(240, 240, 240)";
@@ -1877,6 +1869,10 @@ var jp;
                     a[DF.BIT_R | DF.BIT_D] = {
                         x: c,
                         y: c
+                    };
+                    a[DF.BIT_U | DF.BIT_D] = {
+                        x: 0,
+                        y: 0
                     };
                     a[DF.BIT_L | DF.BIT_R | DF.BIT_U] = {
                         x: 0,

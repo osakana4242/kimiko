@@ -676,18 +676,18 @@ module jp.osakana4242.kimiko.scenes {
 			this.width = DF.SC1_W;
 			this.height = DF.SC1_H;
 			this.limitRect = new utils.Rect(0, 0, 320, 320);
-			this.sleepRect = {
-				x: 0,
-				y: 0,
-				width: this.width + 128,
-				height: this.height + 128,
-			};
-			this.spawnRect = {
-				x: 0,
-				y: 0,
-				width: this.width + 32,
-				height: this.height + 32,
-			};
+			this.sleepRect = new utils.Rect(
+				0,
+				0,
+				this.width + DF.ENEMY_SLEEP_RECT_MARGIN,
+				this.height + DF.ENEMY_SLEEP_RECT_MARGIN
+			);
+			this.spawnRect = new utils.Rect(
+				0,
+				0,
+				this.width + DF.ENEMY_SPAWN_RECT_MARGIN,
+				this.height + DF.ENEMY_SPAWN_RECT_MARGIN
+			);
 			this.targetGroup = null;
 		},
 
@@ -727,11 +727,11 @@ module jp.osakana4242.kimiko.scenes {
 			}
 		},
 
-		isIntersectSpawnRect: function (entity: utils.IRect) {
+		isIntersectSpawnRect: function (entity: utils.IRect): bool {
 				var rect: utils.IRect = this.spawnRect;
-				rect.x = this.x -((rect.width -this.width) / 2);
-				rect.y = this.y -((rect.height -this.height) / 2);
-				return utils.Rect.inside(rect, entity);
+				rect.x = this.x -((rect.width - this.width) / 2);
+				rect.y = this.y -((rect.height - this.height) / 2);
+				return utils.Rect.intersect(rect, entity);
 		},
 
 		isOutsideSleepRect: function (entity: utils.IRect) {

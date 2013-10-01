@@ -485,6 +485,8 @@ module jp.osakana4242.kimiko {
 		export var SC2_Y1: number = 240;
 		export var SC2_X2: number = SC2_X1 + SC2_W;
 		export var SC2_Y2: number = SC2_Y1 + SC2_H;
+		export var ENEMY_SPAWN_RECT_MARGIN: number = 64;
+		export var ENEMY_SLEEP_RECT_MARGIN: number = 128;
 		export var MAP_TILE_W = 32;
 		export var MAP_TILE_H = 32;
 		export var PLAYER_COLOR: string = "rgb(240, 240, 240)";
@@ -536,6 +538,8 @@ module jp.osakana4242.kimiko {
 
 			a[BIT_R | BIT_U] = { x: c, y: -c };
 			a[BIT_R | BIT_D] = { x: c, y: c };
+
+			a[BIT_U | BIT_D] = { x: 0, y: 0 };
 
 			a[BIT_L | BIT_R | BIT_U] = { x: 0, y: -b };
 			a[BIT_L | BIT_R | BIT_D] = { x: 0, y: b };
