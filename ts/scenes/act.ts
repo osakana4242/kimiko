@@ -44,7 +44,6 @@ module jp.osakana4242.kimiko.scenes {
 			this.x += this.force.x;
 			this.y += this.force.y;
 
-			var scene = this.scene;
 			var camera = this.scene.camera;
 			
 			if (this.ageMax < this.age) {
@@ -62,10 +61,21 @@ module jp.osakana4242.kimiko.scenes {
 				return;
 			}
 
-			scene.checkMapCollision(this, this.free);
+			this.scene.checkMapCollision(this, this.free);
 		},
 			
 		free: function () {
+			if (!this.scene) {
+				var a = 0;
+			}
+			var effect = this.scene.effectPool.alloc();
+			if (effect) {
+				effect.image = kimiko.core.assets[Assets.IMAGE_EFFECT];
+				effect.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_DAMAGE);
+				utils.Vector2D.copyFrom(effect.center, this.center);
+				this.scene.world.addChild(effect);
+			}
+
 			this.scene.enemyBulletPool.free(this);
 		},
 
@@ -115,6 +125,14 @@ module jp.osakana4242.kimiko.scenes {
 		},
 		
 		free: function () {
+			var effect = this.scene.effectPool.alloc();
+			if (effect) {
+				effect.image = kimiko.core.assets[Assets.IMAGE_EFFECT];
+				effect.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_DAMAGE);
+				utils.Vector2D.copyFrom(effect.center, this.center);
+				this.scene.world.addChild(effect);
+			}
+
 			this.scene.ownBulletPool.free(this);
 		},
 	});
@@ -1216,44 +1234,51 @@ module jp.osakana4242.kimiko.scenes {
 			var yMax = prect.y + prect.height + (yDiff - 1);
 			var hoge = 8;
 			var rect = utils.Rect.alloc();
-			for (var y = yMin; y < yMax; y += yDiff) {
-				for (var x = xMin; x < xMax; x += xDiff) {
-					if (!map.hitTest(x, y)) {
-						continue;
-					}
-					rect.reset(
-						Math.floor(x / map.tileWidth) * map.tileWidth,
-						Math.floor(y / map.tileHeight) * map.tileHeight,
-						map.tileWidth,
-						map.tileHeight
-					);
-					if (!utils.Rect.intersect(prect, rect)) {
-						continue;
-					}
-					// TODO: たま消しのときは無駄になってしまうので省略したい
-					if (!map.hitTest(x, y - yDiff) && 0 <= player.force.y && prect.y <= rect.y + hoge) {
-						// top
-						player.y = rect.y - prect.height - collider.rect.y;
-						onTrim.call(player, 0, 1);
-						player.force.y = 0;
-						//player.isOnMap = true;
-					} else if (!map.hitTest(x, y + yDiff) && player.force.y <= 0 && rect.y + rect.height - hoge < prect.y + prect.height) {
-						// bottom
-						player.y = rect.y + rect.height - collider.rect.y;
-						onTrim.call(player, 0, -1);
-						player.force.y = 0;
-					} else if (!map.hitTest(x - xDiff, y) && 0 <= player.force.x && prect.x <= rect.x + hoge) {
-						// left
-						player.x = rect.x - prect.width - collider.rect.x;
-						onTrim.call(player, 1, 0);
-					} else if (!map.hitTest(x + xDiff, y) && player.force.x <= 0 && rect.x + rect.width - hoge < prect.x + prect.width) {
-						// right
-						player.x = rect.x + rect.width - collider.rect.x;
-						onTrim.call(player, -1, 0);
+			try {
+				for (var y = yMin; y < yMax; y += yDiff) {
+					for (var x = xMin; x < xMax; x += xDiff) {
+						if (!map.hitTest(x, y)) {
+							continue;
+						}
+						rect.reset(
+							Math.floor(x / map.tileWidth) * map.tileWidth,
+							Math.floor(y / map.tileHeight) * map.tileHeight,
+							map.tileWidth,
+							map.tileHeight
+						);
+						if (!utils.Rect.intersect(prect, rect)) {
+							continue;
+						}
+						// TODO: たま消しのときは無駄になってしまうので省略したい
+						if (!map.hitTest(x, y - yDiff) && 0 <= player.force.y && prect.y <= rect.y + hoge) {
+							// top
+							player.y = rect.y - prect.height - collider.rect.y;
+							onTrim.call(player, 0, 1);
+							player.force.y = 0;
+							//player.isOnMap = true;
+						} else if (!map.hitTest(x, y + yDiff) && player.force.y <= 0 && rect.y + rect.height - hoge < prect.y + prect.height) {
+							// bottom
+							player.y = rect.y + rect.height - collider.rect.y;
+							onTrim.call(player, 0, -1);
+							player.force.y = 0;
+						} else if (!map.hitTest(x - xDiff, y) && 0 <= player.force.x && prect.x <= rect.x + hoge) {
+							// left
+							player.x = rect.x - prect.width - collider.rect.x;
+							onTrim.call(player, 1, 0);
+						} else if (!map.hitTest(x + xDiff, y) && player.force.x <= 0 && rect.x + rect.width - hoge < prect.x + prect.width) {
+							// right
+							player.x = rect.x + rect.width - collider.rect.x;
+							onTrim.call(player, -1, 0);
+						}
+						if (!player.parentNode) {
+							// 死んでたら帰る.
+							return;
+						}
 					}
 				}
+			} finally {
+				utils.Rect.free(rect);
 			}
-			utils.Rect.free(rect);
 		},
 
 		checkCollision: function () {
@@ -1272,13 +1297,6 @@ module jp.osakana4242.kimiko.scenes {
 						player.collider.intersect(bullet.collider)) {
 						//
 						player.damage(bullet);
-						var effect = scene.effectPool.alloc();
-						if (effect) {
-							effect.image = kimiko.core.assets[Assets.IMAGE_EFFECT];
-							effect.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_DAMAGE);
-							utils.Vector2D.copyFrom(effect.center, bullet.center);
-							scene.world.addChild(effect);
-						}
 						if (player.life.isDead()) {
 							this.onPlayerDead();
 						}
@@ -1299,13 +1317,6 @@ module jp.osakana4242.kimiko.scenes {
 						enemy.life.isAlive() &&
 						enemy.collider.intersect(bullet.collider)) {
 						enemy.damage(bullet);
-						var effect = scene.effectPool.alloc();
-						if (effect) {
-							effect.image = kimiko.core.assets[Assets.IMAGE_EFFECT];
-							effect.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_DAMAGE);
-							utils.Vector2D.copyFrom(effect.center, bullet.center);
-							scene.world.addChild(effect);
-						}
 						scene.score += 10;
 						if (enemy.life.isDead()) {
 							var ed: IEnemyData = enemy.getEnemyData();

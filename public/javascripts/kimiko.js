@@ -308,7 +308,6 @@ var jp;
                     onenterframe: function () {
                         this.x += this.force.x;
                         this.y += this.force.y;
-                        var scene = this.scene;
                         var camera = this.scene.camera;
                         if(this.ageMax < this.age) {
                             this.free();
@@ -322,9 +321,19 @@ var jp;
                             this.free();
                             return;
                         }
-                        scene.checkMapCollision(this, this.free);
+                        this.scene.checkMapCollision(this, this.free);
                     },
                     free: function () {
+                        if(!this.scene) {
+                            var a = 0;
+                        }
+                        var effect = this.scene.effectPool.alloc();
+                        if(effect) {
+                            effect.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_EFFECT];
+                            effect.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_DAMAGE);
+                            osakana4242.utils.Vector2D.copyFrom(effect.center, this.center);
+                            this.scene.world.addChild(effect);
+                        }
                         this.scene.enemyBulletPool.free(this);
                     }
                 });
@@ -365,6 +374,13 @@ var jp;
                         scene.checkMapCollision(this, this.free);
                     },
                     free: function () {
+                        var effect = this.scene.effectPool.alloc();
+                        if(effect) {
+                            effect.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_EFFECT];
+                            effect.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_DAMAGE);
+                            osakana4242.utils.Vector2D.copyFrom(effect.center, this.center);
+                            this.scene.world.addChild(effect);
+                        }
                         this.scene.ownBulletPool.free(this);
                     }
                 });
@@ -1280,33 +1296,39 @@ var jp;
                         var yMax = prect.y + prect.height + (yDiff - 1);
                         var hoge = 8;
                         var rect = osakana4242.utils.Rect.alloc();
-                        for(var y = yMin; y < yMax; y += yDiff) {
-                            for(var x = xMin; x < xMax; x += xDiff) {
-                                if(!map.hitTest(x, y)) {
-                                    continue;
-                                }
-                                rect.reset(Math.floor(x / map.tileWidth) * map.tileWidth, Math.floor(y / map.tileHeight) * map.tileHeight, map.tileWidth, map.tileHeight);
-                                if(!osakana4242.utils.Rect.intersect(prect, rect)) {
-                                    continue;
-                                }
-                                if(!map.hitTest(x, y - yDiff) && 0 <= player.force.y && prect.y <= rect.y + hoge) {
-                                    player.y = rect.y - prect.height - collider.rect.y;
-                                    onTrim.call(player, 0, 1);
-                                    player.force.y = 0;
-                                } else if(!map.hitTest(x, y + yDiff) && player.force.y <= 0 && rect.y + rect.height - hoge < prect.y + prect.height) {
-                                    player.y = rect.y + rect.height - collider.rect.y;
-                                    onTrim.call(player, 0, -1);
-                                    player.force.y = 0;
-                                } else if(!map.hitTest(x - xDiff, y) && 0 <= player.force.x && prect.x <= rect.x + hoge) {
-                                    player.x = rect.x - prect.width - collider.rect.x;
-                                    onTrim.call(player, 1, 0);
-                                } else if(!map.hitTest(x + xDiff, y) && player.force.x <= 0 && rect.x + rect.width - hoge < prect.x + prect.width) {
-                                    player.x = rect.x + rect.width - collider.rect.x;
-                                    onTrim.call(player, -1, 0);
+                        try  {
+                            for(var y = yMin; y < yMax; y += yDiff) {
+                                for(var x = xMin; x < xMax; x += xDiff) {
+                                    if(!map.hitTest(x, y)) {
+                                        continue;
+                                    }
+                                    rect.reset(Math.floor(x / map.tileWidth) * map.tileWidth, Math.floor(y / map.tileHeight) * map.tileHeight, map.tileWidth, map.tileHeight);
+                                    if(!osakana4242.utils.Rect.intersect(prect, rect)) {
+                                        continue;
+                                    }
+                                    if(!map.hitTest(x, y - yDiff) && 0 <= player.force.y && prect.y <= rect.y + hoge) {
+                                        player.y = rect.y - prect.height - collider.rect.y;
+                                        onTrim.call(player, 0, 1);
+                                        player.force.y = 0;
+                                    } else if(!map.hitTest(x, y + yDiff) && player.force.y <= 0 && rect.y + rect.height - hoge < prect.y + prect.height) {
+                                        player.y = rect.y + rect.height - collider.rect.y;
+                                        onTrim.call(player, 0, -1);
+                                        player.force.y = 0;
+                                    } else if(!map.hitTest(x - xDiff, y) && 0 <= player.force.x && prect.x <= rect.x + hoge) {
+                                        player.x = rect.x - prect.width - collider.rect.x;
+                                        onTrim.call(player, 1, 0);
+                                    } else if(!map.hitTest(x + xDiff, y) && player.force.x <= 0 && rect.x + rect.width - hoge < prect.x + prect.width) {
+                                        player.x = rect.x + rect.width - collider.rect.x;
+                                        onTrim.call(player, -1, 0);
+                                    }
+                                    if(!player.parentNode) {
+                                        return;
+                                    }
                                 }
                             }
+                        }finally {
+                            osakana4242.utils.Rect.free(rect);
                         }
-                        osakana4242.utils.Rect.free(rect);
                     },
                     checkCollision: function () {
                         var scene = this;
@@ -1319,13 +1341,6 @@ var jp;
                                 var bullet = bullets[i];
                                 if(bullet.visible && player.life.isAlive() && player.collider.intersect(bullet.collider)) {
                                     player.damage(bullet);
-                                    var effect = scene.effectPool.alloc();
-                                    if(effect) {
-                                        effect.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_EFFECT];
-                                        effect.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_DAMAGE);
-                                        osakana4242.utils.Vector2D.copyFrom(effect.center, bullet.center);
-                                        scene.world.addChild(effect);
-                                    }
                                     if(player.life.isDead()) {
                                         this.onPlayerDead();
                                     }
@@ -1343,13 +1358,6 @@ var jp;
                                 var bullet = bullets[j];
                                 if(bullet.visible && enemy.life.isAlive() && enemy.collider.intersect(bullet.collider)) {
                                     enemy.damage(bullet);
-                                    var effect = scene.effectPool.alloc();
-                                    if(effect) {
-                                        effect.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_EFFECT];
-                                        effect.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_DAMAGE);
-                                        osakana4242.utils.Vector2D.copyFrom(effect.center, bullet.center);
-                                        scene.world.addChild(effect);
-                                    }
                                     scene.score += 10;
                                     if(enemy.life.isDead()) {
                                         var ed = enemy.getEnemyData();
@@ -1732,6 +1740,7 @@ var jp;
                 SpritePool.prototype.alloc = function () {
                     var spr = this.sleeps.shift();
                     if(spr) {
+                        spr.tl.clear();
                         spr.age = 0;
                         spr.visible = true;
                         this.actives.push(spr);
@@ -1741,14 +1750,19 @@ var jp;
                     }
                 };
                 SpritePool.prototype.free = function (spr) {
-                    spr.tl.clear();
-                    spr.parentNode.removeChild(spr);
+                    if(spr.parentNode) {
+                        spr.parentNode.removeChild(spr);
+                    } else {
+                        var a = 0;
+                    }
                     spr.x = 0x7fffffff;
                     spr.y = 0x7fffffff;
                     spr.visible = false;
                     var index = this.actives.indexOf(spr);
                     if(index !== -1) {
                         this.actives.splice(index, 1);
+                    } else {
+                        console.log("warn can't free spr. '" + spr + "'");
                     }
                     this.sleeps.push(spr);
                 };

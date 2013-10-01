@@ -417,6 +417,7 @@ module jp.osakana4242.utils {
 		alloc() {
 			var spr = this.sleeps.shift();
 			if (spr) {
+				spr.tl.clear();
 				spr.age = 0;
 				spr.visible = true;
 				this.actives.push(spr);
@@ -428,9 +429,11 @@ module jp.osakana4242.utils {
 
 		// 勝手にシーンから取り除く.
 		free(spr: any) {
-			spr.tl.
-				clear();
-			spr.parentNode.removeChild(spr);
+			if (spr.parentNode) {
+				spr.parentNode.removeChild(spr);
+			} else {
+				var a = 0;
+			}
 			spr.x = 0x7fffffff;
 			spr.y = 0x7fffffff;
 			spr.visible = false;
@@ -438,6 +441,8 @@ module jp.osakana4242.utils {
 			var index = this.actives.indexOf(spr);
 			if (index !== -1) {
 				this.actives.splice(index, 1);
+			} else {
+				console.log("warn can't free spr. '" + spr + "'");
 			}
 			//
 			this.sleeps.push(spr);
