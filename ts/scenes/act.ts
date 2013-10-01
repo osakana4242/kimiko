@@ -140,29 +140,37 @@ module jp.osakana4242.kimiko.scenes {
 	export class Life {
 		hp: number;
 		hpMax: number;
-		damageFrameCounter: number;
-		damageFrameMax: number;
+		ghostFrameCounter: number;
+		ghostFrameMax: number;
 		damageListener: () => void;
 
 		constructor() {
 			this.hpMax = 100;
 			this.hp = this.hpMax;
-			this.damageFrameMax = kimiko.secToFrame(1.0);
-			this.damageFrameCounter = this.damageFrameMax;
+			this.ghostFrameMax = kimiko.secToFrame(1.0);
+			this.ghostFrameCounter = this.ghostFrameMax;
+		}
+
+		public setGhostFrameMax(frameMax: number) {
+			this.ghostFrameMax = frameMax;
+			this.ghostFrameCounter = frameMax;
 		}
 
 		public step(): void {
-			if (this.hasDamage()) {
-				++this.damageFrameCounter;
+			if (this.isGhostTime()) {
+				++this.ghostFrameCounter;
 			}
 		}
 
 		public isAlive(): bool { return 0 < this.hp; }
 		public isDead(): bool { return !this.isAlive(); }
-		public hasDamage(): bool { return this.damageFrameCounter < this.damageFrameMax; }
+		/** 無敵時間. */
+		public isGhostTime(): bool { return this.ghostFrameCounter < this.ghostFrameMax; }
+		public canAddDamage(): bool { return this.isAlive() && !this.isGhostTime(); }
 
 		public damage(v: number) {
 			this.hp -= v;
+			this.ghostFrameCounter = 0;
 			if (this.damageListener) {
 				this.damageListener();
 			}
@@ -181,9 +189,6 @@ module jp.osakana4242.kimiko.scenes {
 			this.useGravity = true;
 			this.life = new Life();
 
-			this.blinkFrameMax = kimiko.secToFrame(0.5);
-			this.blinkFrameCounter = this.blinkFrameMax;
-				
 			this.stateNeutral.stateName = "neutral";
 			this.state = this.stateNeutral;
 			
@@ -193,14 +198,12 @@ module jp.osakana4242.kimiko.scenes {
 			this.addEventListener(Event.ENTER_FRAME, () => {
 				this.state();
 				this.life.step();
-				if (this.blinkFrameCounter < this.blinkFrameMax) {
-					++this.blinkFrameCounter;
-					if (this.blinkFrameCounter < this.blinkFrameMax) {
-						this.visible = (this.blinkFrameCounter & 0x1) == 0;
-					} else {
-						this.visible = true;
-					}
+
+				var visible = true;
+				if (this.life.isGhostTime()) {
+					visible = (this.life.ghostFrameCounter & 0x1) === 0;
 				}
+				this.visible = visible;
 			});
 		},
 		
@@ -213,7 +216,7 @@ module jp.osakana4242.kimiko.scenes {
 		},
 
 		stateDamage: function () {
-			if (!this.life.hasDamage()) {
+			if (!this.life.isGhostTime()) {
 				this.neutral();
 			}
 		},
@@ -227,7 +230,6 @@ module jp.osakana4242.kimiko.scenes {
 
 		damage: function (attacker?: any) {
 			this.life.damage(1);
-			this.blinkFrameCounter = 0;
 			if (this.life.isAlive()) {
 				this.state = this.stateDamage;
 			} else {
@@ -336,6 +338,8 @@ module jp.osakana4242.kimiko.scenes {
 
 			this.life.hpMax = DF.PLAYER_HP;
 			this.life.hp = this.life.hpMax;
+			this.life.setGhostFrameMax(kimiko.secToFrame(1.5));
+
 			this.touchStartAnchor = new utils.Vector2D();
 			this.useGravity = true;
 			this.isOnMap = false;
@@ -595,6 +599,7 @@ module jp.osakana4242.kimiko.scenes {
 			this.anchor = new utils.Vector2D();
 			this.collider = new utils.Collider();
 			this.collider.parent = this;
+			this.life.setGhostFrameMax(kimiko.secToFrame(0.2));
 			this.addEventListener(Event.ENTER_FRAME, () => {
 				this.weapon.step();
 			});
@@ -1172,7 +1177,7 @@ module jp.osakana4242.kimiko.scenes {
 			if (!bullet) {
 				return null;
 			}
-			bullet.ageMax = kimiko.secToFrame(2);
+			bullet.ageMax = kimiko.secToFrame(0.4);
 			this.world.addChild(bullet);
 			return bullet;
 		},
@@ -1286,35 +1291,29 @@ module jp.osakana4242.kimiko.scenes {
 			var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
 			var player = this.player;
 			var enemys = mapCharaMgr.actives;
-
 			// プレイヤーと敵弾の衝突判定.
-			if (player.isNeutral() || player.isAttack()) {
-				var bullets = this.enemyBulletPool.actives;
-				for (var i = bullets.length - 1; 0 <= i; --i) {
-					var bullet = bullets[i];
-					if (bullet.visible &&
-						player.life.isAlive() &&
-						player.collider.intersect(bullet.collider)) {
-						//
-						player.damage(bullet);
-						if (player.life.isDead()) {
-							this.onPlayerDead();
-						}
-						bullet.free();
+			var bullets = this.enemyBulletPool.actives;
+			for (var i = bullets.length - 1; 0 <= i; --i) {
+				var bullet = bullets[i];
+				if (bullet.visible &&
+					player.life.canAddDamage() &&
+					player.collider.intersect(bullet.collider)) {
+					//
+					player.damage(bullet);
+					if (player.life.isDead()) {
+						this.onPlayerDead();
 					}
+					bullet.free();
 				}
 			}
 			// 敵とプレイヤー弾の衝突判定.
 			for (var i = 0, iNum = enemys.length; i < iNum; ++i) {
 				var enemy = enemys[i];
-				if (enemy.isDead() || enemy.isDamage()) {
-					continue;
-				}
 				var bullets = this.ownBulletPool.actives;
 				for (var j = bullets.length - 1; 0 <= j; --j) {
 					var bullet = bullets[j];
 					if (bullet.visible &&
-						enemy.life.isAlive() &&
+						enemy.life.canAddDamage() &&
 						enemy.collider.intersect(bullet.collider)) {
 						enemy.damage(bullet);
 						scene.score += 10;

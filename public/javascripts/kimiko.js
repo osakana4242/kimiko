@@ -388,12 +388,16 @@ var jp;
                     function Life() {
                         this.hpMax = 100;
                         this.hp = this.hpMax;
-                        this.damageFrameMax = kimiko.kimiko.secToFrame(1.0);
-                        this.damageFrameCounter = this.damageFrameMax;
+                        this.ghostFrameMax = kimiko.kimiko.secToFrame(1.0);
+                        this.ghostFrameCounter = this.ghostFrameMax;
                     }
+                    Life.prototype.setGhostFrameMax = function (frameMax) {
+                        this.ghostFrameMax = frameMax;
+                        this.ghostFrameCounter = frameMax;
+                    };
                     Life.prototype.step = function () {
-                        if(this.hasDamage()) {
-                            ++this.damageFrameCounter;
+                        if(this.isGhostTime()) {
+                            ++this.ghostFrameCounter;
                         }
                     };
                     Life.prototype.isAlive = function () {
@@ -402,11 +406,15 @@ var jp;
                     Life.prototype.isDead = function () {
                         return !this.isAlive();
                     };
-                    Life.prototype.hasDamage = function () {
-                        return this.damageFrameCounter < this.damageFrameMax;
+                    Life.prototype.isGhostTime = function () {
+                        return this.ghostFrameCounter < this.ghostFrameMax;
+                    };
+                    Life.prototype.canAddDamage = function () {
+                        return this.isAlive() && !this.isGhostTime();
                     };
                     Life.prototype.damage = function (v) {
                         this.hp -= v;
+                        this.ghostFrameCounter = 0;
                         if(this.damageListener) {
                             this.damageListener();
                         }
@@ -425,8 +433,6 @@ var jp;
                         this.attackCnt = 0;
                         this.useGravity = true;
                         this.life = new Life();
-                        this.blinkFrameMax = kimiko.kimiko.secToFrame(0.5);
-                        this.blinkFrameCounter = this.blinkFrameMax;
                         this.stateNeutral.stateName = "neutral";
                         this.state = this.stateNeutral;
                         this.rectCollider_ = new osakana4242.utils.Rect();
@@ -434,14 +440,11 @@ var jp;
                         this.addEventListener(Event.ENTER_FRAME, function () {
                             _this.state();
                             _this.life.step();
-                            if(_this.blinkFrameCounter < _this.blinkFrameMax) {
-                                ++_this.blinkFrameCounter;
-                                if(_this.blinkFrameCounter < _this.blinkFrameMax) {
-                                    _this.visible = (_this.blinkFrameCounter & 0x1) == 0;
-                                } else {
-                                    _this.visible = true;
-                                }
+                            var visible = true;
+                            if(_this.life.isGhostTime()) {
+                                visible = (_this.life.ghostFrameCounter & 0x1) === 0;
                             }
+                            _this.visible = visible;
                         });
                     },
                     stateToString: function () {
@@ -458,7 +461,7 @@ var jp;
                     stateNeutral: function () {
                     },
                     stateDamage: function () {
-                        if(!this.life.hasDamage()) {
+                        if(!this.life.isGhostTime()) {
                             this.neutral();
                         }
                     },
@@ -469,7 +472,6 @@ var jp;
                     },
                     damage: function (attacker) {
                         this.life.damage(1);
-                        this.blinkFrameCounter = 0;
                         if(this.life.isAlive()) {
                             this.state = this.stateDamage;
                         } else {
@@ -567,6 +569,7 @@ var jp;
                         this.bodyStyle = this.bodyStyles.stand;
                         this.life.hpMax = kimiko.DF.PLAYER_HP;
                         this.life.hp = this.life.hpMax;
+                        this.life.setGhostFrameMax(kimiko.kimiko.secToFrame(1.5));
                         this.touchStartAnchor = new osakana4242.utils.Vector2D();
                         this.useGravity = true;
                         this.isOnMap = false;
@@ -779,6 +782,7 @@ var jp;
                         this.anchor = new osakana4242.utils.Vector2D();
                         this.collider = new osakana4242.utils.Collider();
                         this.collider.parent = this;
+                        this.life.setGhostFrameMax(kimiko.kimiko.secToFrame(0.2));
                         this.addEventListener(Event.ENTER_FRAME, function () {
                             _this.weapon.step();
                         });
@@ -1242,7 +1246,7 @@ var jp;
                         if(!bullet) {
                             return null;
                         }
-                        bullet.ageMax = kimiko.kimiko.secToFrame(2);
+                        bullet.ageMax = kimiko.kimiko.secToFrame(0.4);
                         this.world.addChild(bullet);
                         return bullet;
                     },
@@ -1325,28 +1329,23 @@ var jp;
                         var mapCharaMgr = this.mapCharaMgr;
                         var player = this.player;
                         var enemys = mapCharaMgr.actives;
-                        if(player.isNeutral() || player.isAttack()) {
-                            var bullets = this.enemyBulletPool.actives;
-                            for(var i = bullets.length - 1; 0 <= i; --i) {
-                                var bullet = bullets[i];
-                                if(bullet.visible && player.life.isAlive() && player.collider.intersect(bullet.collider)) {
-                                    player.damage(bullet);
-                                    if(player.life.isDead()) {
-                                        this.onPlayerDead();
-                                    }
-                                    bullet.free();
+                        var bullets = this.enemyBulletPool.actives;
+                        for(var i = bullets.length - 1; 0 <= i; --i) {
+                            var bullet = bullets[i];
+                            if(bullet.visible && player.life.canAddDamage() && player.collider.intersect(bullet.collider)) {
+                                player.damage(bullet);
+                                if(player.life.isDead()) {
+                                    this.onPlayerDead();
                                 }
+                                bullet.free();
                             }
                         }
                         for(var i = 0, iNum = enemys.length; i < iNum; ++i) {
                             var enemy = enemys[i];
-                            if(enemy.isDead() || enemy.isDamage()) {
-                                continue;
-                            }
                             var bullets = this.ownBulletPool.actives;
                             for(var j = bullets.length - 1; 0 <= j; --j) {
                                 var bullet = bullets[j];
-                                if(bullet.visible && enemy.life.isAlive() && enemy.collider.intersect(bullet.collider)) {
+                                if(bullet.visible && enemy.life.canAddDamage() && enemy.collider.intersect(bullet.collider)) {
                                     enemy.damage(bullet);
                                     scene.score += 10;
                                     if(enemy.life.isDead()) {
@@ -1800,10 +1799,10 @@ var jp;
                 DF.SC2_Y1 = 240;
                 DF.SC2_X2 = DF.SC2_X1 + DF.SC2_W;
                 DF.SC2_Y2 = DF.SC2_Y1 + DF.SC2_H;
-                DF.ENEMY_SPAWN_RECT_MARGIN = 64;
-                DF.ENEMY_SLEEP_RECT_MARGIN = 128;
                 DF.MAP_TILE_W = 32;
                 DF.MAP_TILE_H = 32;
+                DF.ENEMY_SPAWN_RECT_MARGIN = 64;
+                DF.ENEMY_SLEEP_RECT_MARGIN = 128;
                 DF.PLAYER_COLOR = "rgb(240, 240, 240)";
                 DF.PLAYER_DAMAGE_COLOR = "rgb(240, 240, 120)";
                 DF.PLAYER_ATTACK_COLOR = "rgb(160, 160, 240)";

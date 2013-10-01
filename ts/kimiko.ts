@@ -485,10 +485,10 @@ module jp.osakana4242.kimiko {
 		export var SC2_Y1: number = 240;
 		export var SC2_X2: number = SC2_X1 + SC2_W;
 		export var SC2_Y2: number = SC2_Y1 + SC2_H;
-		export var ENEMY_SPAWN_RECT_MARGIN: number = 64;
-		export var ENEMY_SLEEP_RECT_MARGIN: number = 128;
 		export var MAP_TILE_W = 32;
 		export var MAP_TILE_H = 32;
+		export var ENEMY_SPAWN_RECT_MARGIN: number = 64;
+		export var ENEMY_SLEEP_RECT_MARGIN: number = 128;
 		export var PLAYER_COLOR: string = "rgb(240, 240, 240)";
 		export var PLAYER_DAMAGE_COLOR: string = "rgb(240, 240, 120)";
 		export var PLAYER_ATTACK_COLOR: string = "rgb(160, 160, 240)";
