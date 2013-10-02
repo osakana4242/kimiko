@@ -1,6 +1,11 @@
-//
-/// <reference path="enemyBrains.ts" />
+// references
+/// <reference path="../kimiko.ts" />
 /// <reference path="weapon.ts" />
+/// <reference path="mapCharas.ts" />
+/// <reference path="enemyBrains.ts" />
+/// <reference path="player.ts" />
+/// <reference path="camera.ts" />
+//
 
 declare var enchant: any;
 
@@ -12,130 +17,6 @@ module jp.osakana4242.kimiko.scenes {
 	var Label = enchant.Label;
 	var Event = enchant.Event;
 	var Easing = enchant.Easing;
-
-	/** 拡張Sprite */
-	export var Sprite: any = Class.create(enchant.Sprite, {
-		initialize: function (w: number, h: number) {
-			enchant.Sprite.call(this, w, h);
-			this.center = new utils.RectCenter(this);
-			this.anim = new utils.AnimSequencer(this);
-		},
-	});
-
-	/** 敵弾 */
-	export var EnemyBullet: any = Class.create(Sprite, {
-		initialize: function () {
-			Sprite.call(this, 16, 16);
-			this.ageMax = 0;
-			this.force = new utils.Vector2D();
-			this.force.x = 0;
-			this.force.y = 0;
-			this.collider = (() => {
-				var c = new utils.Collider();
-				c.parent = this;
-				c.centerMiddle(4, 4);
-				return c;
-			}());
-			this.image = kimiko.core.assets[Assets.IMAGE_BULLET];
-			this.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_BULLET002);
-		},
-
-		onenterframe: function () {
-			this.x += this.force.x;
-			this.y += this.force.y;
-
-			var camera = this.scene.camera;
-			
-			if (this.ageMax < this.age) {
-				this.free();
-				return;	
-			}
-			
-			if (camera.isOutsideSleepRect(this)) {
-				this.free();
-				return;
-			}
-					
-			if (!this.scene.intersectActiveArea(this)) {
-				this.free();
-				return;
-			}
-
-			this.scene.checkMapCollision(this, this.free);
-		},
-			
-		free: function () {
-			if (!this.scene) {
-				var a = 0;
-			}
-			var effect = this.scene.effectPool.alloc();
-			if (effect) {
-				effect.image = kimiko.core.assets[Assets.IMAGE_EFFECT];
-				effect.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_DAMAGE);
-				utils.Vector2D.copyFrom(effect.center, this.center);
-				this.scene.world.addChild(effect);
-			}
-
-			this.scene.enemyBulletPool.free(this);
-		},
-
-	});
-		
-	/** 自弾 */
-	export var OwnBullet: any = Class.create(Sprite, {
-		initialize: function () {
-			Sprite.call(this, 16, 16);
-			this.ageMax = 0;
-			this.force = new utils.Vector2D();
-			this.force.x = 0;
-			this.force.y = 0;
-			this.collider = (() => {
-				var c = new utils.Collider();
-				c.parent = this;
-				c.centerMiddle(8, 8);
-				return c;
-			}());
-			this.image = kimiko.core.assets[Assets.IMAGE_BULLET];
-			this.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_BULLET001);
-		},
-
-		onenterframe: function () {
-			this.x += this.force.x;
-			this.y += this.force.y;
-			var scene = this.scene;
-			var camera = this.scene.camera;
-			
-			if (this.ageMax <= this.age) {
-				this.free();
-				return;
-			}
-
-			if (camera.isOutsideSleepRect(this)) {
-				this.free();
-				return;
-			}
-					
-			if (!this.scene.intersectActiveArea(this)) {
-				this.free();
-				return;
-			}
-
-			scene.checkMapCollision(this, this.free);
-
-		},
-		
-		free: function () {
-			var effect = this.scene.effectPool.alloc();
-			if (effect) {
-				effect.image = kimiko.core.assets[Assets.IMAGE_EFFECT];
-				effect.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_DAMAGE);
-				utils.Vector2D.copyFrom(effect.center, this.center);
-				this.scene.world.addChild(effect);
-			}
-
-			this.scene.ownBulletPool.free(this);
-		},
-	});
 
 	export class Life {
 		hp: number;
@@ -176,439 +57,6 @@ module jp.osakana4242.kimiko.scenes {
 			}
 		}
 	}
-	
-	/** とりあえず攻撃できるひと */
-	export var Attacker: any = Class.create(Sprite, {
-		initialize: function () {
-			Sprite.call(this);
-			this.dirX = 1;
-			this.force = new utils.Vector2D();
-			this.force.x = 0;
-			this.force.y = 0;
-			this.attackCnt = 0;
-			this.useGravity = true;
-			this.life = new Life();
-
-			this.stateNeutral.stateName = "neutral";
-			this.state = this.stateNeutral;
-			
-			this.rectCollider_ = new utils.Rect();
-			this.workRect_ = new utils.Rect();
-
-			this.addEventListener(Event.ENTER_FRAME, () => {
-				this.state();
-				this.life.step();
-
-				var visible = true;
-				if (this.life.isGhostTime()) {
-					visible = (this.life.ghostFrameCounter & 0x1) === 0;
-				}
-				this.visible = visible;
-			});
-		},
-		
-		stateToString: function () {
-			var dir: string = 0 <= this.dirX ? '>' : '<';
-			return (<any[]>[dir, this.state.stateName, 'cx', Math.round(this.center.x), 'cy', Math.round(this.center.y)]).join();
-		},
-
-		stateNeutral: function () {
-		},
-
-		stateDamage: function () {
-			if (!this.life.isGhostTime()) {
-				this.neutral();
-			}
-		},
-
-		stateDead: function () {
-		},
-
-		neutral: function () {
-			this.state = this.stateNeutral;
-		},
-
-		damage: function (attacker?: any) {
-			this.life.damage(1);
-			if (this.life.isAlive()) {
-				this.state = this.stateDamage;
-			} else {
-				// シボンヌ.
-				this.dead();
-			}
-		},
-		dead: function () {
-			this.visible = false;
-			this.state = this.stateDead;
-			// 死亡エフェクト追加.
-			for (var i = 0, iNum = 3; i < iNum; ++i) {
-				var effect = new DeadEffect(this, i * kimiko.core.fps * 0.2);
-				effect.x += Math.random() * 32 - 16;
-				effect.y += Math.random() * 32 - 16;
-				this.parentNode.addChild(effect);
-			}
-			this.parentNode.removeChild(this);
-		},
-		isDead: function () {
-			return this.state === this.stateDead;
-		},
-		isDamage: function () {
-			return this.state === this.stateDamage;
-		},
-		isAttack: function () {
-			return this.state === this.stateAttack;
-		},
-		isNeutral: function () {
-			return this.state === this.stateNeutral;
-		},
-	});
-		
-	/** 死亡エフェクト */
-	export var DeadEffect: any = Class.create(Sprite, {
-		initialize: function (attacker, delay: number) {
-			Sprite.call(this);
-			this.width = attacker.width;
-			this.height = attacker.height;
-			this.center.x = attacker.center.x;
-			this.center.y = attacker.center.y;
-			this.backgroundColor = attacker.backgroundColor;
-			var effectTime: number = kimiko.secToFrame(0.5);
-			this.visible = false;
-			this.tl
-			.delay(delay)
-			.then(() => this.visible = true)
-			.scaleTo(2.0, effectTime, enchant.Easing.SIN_EASEOUT)
-			.and().fadeOut(effectTime, enchant.Easing.SIN_EASEOUT)
-			.then(() => this.tl.removeFromScene());
-		},
-	});
-		
-	/** 地形 */
-	export var Ground: any = Class.create(Sprite, {
-		initialize: function () {
-			Sprite.call(this);
-			this.width = 96;
-			this.height = 8;
-			this.backgroundColor = 'rgb(128, 128, 128)';
-		},
-	});
-		
-	export var Player: any = Class.create(Attacker, {
-
-		initialize: function () {
-			Attacker.call(this);
-			this.image = kimiko.core.assets[Assets.IMAGE_CHARA001]
-			this.width = 32;
-			this.height = 32;
-			
-			this.bodyStyles = (() => {
-				var animWalk = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_WALK);
-				var animStand = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_STAND);
-				var animSquat = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_SQUAT);
-				var colliderA = (() => {
-					var c = new utils.Collider();
-					c.parent = this;
-					c.centerBottom(12, 28);
-					return c;
-				}());
-				var colliderB = (() => {
-					var c = new utils.Collider();
-					c.parent = this;
-					c.centerBottom(12, 14);
-					return c;
-				}());
-
-				return {
-					"stand": {
-						"anim": animStand,
-						"collider": colliderA,
-					},
-					"walk": {
-						"anim": animWalk,
-						"collider": colliderA,
-					},
-					"squat": {
-						"anim": animSquat,
-						"collider": colliderB,
-					},
-				};
-			}());
-			
-			this.bodyStyle = this.bodyStyles.stand;
-
-			this.life.hpMax = DF.PLAYER_HP;
-			this.life.hp = this.life.hpMax;
-			this.life.setGhostFrameMax(kimiko.secToFrame(1.5));
-
-			this.touchStartAnchor = new utils.Vector2D();
-			this.useGravity = true;
-			this.isOnMap = false;
-			this.targetEnemy = null;
-			this.limitRect = new utils.Rect( 0, 0, DF.SC_W, DF.SC_H );
-			/** 壁を押している方向. */
-			this.wallPushDir = new utils.Vector2D();
-
-			this.addEventListener(Event.ENTER_FRAME, () => {
-				var scene = this.scene;
-				this.checkTouchInput();
-				this.stepMove();
-				if ((this.age % kimiko.secToFrame(0.2)) === 0) {
-					// TODO: ロックオン済みの敵がいる場合は索敵間隔を遅らせたほうがいいかも.
-					// 近い敵を探す.
-					var srect = utils.Rect.alloc();
-					srect.width = 256;
-					srect.height = this.height * 2;
-					srect.x = this.x + ((this.width - srect.width) / 2);
-					srect.y = this.y + ((this.height - srect.height) / 2);
-					var enemy = scene.getNearEnemy(this, srect);
-					if (enemy) {
-						this.targetEnemy = enemy;
-					}	
-					utils.Rect.free(srect);
-				}
-				
-				if (this.targetEnemy === null) {
-					//
-				} else {
-					if (this.targetEnemy.life.isDead()) {
-						// 敵が死んでたら解除.
-						this.targetEnemy = null;
-					}
-					if (this.targetEnemy !== null) {
-						var distance = utils.Rect.distance(this, this.targetEnemy);
-						var threshold = DF.SC1_W;
-						if (threshold < distance) {
-							// 敵が離れたら解除.
-							this.targetEnemy = null;
-						} else {
-							// ロックオン状態. 常に敵を見る.
-							this.dirX = kimiko.numberUtil.sign(this.targetEnemy.x - this.x);
-							this.scaleX = this.dirX;
-							if ((this.age % kimiko.secToFrame(0.2)) === 0) {
-								// TODO: 敵同様にweaponクラス化.
-								var srect = utils.Rect.alloc();
-								srect.width = DF.SC1_W;
-								srect.height = this.height * 2;
-								srect.x = this.center.x + (this.dirX < 0 ? - srect.width : 0); 
-								srect.y = this.y + ((this.height - srect.height) / 2);
-								if (utils.Rect.intersect(srect, this.targetEnemy)) {
-									this.attack();
-								}
-								utils.Rect.free(srect);
-							}
-						}
-					}
-				}
-			});
-		},
-		
-		bodyStyle: {
-			get: function () { return this._bodyStyle; },
-			set: function (v) { 
-				this._bodyStyle = v;
-				this.anim.sequence = v.anim;
-				this.collider = v.collider;
-			},
-		},
-
-		stateToString: function () {
-			var str = Attacker.prototype.stateToString.call(this);
-			str += " hp:" + this.life.hp +
-				" L:" + (this.targetEnemy !== null ? "o" : "x");
-			return str;
-		},
-
-		attack: function () {
-			var bullet = this.scene.newOwnBullet();
-			if (bullet === null) {
-				return;
-			}
-			bullet.force.x = this.dirX * kimiko.dpsToDpf(6 * 60);
-			bullet.force.y = 0;
-			bullet.center.x = this.center.x;
-			bullet.center.y = this.center.y;
-		},
-
-		stepMove: function () {
-			var scene = this.scene;
-
-			var input = kimiko.core.input;
-			var flag =
-				((input.left  ? 1 : 0) << 0) |
-				((input.right ? 1 : 0) << 1) |
-				((input.up    ? 1 : 0) << 2) |
-				((input.down  ? 1 : 0) << 3);
-			var isSlow: bool = kimiko.core.input.a;
-			if (isSlow) {
-				this.force.x = 0;
-				this.force.y = 0;
-			}
-			if (flag !== 0) {
-				if (isSlow) {
-					this.force.x = DF.DIR_FLAG_TO_VECTOR2D[flag].x * 2;
-					this.force.y = DF.DIR_FLAG_TO_VECTOR2D[flag].y * 2;
-				} else {
-					this.force.x = DF.DIR_FLAG_TO_VECTOR2D[flag].x * 4;
-					this.force.y = DF.DIR_FLAG_TO_VECTOR2D[flag].y * 4;
-				}
-			}
-
-			if (!this.targetEnemy) {
-				if (0 !== this.force.x) {
-					this.dirX = kimiko.numberUtil.sign(this.force.x);
-					this.scaleX = this.dirX;
-				}
-			}
-			// body style
-			var nextBodyStyle = this.bodyStyle;
-			if (Math.abs(this.force.x) < 2 && 0 < this.wallPushDir.y) {
-				// しゃがみ判定.
-				// 横の移動量が規定範囲内 + 接地した状態で地面方向に力がかかってる状態.
-				nextBodyStyle = this.bodyStyles.squat;
-			} else if (this.force.x !== 0 || this.force.y !== 0) {
-				nextBodyStyle = this.bodyStyles.walk;
-			} else {
-				nextBodyStyle = this.bodyStyles.stand;
-			}
-			if (this.bodyStyle !== nextBodyStyle) {
-				this.bodyStyle = nextBodyStyle;
-			}
-			//
-			if (this.useGravity && !this.isOnMap) {
-				this.force.y += kimiko.dpsToDpf(DF.GRAVITY);
-			}
-
-			// 壁衝突状態リセット.
-			utils.Vector2D.copyFrom(this.wallPushDir, utils.Vector2D.zero);
-
-			// 壁突き抜け防止のため、移動を数回に分ける.
-			var loopCnt = Math.floor(Math.max(Math.abs(this.force.x), Math.abs(this.force.y)) / DF.PLAYER_MOVE_RESOLUTION);
-			//
-			var totalMx = this.force.x;
-			var totalMy = this.force.y;
-			// 1回の移動量. 移動するごとに地形との当たり判定を行う.
-			var mx = this.force.x / loopCnt;
-			var my = this.force.y / loopCnt;
-			
-			for (var i = 0, loopCnt; i <= loopCnt; ++i) {
-				if (i < loopCnt) {
-					this.x += mx;
-					this.y += my;
-					totalMx -= mx;
-					totalMy -= my;
-				} else {
-					// 最後のひと押し.
-					this.x += totalMx;
-					this.y += totalMy;
-				}
-				utils.Rect.trimPos(this, this.limitRect, this.onTrim);
-				scene.checkMapCollision(this, this.onTrim);
-				if (this.force.x === 0) {
-					mx = 0;
-					totalMx = 0;
-				}
-				if (this.force.y === 0) {
-					my = 0;
-					totalMy = 0;
-				}
-			}
-
-			//
-			var touch: utils.Touch = scene.touch;
-			if (touch.isTouching || flag !== 0) {
-				this.force.x = 0;
-				this.force.y = 0;
-			}
-		},
-			
-		onTrim: function (x: number, y: number) {
-			if (x !== 0) {
-				if (1 < Math.abs(this.force.x)) {
-					this.wallPushDir.x = x;
-				}
-				this.force.x = 0;
-			}
-
-			if (y !== 0) {
-				if (1 < Math.abs(this.force.y)) {
-					this.wallPushDir.y = y;
-				}
-				this.force.y = 0;
-			}
-		},
-
-		checkTouchInput: function () {
-			var scene = this.scene;
-			var player = this;
-			var touch: utils.Touch = scene.touch;
-			if (!touch.isTouching) {
-				var input = kimiko.core.input;
-				var flag =
-					((input.left  ? 1 : 0) << 0) |
-					((input.right ? 1 : 0) << 1) |
-					((input.up    ? 1 : 0) << 2) |
-					((input.down  ? 1 : 0) << 3);
-				var isSlow: bool = kimiko.core.input.a;
-				if (isSlow) {
-					player.force.x = 0;
-					player.force.y = 0;
-				}
-				if (flag !== 0) {
-					if (isSlow) {
-						player.force.x = DF.DIR_FLAG_TO_VECTOR2D[flag].x * 2;
-						player.force.y = DF.DIR_FLAG_TO_VECTOR2D[flag].y * 2;
-					} else {
-						player.force.x = DF.DIR_FLAG_TO_VECTOR2D[flag].x * 4;
-						player.force.y = DF.DIR_FLAG_TO_VECTOR2D[flag].y * 4;
-					}
-				}
-			} else {
-				var moveLimit = DF.TOUCH_TO_CHARA_MOVE_LIMIT;
-				var moveRate = kimiko.config.swipeToMoveRate;
-				if (DF.PLAYER_TOUCH_ANCHOR_ENABLE) {
-					var tv = utils.Vector2D.alloc(
-						player.touchStartAnchor.x + touch.totalDiff.x * moveRate.x,
-						player.touchStartAnchor.y + touch.totalDiff.y * moveRate.y);
-					var v = utils.Vector2D.alloc(
-						tv.x - player.x,
-						tv.y - player.y);
-					var vm = Math.min(utils.Vector2D.magnitude(v), moveLimit);
-					utils.Vector2D.normalize(v);
-					v.x *= vm;
-					v.y *= vm;
-					player.force.x = v.x;
-					player.force.y = v.y;
-					utils.Vector2D.free(tv);
-					utils.Vector2D.free(v);
-				} else {
-					player.force.x = kimiko.numberUtil.trim(touch.diff.x * moveRate.x, -moveLimit, moveLimit);
-					player.force.y = kimiko.numberUtil.trim(touch.diff.y * moveRate.y, -moveLimit, moveLimit);
-				}
-			}
-		},
-
-	});
-
-	// 敵はしかれたレールをなぞるだけ。
-	export var EnemyA = Class.create(Attacker, {
-		initialize: function () {
-			Attacker.call(this);
-
-			this.enemyId = -1;
-			this.weapon = new WeaponA(this);
-			this.anchor = new utils.Vector2D();
-			this.collider = new utils.Collider();
-			this.collider.parent = this;
-			this.life.setGhostFrameMax(kimiko.secToFrame(0.2));
-			this.addEventListener(Event.ENTER_FRAME, () => {
-				this.weapon.step();
-			});
-		},
-		
-		getEnemyData: function () { return EnemyData[this.enemyId]; },
-		isBoss: function () { return this.enemyId === DF.ENEMY_ID_BOSS; },
-
-	});
 	
 	export class MapCharaManager {
 		scene: any;
@@ -674,86 +122,13 @@ module jp.osakana4242.kimiko.scenes {
 		}
 	}
 
-	var Camera: any = Class.create(enchant.Node, {
-		initialize: function () {
-			enchant.Node.call(this);
-
-			this.width = DF.SC1_W;
-			this.height = DF.SC1_H;
-			this.limitRect = new utils.Rect(0, 0, 320, 320);
-			this.sleepRect = new utils.Rect(
-				0,
-				0,
-				this.width + DF.ENEMY_SLEEP_RECT_MARGIN,
-				this.height + DF.ENEMY_SLEEP_RECT_MARGIN
-			);
-			this.spawnRect = new utils.Rect(
-				0,
-				0,
-				this.width + DF.ENEMY_SPAWN_RECT_MARGIN,
-				this.height + DF.ENEMY_SPAWN_RECT_MARGIN
-			);
-			this.targetGroup = null;
-		},
-
-		onenterframe: function () {
-			var camera = this;
-			var player = this.scene.player;
-			// カメラ移動.
-			// プレイヤーからどれだけずらすか。
-			// 前方は後方より少しだけ先が見えるようにする。
-			var tx: number = player.center.x - (camera.width / 2) + (player.dirX * 16);
-			// 指で操作する関係で下方向に余裕を持たせる.
-			var ty: number = player.center.y - (camera.height / 2) + 32;
-			var speed = kimiko.dpsToDpf(8 * 60);
-			var dx = tx - camera.x;
-			var dy = ty - camera.y;
-			var mx = 0;
-			var my = 0;
-			var distance = utils.Vector2D.magnitude({ x: dx, y: dy });
-
-			if (speed < distance) {
-				mx = dx * speed / distance;
-				my = dy * speed / distance;
-			} else {
-				mx = dx;
-				my = dy;
-			}
-			camera.x = Math.floor(camera.x + mx);
-			camera.y = Math.floor(camera.y + my);
-
-			utils.Rect.trimPos(camera, camera.limitRect);
-
-			//
-			var group = this.targetGroup;
-			if (group) {
-				group.x = -camera.x;
-				group.y = -camera.y;
-			}
-		},
-
-		isIntersectSpawnRect: function (entity: utils.IRect): bool {
-				var rect: utils.IRect = this.spawnRect;
-				rect.x = this.x -((rect.width - this.width) / 2);
-				rect.y = this.y -((rect.height - this.height) / 2);
-				return utils.Rect.intersect(rect, entity);
-		},
-
-		isOutsideSleepRect: function (entity: utils.IRect) {
-			var rect: utils.IRect = this.sleepRect;
-			rect.x = this.x - ((rect.width - this.width) / 2);
-			rect.y = this.y - ((rect.height - this.height) / 2);
-			return utils.Rect.outside(rect, entity);
-		},
-	});
-
 	export var GameStart: any = Class.create(Scene, {
 		initialize: function () {
 			Scene.call(this);
 			
 			var scene = this;
 			//
-			var bg1 = new Sprite(DF.SC1_W, DF.SC1_H);
+			var bg1 = new utils.Sprite(DF.SC1_W, DF.SC1_H);
 			((sprite: any) => {
 				sprite.x = 0;
 				sprite.y = 0;
@@ -777,7 +152,7 @@ module jp.osakana4242.kimiko.scenes {
 					loop();
 			}(label1));
 			//
-			var fadeFilm = new Sprite(DF.SC_W, DF.SC_H);
+			var fadeFilm = new utils.Sprite(DF.SC_W, DF.SC_H);
 			((sprite: any) => {
 				sprite.x = 0;
 				sprite.y = 0;
@@ -836,6 +211,10 @@ module jp.osakana4242.kimiko.scenes {
 			layer1.addChild(label1); 
 			//
 			scene.addChild(layer1);
+			//
+			scene.addEventListener(Event.TOUCH_END, () => {
+				kimiko.core.popScene();
+			});
 		}
 	});
 	export var GameClear: any = Class.create(Scene, {
@@ -924,7 +303,7 @@ module jp.osakana4242.kimiko.scenes {
 				group.y = DF.SC2_Y1;
 
 				// 背景.
-				sprite = new Sprite(DF.SC2_W, DF.SC2_H);
+				sprite = new utils.Sprite(DF.SC2_W, DF.SC2_H);
 				group.addChild(sprite);
 				this.controllArea = sprite;
 				sprite.x = 0;
@@ -956,7 +335,7 @@ module jp.osakana4242.kimiko.scenes {
 			});
 	
 			this.effectPool = new utils.SpritePool(64, () => {
-				var spr = new Sprite(16, 16);
+				var spr = new utils.Sprite(16, 16);
 				spr.ageMax = 0;
 				spr.anim.loopListener = () => {
 					this.effectPool.free(spr);
