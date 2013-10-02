@@ -9,6 +9,19 @@ module jp.osakana4242.utils {
 		y: number;
 	}
 
+	export module StringUtil {
+		/** 文字列を指定回数繰り返す.文字列に数値を掛け算. */
+		export function mul(v: string, count: number): string {
+			var ret = "";
+			while (count !== 0) {
+				ret += v;
+				--count;
+			}
+			return ret;
+		}
+
+	}
+
 	export class Vector2D implements IVector2D {
 
 		public static zero = new Vector2D(0, 0);

@@ -1271,8 +1271,9 @@ var jp;
                         var player = this.player;
                         var mapCharaMgr = this.mapCharaMgr;
                         var texts = this.statusTexts;
+                        var lifeText = osakana4242.utils.StringUtil.mul("o", player.life.hp) + osakana4242.utils.StringUtil.mul("_", player.life.hpMax - player.life.hp);
                         texts[0][0] = "SC " + scene.score + " " + "TIME " + Math.floor(kimiko.kimiko.frameToSec(this.timeLimit - this.timeLimitCounter));
-                        texts[1][0] = "LIFE " + player.life.hp + " " + "WALL " + player.wallPushDir.x + "," + player.wallPushDir.y + " " + (player.targetEnemy ? "LOCK" : "    ") + " " + "";
+                        texts[1][0] = "LIFE " + lifeText + " " + "WALL " + player.wallPushDir.x + "," + player.wallPushDir.y + " " + (player.targetEnemy ? "LOCK" : "    ") + " " + "";
                         for(var i = 0, iNum = texts.length; i < iNum; ++i) {
                             var line = texts[i].join(" ");
                             this.labels[i].text = line;
@@ -1372,6 +1373,18 @@ var jp;
 (function (jp) {
     (function (osakana4242) {
         (function (utils) {
+            (function (StringUtil) {
+                function mul(v, count) {
+                    var ret = "";
+                    while(count !== 0) {
+                        ret += v;
+                        --count;
+                    }
+                    return ret;
+                }
+                StringUtil.mul = mul;
+            })(utils.StringUtil || (utils.StringUtil = {}));
+            var StringUtil = utils.StringUtil;
             var Vector2D = (function () {
                 function Vector2D(x, y) {
                     if (typeof x === "undefined") { x = 0; }

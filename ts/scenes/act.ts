@@ -1208,9 +1208,10 @@ module jp.osakana4242.kimiko.scenes {
 			var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
 			//" fps:" + Math.round(kimiko.core.actualFps)
 			var texts: string[][] = this.statusTexts;
+			var lifeText = utils.StringUtil.mul("o", player.life.hp) + utils.StringUtil.mul("_", player.life.hpMax - player.life.hp);
 			texts[0][0] = "SC " + scene.score + " " +
 				"TIME " + Math.floor(kimiko.frameToSec(this.timeLimit - this.timeLimitCounter));	
-			texts[1][0] = "LIFE " + player.life.hp + " " +
+			texts[1][0] = "LIFE " + lifeText + " " +
 				"WALL " + player.wallPushDir.x + "," + player.wallPushDir.y + " " +
 				(player.targetEnemy ? "LOCK" : "    ") + " " +
 				"";
