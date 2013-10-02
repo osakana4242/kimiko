@@ -14,6 +14,8 @@ module jp.osakana4242.kimiko.scenes {
 
 			this.width = DF.SC1_W;
 			this.height = DF.SC1_H;
+			this.center = new utils.RectCenter(this);
+
 			this.limitRect = new utils.Rect(0, 0, 320, 320);
 			this.sleepRect = new utils.Rect(
 				0,
@@ -27,42 +29,63 @@ module jp.osakana4242.kimiko.scenes {
 				this.width + DF.ENEMY_SPAWN_RECT_MARGIN,
 				this.height + DF.ENEMY_SPAWN_RECT_MARGIN
 			);
+			this._targetPos = new utils.Vector2D();
 			this.targetGroup = null;
+			this.targetNode = this;
+		},
+
+		/** 目的地に瞬時にたどり着く。 */
+		moveToTarget: function() {
+			utils.Vector2D.copyFrom(this, this.calcTargetPos());
+		},
+
+		calcTargetPos: function() {
+			var node = this.targetNode;
+			var camera = this;
+			// カメラ移動.
+			// プレイヤーからどれだけずらすか。
+			// 前方は後方より少しだけ先が見えるようにする。
+			this._targetPos.x = node.center.x - (camera.width / 2) + (node.dirX * 16);
+			// 指で操作する関係で下方向に余裕を持たせる.
+			this._targetPos.y = node.center.y - (camera.height / 2) + 32;
+			return this._targetPos;
 		},
 
 		onenterframe: function () {
 			var camera = this;
-			var player = this.scene.player;
-			// カメラ移動.
-			// プレイヤーからどれだけずらすか。
-			// 前方は後方より少しだけ先が見えるようにする。
-			var tx: number = player.center.x - (camera.width / 2) + (player.dirX * 16);
-			// 指で操作する関係で下方向に余裕を持たせる.
-			var ty: number = player.center.y - (camera.height / 2) + 32;
+			var tv = this.calcTargetPos();
 			var speed = kimiko.dpsToDpf(8 * 60);
-			var dx = tx - camera.x;
-			var dy = ty - camera.y;
-			var mx = 0;
-			var my = 0;
-			var distance = utils.Vector2D.magnitude({ x: dx, y: dy });
+			var dv = utils.Vector2D.alloc(
+				tv.x - camera.x,
+				tv.y - camera.y
+			);
+			var mv = utils.Vector2D.alloc();
+			var distance = utils.Vector2D.magnitude(dv);
 
 			if (speed < distance) {
-				mx = dx * speed / distance;
-				my = dy * speed / distance;
+				mv.x = dv.x * speed / distance;
+				mv.y = dv.y * speed / distance;
 			} else {
-				mx = dx;
-				my = dy;
+				mv.x = dv.x;
+				mv.y = dv.y;
 			}
-			camera.x = Math.floor(camera.x + mx);
-			camera.y = Math.floor(camera.y + my);
+			camera.x = Math.floor(camera.x + mv.x);
+			camera.y = Math.floor(camera.y + mv.y);
 
 			utils.Rect.trimPos(camera, camera.limitRect);
 
 			//
+			this.updateGroup();
+			//
+			utils.Vector2D.free(dv);
+			utils.Vector2D.free(mv);
+		},
+
+		updateGroup: function() {
 			var group = this.targetGroup;
 			if (group) {
-				group.x = -camera.x;
-				group.y = -camera.y;
+				group.x = - this.x;
+				group.y = - this.y;
 			}
 		},
 

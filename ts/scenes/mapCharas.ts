@@ -194,8 +194,8 @@ module jp.osakana4242.kimiko.scenes {
 				effect.y += Math.random() * 32 - 16;
 				this.parentNode.addChild(effect);
 			}
-			this.parentNode.removeChild(this);
 		},
+
 		isDead: function () {
 			return this.state === this.stateDead;
 		},

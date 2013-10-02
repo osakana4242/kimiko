@@ -11,3 +11,4 @@ cd %~p0
 @rem watch ŠJŽn
 %NODE_JS_TSC% --target ES5 --watch @"%TS_FILELIST%" --out "%JS_DIR%\kimiko.js"
 @cd %PRJ_DIR%
+

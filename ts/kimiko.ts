@@ -37,6 +37,9 @@ module jp.osakana4242.utils {
 			x: number = 0,
 			y: number = 0): Vector2D {
 			var v = Vector2D.pool.pop();
+			if (!v) {
+				throw "Vector2D pool empty!!";
+			}
 			v.reset(x, y);
 			return v;
 		}
@@ -141,6 +144,9 @@ module jp.osakana4242.utils {
 			width: number = 0,
 			height: number = 0): Rect {
 			var v = Rect.pool.pop();
+			if (!v) {
+				throw "Rect pool empty!!";
+			}
 			v.reset(x, y, width, height);
 			return v;
 		}
@@ -467,7 +473,15 @@ module jp.osakana4242.utils {
 			//
 			this.sleeps.push(spr);
 		}
+
+		freeAll(): void {
+			for (var i = this.actives.length - 1; 0 <= i; --i) {
+				this.free(this.actives[i]);
+			}
+		}
+
 	}
+
 }
 
 module jp.osakana4242.kimiko {

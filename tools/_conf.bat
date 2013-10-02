@@ -4,3 +4,4 @@
 @set TS_DIR=%PRJ_DIR%\ts
 @set JS_DIR=%PRJ_DIR%\public\javascripts
 @set NODE_JS_TSC=%HOME%\AppData\Roaming\npm\tsc
+

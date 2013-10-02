@@ -68,6 +68,19 @@ module jp.osakana4242.kimiko.scenes {
 			this.scene = scene;
 		}
 
+		public clear(): void {
+			var arr = this.actives;
+			for (var i = arr.length - 1; 0 <= i; --i) {
+				var chara = arr.pop();
+				if (chara.parentNode) {
+					chara.parentNode.removeChild(chara);
+				}
+			}
+			this.actives.length = 0;
+			this.deads.length = 0;
+			this.sleeps.length = 0;
+		}
+
 		public addSleep(sleep: any): void {
 			this.sleeps.push(sleep);
 		}
@@ -244,6 +257,10 @@ module jp.osakana4242.kimiko.scenes {
 			layer1.addChild(label1); 
 			//
 			scene.addChild(layer1);
+			//
+			scene.addEventListener(Event.TOUCH_END, () => {
+				kimiko.core.popScene();
+			});
 		}
 	});
 
@@ -345,8 +362,27 @@ module jp.osakana4242.kimiko.scenes {
 			
 			this.mapCharaMgr = new MapCharaManager(this);
 			this.touch = new utils.Touch();
-			this.loadMapData( jp.osakana4242.kimiko["mapData"] );
 
+		},
+
+		// はじめから。
+		// スコアリセット、プレイヤーHP回復。
+		initPlayerStatus: function () {
+			var scene = this;
+			scene.score = 0;
+
+			var player = this.player;
+			player.life.hp = player.life.hpMax;
+		},
+
+		clear: function () {
+			this.ownBulletPool.freeAll();
+			this.enemyBulletPool.freeAll();
+			this.effectPool.freeAll();
+			this.mapCharaMgr.clear();
+			if (this.player.parentNode) {
+				this.player.parentNode.removeChild(this.player);
+			}
 		},
 
 		//---------------------------------------------------------------------------
@@ -360,7 +396,6 @@ module jp.osakana4242.kimiko.scenes {
 			player.force.y = 0;
 			player.useGravity = false;
 			player.isOnMap = false;
-
 		},
 
 		ontouchmove: function (event) {
@@ -396,6 +431,12 @@ module jp.osakana4242.kimiko.scenes {
 		stateGameStart: function () {
 			var scene = this;
 			scene.state = scene.stateNormal;
+
+			this.clear();
+			this.initPlayerStatus();
+			this.world.addChild(this.player);
+			this.loadMapData( jp.osakana4242.kimiko["mapData"] );
+
 			if (kimiko.config.isSoundEnabled) {
 				var sound = kimiko.core.assets[Assets.SOUND_BGM];
 				var soundSec = 15.922 + 0.5;
@@ -485,7 +526,6 @@ module jp.osakana4242.kimiko.scenes {
 							
 							var center = left + (enemy.width / 2);
 							var bottom = top + (DF.MAP_TILE_H - enemy.height);
-							var anchor = utils.Vector2D.alloc(center, bottom);
 							enemy.x = enemy.anchor.x = center;
 							enemy.y = enemy.anchor.y = bottom;
 							data.brain(enemy);
@@ -502,6 +542,10 @@ module jp.osakana4242.kimiko.scenes {
 			
 			var player = this.player;
 			utils.Rect.copyFrom(player.limitRect, camera.limitRect);
+
+			// カメラの追跡対象をプレイヤーにする
+			camera.targetNode = player;
+			camera.moveToTarget();
 		},
 
 		onPlayerDead: function () {
