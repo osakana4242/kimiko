@@ -84,13 +84,16 @@ module jp.osakana4242.kimiko.scenes {
 
 				this.addEventListener(Event.ENTER_FRAME, () => {
 					var scene = this.scene;
-					if (this.life.isDead()) {
-						return;
+					var isAlive = !this.life.isDead();
+					if (isAlive) {
+						this.checkInput();
 					}
-					this.checkInput();
-					this.stepMove();
-					this.searchEnemy();
-				});
+					this.updateBodyStyle();
+					if (isAlive) {
+						this.stepMove();
+						this.searchEnemy();
+					}
+			});
 			},
 			
 			bodyStyle: {
@@ -170,6 +173,26 @@ module jp.osakana4242.kimiko.scenes {
 				bullet.center.x = this.center.x;
 				bullet.center.y = this.center.y;
 			},
+			
+			updateBodyStyle: function () {
+				// body style
+				var nextBodyStyle = this.bodyStyle;
+				if (this.life.isDead()) {
+					nextBodyStyle = this.bodyStyles.dead;
+				} else if (0 < this.wallPushDir.y) {
+					// しゃがみ判定.
+					// 横の移動量が規定範囲内 + 接地した状態で地面方向に力がかかってる状態.
+					nextBodyStyle = this.bodyStyles.squat;
+				} else if (!utils.Vector2D.equals(this.inputForce, utils.Vector2D.zero)) {
+					nextBodyStyle = this.bodyStyles.walk;
+				} else {
+					nextBodyStyle = this.bodyStyles.stand;
+				}
+
+				if (this.bodyStyle !== nextBodyStyle) {
+					this.bodyStyle = nextBodyStyle;
+				}
+			},
 
 			stepMove: function () {
 				var scene = this.scene;
@@ -179,20 +202,6 @@ module jp.osakana4242.kimiko.scenes {
 						this.dirX = kimiko.numberUtil.sign(this.inputForce.x);
 						this.scaleX = this.dirX;
 					}
-				}
-				// body style
-				var nextBodyStyle = this.bodyStyle;
-				if (Math.abs(this.inputForce.x) < 3 && 0 < this.wallPushDir.y) {
-					// しゃがみ判定.
-					// 横の移動量が規定範囲内 + 接地した状態で地面方向に力がかかってる状態.
-					nextBodyStyle = this.bodyStyles.squat;
-				} else if (this.inputForce.x !== 0 || this.inputForce.y !== 0) {
-					nextBodyStyle = this.bodyStyles.walk;
-				} else {
-					nextBodyStyle = this.bodyStyles.stand;
-				}
-				if (this.bodyStyle !== nextBodyStyle) {
-					this.bodyStyle = nextBodyStyle;
 				}
 				//
 				if (this.isSlowMove ||

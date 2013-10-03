@@ -475,8 +475,8 @@ var jp;
                 DF.ENEMY_ID_BOSS = 0xf;
                 DF.ANIM_ID_CHARA001_WALK = 10;
                 DF.ANIM_ID_CHARA001_STAND = 11;
-                DF.ANIM_ID_CHARA001_DEAD = 12;
                 DF.ANIM_ID_CHARA001_SQUAT = 12;
+                DF.ANIM_ID_CHARA001_DEAD = 13;
                 DF.ANIM_ID_CHARA002_WALK = 20;
                 DF.ANIM_ID_BULLET001 = 30;
                 DF.ANIM_ID_BULLET002 = 31;
@@ -614,6 +614,12 @@ var jp;
                     ], 0.1);
                     this.registerAnimFrames(DF.ANIM_ID_CHARA001_SQUAT, [
                         4
+                    ], 0.1);
+                    this.registerAnimFrames(DF.ANIM_ID_CHARA001_DEAD, [
+                        0, 
+                        1, 
+                        0, 
+                        2
                     ], 0.1);
                     this.registerAnimFrames(DF.ANIM_ID_CHARA002_WALK, [
                         0, 
@@ -1261,12 +1267,15 @@ var jp;
                         this.inputForce = new osakana4242.utils.Vector2D();
                         this.addEventListener(Event.ENTER_FRAME, function () {
                             var scene = _this.scene;
-                            if(_this.life.isDead()) {
-                                return;
+                            var isAlive = !_this.life.isDead();
+                            if(isAlive) {
+                                _this.checkInput();
                             }
-                            _this.checkInput();
-                            _this.stepMove();
-                            _this.searchEnemy();
+                            _this.updateBodyStyle();
+                            if(isAlive) {
+                                _this.stepMove();
+                                _this.searchEnemy();
+                            }
                         });
                     },
                     bodyStyle: {
@@ -1336,6 +1345,21 @@ var jp;
                         bullet.center.x = this.center.x;
                         bullet.center.y = this.center.y;
                     },
+                    updateBodyStyle: function () {
+                        var nextBodyStyle = this.bodyStyle;
+                        if(this.life.isDead()) {
+                            nextBodyStyle = this.bodyStyles.dead;
+                        } else if(0 < this.wallPushDir.y) {
+                            nextBodyStyle = this.bodyStyles.squat;
+                        } else if(!osakana4242.utils.Vector2D.equals(this.inputForce, osakana4242.utils.Vector2D.zero)) {
+                            nextBodyStyle = this.bodyStyles.walk;
+                        } else {
+                            nextBodyStyle = this.bodyStyles.stand;
+                        }
+                        if(this.bodyStyle !== nextBodyStyle) {
+                            this.bodyStyle = nextBodyStyle;
+                        }
+                    },
                     stepMove: function () {
                         var scene = this.scene;
                         if(!this.targetEnemy) {
@@ -1343,17 +1367,6 @@ var jp;
                                 this.dirX = kimiko.kimiko.numberUtil.sign(this.inputForce.x);
                                 this.scaleX = this.dirX;
                             }
-                        }
-                        var nextBodyStyle = this.bodyStyle;
-                        if(Math.abs(this.inputForce.x) < 3 && 0 < this.wallPushDir.y) {
-                            nextBodyStyle = this.bodyStyles.squat;
-                        } else if(this.inputForce.x !== 0 || this.inputForce.y !== 0) {
-                            nextBodyStyle = this.bodyStyles.walk;
-                        } else {
-                            nextBodyStyle = this.bodyStyles.stand;
-                        }
-                        if(this.bodyStyle !== nextBodyStyle) {
-                            this.bodyStyle = nextBodyStyle;
                         }
                         if(this.isSlowMove || !osakana4242.utils.Vector2D.equals(this.inputForce, osakana4242.utils.Vector2D.zero)) {
                             this.force.x = this.inputForce.x;
@@ -1787,9 +1800,9 @@ var jp;
                         this.score = 0;
                         this.timeLimitCounter = 0;
                         this.timeLimit = kimiko.kimiko.secToFrame(180);
-                        this.gameOverFrameMax = kimiko.kimiko.secToFrame(3.0);
+                        this.gameOverFrameMax = 0;
                         this.gameOverFrameCounter = this.gameOverFrameMax;
-                        this.celarFrameMax = kimiko.kimiko.secToFrame(3.0);
+                        this.celarFrameMax = 0;
                         this.clearFrameCounter = this.clearFrameMax;
                         this.statusTexts = [
                             [], 
@@ -2033,7 +2046,7 @@ var jp;
                     },
                     onBossDead: function () {
                         var scene = this;
-                        scene.clearFrameMax = kimiko.kimiko.secToFrame(2.0);
+                        scene.clearFrameMax = kimiko.kimiko.secToFrame(3.0);
                         scene.clearFrameCounter = 0;
                     },
                     getNearEnemy: function (sprite, searchRect) {

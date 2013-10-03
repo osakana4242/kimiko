@@ -537,12 +537,14 @@ module jp.osakana4242.kimiko {
 
 		export var ANIM_ID_CHARA001_WALK = 10;
 		export var ANIM_ID_CHARA001_STAND = 11;
-		export var ANIM_ID_CHARA001_DEAD = 12;
-	
 		export var ANIM_ID_CHARA001_SQUAT = 12;
+		export var ANIM_ID_CHARA001_DEAD = 13;
+
 		export var ANIM_ID_CHARA002_WALK = 20;
+
 		export var ANIM_ID_BULLET001 = 30;
 		export var ANIM_ID_BULLET002 = 31;
+
 		export var ANIM_ID_DAMAGE = 40;
 	
 		// スワイプで1フレームにキャラが移動できる最大距離.
@@ -653,9 +655,13 @@ module jp.osakana4242.kimiko {
 			this.registerAnimFrames(DF.ANIM_ID_CHARA001_WALK,  [0, 1, 0, 2], 0.1);
 			this.registerAnimFrames(DF.ANIM_ID_CHARA001_STAND, [0], 0.1);
 			this.registerAnimFrames(DF.ANIM_ID_CHARA001_SQUAT, [4], 0.1);
+			this.registerAnimFrames(DF.ANIM_ID_CHARA001_DEAD,  [0, 1, 0, 2], 0.1);
+	
 			this.registerAnimFrames(DF.ANIM_ID_CHARA002_WALK, [0, 1, 2, 3], 0.1);
+
 			this.registerAnimFrames(DF.ANIM_ID_BULLET001, [0, 1, 2, 3], 0.1);
 			this.registerAnimFrames(DF.ANIM_ID_BULLET002, [4, 5, 6, 7], 0.1);
+
 			this.registerAnimFrames(DF.ANIM_ID_DAMAGE, [8, 9, 10, 11], 0.1);
 
 			// key bind

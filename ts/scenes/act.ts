@@ -281,10 +281,10 @@ module jp.osakana4242.kimiko.scenes {
 			this.timeLimitCounter = 0;
 			this.timeLimit = kimiko.secToFrame(180);
 			/** 条件を満たしてからゲームオーバーに移るまでの間隔 */
-			this.gameOverFrameMax = kimiko.secToFrame(3.0);
+			this.gameOverFrameMax = 0;
 			this.gameOverFrameCounter = this.gameOverFrameMax;
 			/** 条件を満たしてからゲームクリアに移るまでの間隔 */
-			this.celarFrameMax = kimiko.secToFrame(3.0);
+			this.celarFrameMax = 0;
 			this.clearFrameCounter = this.clearFrameMax;
 			this.statusTexts = [
 				[], [], [], [],
@@ -603,7 +603,7 @@ module jp.osakana4242.kimiko.scenes {
 		onBossDead: function () {
 			var scene = this;
 			// ゲームクリアカウント開始.
-			scene.clearFrameMax = kimiko.secToFrame(2.0);
+			scene.clearFrameMax = kimiko.secToFrame(3.0);
 			scene.clearFrameCounter = 0;
 		},
 		
