@@ -64,6 +64,10 @@ module jp.osakana4242.utils {
 			dest.y = src.y;
 		}
 
+		public static equals(a: IVector2D, b: IVector2D) {
+			return a.x === b.x && a.y === b.y;
+		}
+
 		public static add(dest: IVector2D, src: IVector2D): void {
 			dest.x += src.x;
 			dest.y += src.y;
@@ -533,6 +537,8 @@ module jp.osakana4242.kimiko {
 
 		export var ANIM_ID_CHARA001_WALK = 10;
 		export var ANIM_ID_CHARA001_STAND = 11;
+		export var ANIM_ID_CHARA001_DEAD = 12;
+	
 		export var ANIM_ID_CHARA001_SQUAT = 12;
 		export var ANIM_ID_CHARA002_WALK = 20;
 		export var ANIM_ID_BULLET001 = 30;
@@ -543,7 +549,7 @@ module jp.osakana4242.kimiko {
 		export var TOUCH_TO_CHARA_MOVE_LIMIT = 320; // 30;
 		// 一度に移動できる最大ドット数.
 		export var PLAYER_MOVE_RESOLUTION = 8;
-		export var PLAYER_HP = 5;
+		export var PLAYER_HP = 3;
 		// 最大連射数.
 		export var PLAYER_BULLET_NUM = 1;
 

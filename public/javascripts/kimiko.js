@@ -51,6 +51,9 @@ var jp;
                     dest.x = src.x;
                     dest.y = src.y;
                 };
+                Vector2D.equals = function equals(a, b) {
+                    return a.x === b.x && a.y === b.y;
+                };
                 Vector2D.add = function add(dest, src) {
                     dest.x += src.x;
                     dest.y += src.y;
@@ -472,6 +475,7 @@ var jp;
                 DF.ENEMY_ID_BOSS = 0xf;
                 DF.ANIM_ID_CHARA001_WALK = 10;
                 DF.ANIM_ID_CHARA001_STAND = 11;
+                DF.ANIM_ID_CHARA001_DEAD = 12;
                 DF.ANIM_ID_CHARA001_SQUAT = 12;
                 DF.ANIM_ID_CHARA002_WALK = 20;
                 DF.ANIM_ID_BULLET001 = 30;
@@ -479,7 +483,7 @@ var jp;
                 DF.ANIM_ID_DAMAGE = 40;
                 DF.TOUCH_TO_CHARA_MOVE_LIMIT = 320;
                 DF.PLAYER_MOVE_RESOLUTION = 8;
-                DF.PLAYER_HP = 5;
+                DF.PLAYER_HP = 3;
                 DF.PLAYER_BULLET_NUM = 1;
                 DF.FONT_M = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
                 DF.GRAVITY = 0.25 * 60;
@@ -1208,6 +1212,7 @@ var jp;
                             var animWalk = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA001_WALK);
                             var animStand = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA001_STAND);
                             var animSquat = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA001_SQUAT);
+                            var animDead = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA001_DEAD);
                             var colliderA = ((function () {
                                 var c = new osakana4242.utils.Collider();
                                 c.parent = _this;
@@ -1232,6 +1237,10 @@ var jp;
                                 "squat": {
                                     "anim": animSquat,
                                     "collider": colliderB
+                                },
+                                "dead": {
+                                    "anim": animDead,
+                                    "collider": colliderB
                                 }
                             };
                         })());
@@ -1239,55 +1248,25 @@ var jp;
                         this.life.hpMax = kimiko.DF.PLAYER_HP;
                         this.life.hp = this.life.hpMax;
                         this.life.setGhostFrameMax(kimiko.kimiko.secToFrame(1.5));
+                        this.life.damageListener = function () {
+                            if(_this.life.isDead()) {
+                            }
+                        };
                         this.touchStartAnchor = new osakana4242.utils.Vector2D();
-                        this.useGravity = true;
+                        this.isSlowMove = false;
                         this.isOnMap = false;
                         this.targetEnemy = null;
                         this.limitRect = new osakana4242.utils.Rect(0, 0, kimiko.DF.SC_W, kimiko.DF.SC_H);
                         this.wallPushDir = new osakana4242.utils.Vector2D();
+                        this.inputForce = new osakana4242.utils.Vector2D();
                         this.addEventListener(Event.ENTER_FRAME, function () {
                             var scene = _this.scene;
-                            _this.checkTouchInput();
+                            if(_this.life.isDead()) {
+                                return;
+                            }
+                            _this.checkInput();
                             _this.stepMove();
-                            if((_this.age % kimiko.kimiko.secToFrame(0.2)) === 0) {
-                                var srect = osakana4242.utils.Rect.alloc();
-                                srect.width = 256;
-                                srect.height = _this.height * 2;
-                                srect.x = _this.x + ((_this.width - srect.width) / 2);
-                                srect.y = _this.y + ((_this.height - srect.height) / 2);
-                                var enemy = scene.getNearEnemy(_this, srect);
-                                if(enemy) {
-                                    _this.targetEnemy = enemy;
-                                }
-                                osakana4242.utils.Rect.free(srect);
-                            }
-                            if(_this.targetEnemy === null) {
-                            } else {
-                                if(_this.targetEnemy.life.isDead()) {
-                                    _this.targetEnemy = null;
-                                }
-                                if(_this.targetEnemy !== null) {
-                                    var distance = osakana4242.utils.Rect.distance(_this, _this.targetEnemy);
-                                    var threshold = kimiko.DF.SC1_W;
-                                    if(threshold < distance) {
-                                        _this.targetEnemy = null;
-                                    } else {
-                                        _this.dirX = kimiko.kimiko.numberUtil.sign(_this.targetEnemy.x - _this.x);
-                                        _this.scaleX = _this.dirX;
-                                        if((_this.age % kimiko.kimiko.secToFrame(0.2)) === 0) {
-                                            var srect = osakana4242.utils.Rect.alloc();
-                                            srect.width = kimiko.DF.SC1_W;
-                                            srect.height = _this.height * 2;
-                                            srect.x = _this.center.x + (_this.dirX < 0 ? -srect.width : 0);
-                                            srect.y = _this.y + ((_this.height - srect.height) / 2);
-                                            if(osakana4242.utils.Rect.intersect(srect, _this.targetEnemy)) {
-                                                _this.attack();
-                                            }
-                                            osakana4242.utils.Rect.free(srect);
-                                        }
-                                    }
-                                }
-                            }
+                            _this.searchEnemy();
                         });
                     },
                     bodyStyle: {
@@ -1298,6 +1277,48 @@ var jp;
                             this._bodyStyle = v;
                             this.anim.sequence = v.anim;
                             this.collider = v.collider;
+                        }
+                    },
+                    searchEnemy: function () {
+                        var scene = this.scene;
+                        if((this.age % kimiko.kimiko.secToFrame(0.2)) === 0) {
+                            var srect = osakana4242.utils.Rect.alloc();
+                            srect.width = 256;
+                            srect.height = this.height * 2;
+                            srect.x = this.x + ((this.width - srect.width) / 2);
+                            srect.y = this.y + ((this.height - srect.height) / 2);
+                            var enemy = scene.getNearEnemy(this, srect);
+                            if(enemy) {
+                                this.targetEnemy = enemy;
+                            }
+                            osakana4242.utils.Rect.free(srect);
+                        }
+                        if(this.targetEnemy === null) {
+                        } else {
+                            if(this.targetEnemy.life.isDead()) {
+                                this.targetEnemy = null;
+                            }
+                            if(this.targetEnemy !== null) {
+                                var distance = osakana4242.utils.Rect.distance(this, this.targetEnemy);
+                                var threshold = kimiko.DF.SC1_W;
+                                if(threshold < distance) {
+                                    this.targetEnemy = null;
+                                } else {
+                                    this.dirX = kimiko.kimiko.numberUtil.sign(this.targetEnemy.x - this.x);
+                                    this.scaleX = this.dirX;
+                                    if((this.age % kimiko.kimiko.secToFrame(0.2)) === 0) {
+                                        var srect = osakana4242.utils.Rect.alloc();
+                                        srect.width = kimiko.DF.SC1_W;
+                                        srect.height = this.height * 2;
+                                        srect.x = this.center.x + (this.dirX < 0 ? -srect.width : 0);
+                                        srect.y = this.y + ((this.height - srect.height) / 2);
+                                        if(osakana4242.utils.Rect.intersect(srect, this.targetEnemy)) {
+                                            this.attack();
+                                        }
+                                        osakana4242.utils.Rect.free(srect);
+                                    }
+                                }
+                            }
                         }
                     },
                     stateToString: function () {
@@ -1317,32 +1338,16 @@ var jp;
                     },
                     stepMove: function () {
                         var scene = this.scene;
-                        var input = kimiko.kimiko.core.input;
-                        var flag = ((input.left ? 1 : 0) << 0) | ((input.right ? 1 : 0) << 1) | ((input.up ? 1 : 0) << 2) | ((input.down ? 1 : 0) << 3);
-                        var isSlow = kimiko.kimiko.core.input.a;
-                        if(isSlow) {
-                            this.force.x = 0;
-                            this.force.y = 0;
-                        }
-                        if(flag !== 0) {
-                            if(isSlow) {
-                                this.force.x = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].x * 2;
-                                this.force.y = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * 2;
-                            } else {
-                                this.force.x = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].x * 4;
-                                this.force.y = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * 4;
-                            }
-                        }
                         if(!this.targetEnemy) {
-                            if(0 !== this.force.x) {
-                                this.dirX = kimiko.kimiko.numberUtil.sign(this.force.x);
+                            if(0 !== this.inputForce.x) {
+                                this.dirX = kimiko.kimiko.numberUtil.sign(this.inputForce.x);
                                 this.scaleX = this.dirX;
                             }
                         }
                         var nextBodyStyle = this.bodyStyle;
-                        if(Math.abs(this.force.x) < 2 && 0 < this.wallPushDir.y) {
+                        if(Math.abs(this.inputForce.x) < 3 && 0 < this.wallPushDir.y) {
                             nextBodyStyle = this.bodyStyles.squat;
-                        } else if(this.force.x !== 0 || this.force.y !== 0) {
+                        } else if(this.inputForce.x !== 0 || this.inputForce.y !== 0) {
                             nextBodyStyle = this.bodyStyles.walk;
                         } else {
                             nextBodyStyle = this.bodyStyles.stand;
@@ -1350,15 +1355,18 @@ var jp;
                         if(this.bodyStyle !== nextBodyStyle) {
                             this.bodyStyle = nextBodyStyle;
                         }
-                        if(this.useGravity && !this.isOnMap) {
-                            this.force.y += kimiko.kimiko.dpsToDpf(kimiko.DF.GRAVITY);
+                        if(this.isSlowMove || !osakana4242.utils.Vector2D.equals(this.inputForce, osakana4242.utils.Vector2D.zero)) {
+                            this.force.x = this.inputForce.x;
+                            this.force.y = this.inputForce.y;
+                        } else {
                         }
-                        osakana4242.utils.Vector2D.copyFrom(this.wallPushDir, osakana4242.utils.Vector2D.zero);
-                        var loopCnt = Math.floor(Math.max(Math.abs(this.force.x), Math.abs(this.force.y)) / kimiko.DF.PLAYER_MOVE_RESOLUTION);
+                        this.force.y += kimiko.kimiko.dpsToDpf(kimiko.DF.GRAVITY);
                         var totalMx = this.force.x;
                         var totalMy = this.force.y;
-                        var mx = this.force.x / loopCnt;
-                        var my = this.force.y / loopCnt;
+                        osakana4242.utils.Vector2D.copyFrom(this.wallPushDir, osakana4242.utils.Vector2D.zero);
+                        var loopCnt = Math.floor(Math.max(Math.abs(totalMx), Math.abs(totalMy)) / kimiko.DF.PLAYER_MOVE_RESOLUTION);
+                        var mx = totalMx / loopCnt;
+                        var my = totalMy / loopCnt;
                         for(var i = 0, loopCnt; i <= loopCnt; ++i) {
                             if(i < loopCnt) {
                                 this.x += mx;
@@ -1380,24 +1388,45 @@ var jp;
                                 totalMy = 0;
                             }
                         }
-                        var touch = scene.touch;
-                        if(touch.isTouching || flag !== 0) {
+                        if(!osakana4242.utils.Vector2D.equals(this.inputForce, osakana4242.utils.Vector2D.zero)) {
                             this.force.x = 0;
                             this.force.y = 0;
                         }
                     },
                     onTrim: function (x, y) {
                         if(x !== 0) {
-                            if(1 < Math.abs(this.force.x)) {
+                            if(1 < Math.abs(this.inputForce.x)) {
                                 this.wallPushDir.x = x;
                             }
                             this.force.x = 0;
                         }
                         if(y !== 0) {
-                            if(1 < Math.abs(this.force.y)) {
+                            if(1 < Math.abs(this.inputForce.y)) {
                                 this.wallPushDir.y = y;
                             }
                             this.force.y = 0;
+                        }
+                    },
+                    checkInput: function () {
+                        osakana4242.utils.Vector2D.copyFrom(this.inputForce, osakana4242.utils.Vector2D.zero);
+                        if(this.life.isDead()) {
+                            return;
+                        }
+                        this.checkKeyInput();
+                        this.checkTouchInput();
+                    },
+                    checkKeyInput: function () {
+                        var input = kimiko.kimiko.core.input;
+                        var flag = ((input.left ? 1 : 0) << 0) | ((input.right ? 1 : 0) << 1) | ((input.up ? 1 : 0) << 2) | ((input.down ? 1 : 0) << 3);
+                        this.isSlowMove = kimiko.kimiko.core.input.a;
+                        if(flag !== 0) {
+                            if(this.isSlowMove) {
+                                this.inputForce.x = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].x * 2;
+                                this.inputForce.y = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * 2;
+                            } else {
+                                this.inputForce.x = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].x * 4;
+                                this.inputForce.y = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * 4;
+                            }
                         }
                     },
                     checkTouchInput: function () {
@@ -1409,16 +1438,16 @@ var jp;
                             var flag = ((input.left ? 1 : 0) << 0) | ((input.right ? 1 : 0) << 1) | ((input.up ? 1 : 0) << 2) | ((input.down ? 1 : 0) << 3);
                             var isSlow = kimiko.kimiko.core.input.a;
                             if(isSlow) {
-                                player.force.x = 0;
-                                player.force.y = 0;
+                                player.inputForce.x = 0;
+                                player.inputForce.y = 0;
                             }
                             if(flag !== 0) {
                                 if(isSlow) {
-                                    player.force.x = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].x * 2;
-                                    player.force.y = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * 2;
+                                    player.inputForce.x = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].x * 2;
+                                    player.inputForce.y = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * 2;
                                 } else {
-                                    player.force.x = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].x * 4;
-                                    player.force.y = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * 4;
+                                    player.inputForce.x = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].x * 4;
+                                    player.inputForce.y = kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * 4;
                                 }
                             }
                         } else {
@@ -1431,13 +1460,13 @@ var jp;
                                 osakana4242.utils.Vector2D.normalize(v);
                                 v.x *= vm;
                                 v.y *= vm;
-                                player.force.x = v.x;
-                                player.force.y = v.y;
+                                player.inputForce.x = v.x;
+                                player.inputForce.y = v.y;
                                 osakana4242.utils.Vector2D.free(tv);
                                 osakana4242.utils.Vector2D.free(v);
                             } else {
-                                player.force.x = kimiko.kimiko.numberUtil.trim(touch.diff.x * moveRate.x, -moveLimit, moveLimit);
-                                player.force.y = kimiko.kimiko.numberUtil.trim(touch.diff.y * moveRate.y, -moveLimit, moveLimit);
+                                player.inputForce.x = kimiko.kimiko.numberUtil.trim(touch.diff.x * moveRate.x, -moveLimit, moveLimit);
+                                player.inputForce.y = kimiko.kimiko.numberUtil.trim(touch.diff.y * moveRate.y, -moveLimit, moveLimit);
                             }
                         }
                     }
@@ -1576,6 +1605,10 @@ var jp;
                         if(this.damageListener) {
                             this.damageListener();
                         }
+                    };
+                    Life.prototype.recover = function () {
+                        this.hp = this.hpMax;
+                        this.ghostFrameCounter = this.ghostFrameMax;
                     };
                     return Life;
                 })();
@@ -1754,6 +1787,8 @@ var jp;
                         this.score = 0;
                         this.timeLimitCounter = 0;
                         this.timeLimit = kimiko.kimiko.secToFrame(180);
+                        this.gameOverFrameMax = kimiko.kimiko.secToFrame(3.0);
+                        this.gameOverFrameCounter = this.gameOverFrameMax;
                         this.celarFrameMax = kimiko.kimiko.secToFrame(3.0);
                         this.clearFrameCounter = this.clearFrameMax;
                         this.statusTexts = [
@@ -1832,7 +1867,9 @@ var jp;
                         var scene = this;
                         scene.score = 0;
                         var player = this.player;
-                        player.life.hp = player.life.hpMax;
+                        player.life.recover();
+                        player.visible = true;
+                        player.opacity = 1.0;
                     },
                     clear: function () {
                         this.ownBulletPool.freeAll();
@@ -1899,7 +1936,12 @@ var jp;
                         var mapCharaMgr = this.mapCharaMgr;
                         mapCharaMgr.step();
                         this.checkCollision();
-                        if(this.clearFrameCounter < this.clearFrameMax) {
+                        if(this.gameOverFrameCounter < this.gameOverFrameMax) {
+                            ++this.gameOverFrameCounter;
+                            if(this.gameOverFrameMax <= this.gameOverFrameCounter) {
+                                this.state = this.stateGameOver;
+                            }
+                        } else if(this.clearFrameCounter < this.clearFrameMax) {
                             ++this.clearFrameCounter;
                             if(this.clearFrameMax <= this.clearFrameCounter) {
                                 this.state = this.stateGameClear;
@@ -1979,11 +2021,19 @@ var jp;
                     },
                     onPlayerDead: function () {
                         var scene = this;
-                        scene.state = scene.stateGameOver;
+                        var player = this.player;
+                        var sx = player.x;
+                        var sy = player.y;
+                        var t1x = sx + (-player.dirX * 96);
+                        var t1y = sy - 64;
+                        var dx = -player.dirX;
+                        player.tl.moveBy(dx * 96 * 0.25, -96 * 0.8, kimiko.kimiko.secToFrame(0.2), Easing.LINEAR).moveBy(dx * 96 * 0.25, -96 * 0.2, kimiko.kimiko.secToFrame(0.2), Easing.LINEAR).moveBy(dx * 96 * 0.25, 32 * 0.2, kimiko.kimiko.secToFrame(0.3), Easing.LINEAR).moveBy(dx * 96 * 0.25, 32 * 0.8, kimiko.kimiko.secToFrame(0.3), Easing.LINEAR).hide();
+                        scene.gameOverFrameMax = kimiko.kimiko.secToFrame(1.0);
+                        scene.gameOverFrameCounter = 0;
                     },
                     onBossDead: function () {
                         var scene = this;
-                        scene.clearFrameMax = kimiko.kimiko.secToFrame(3.0);
+                        scene.clearFrameMax = kimiko.kimiko.secToFrame(2.0);
                         scene.clearFrameCounter = 0;
                     },
                     getNearEnemy: function (sprite, searchRect) {

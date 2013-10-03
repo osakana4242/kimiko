@@ -56,6 +56,11 @@ module jp.osakana4242.kimiko.scenes {
 				this.damageListener();
 			}
 		}
+		
+		public recover(): void {
+			this.hp = this.hpMax;
+			this.ghostFrameCounter = this.ghostFrameMax;
+		}
 	}
 	
 	export class MapCharaManager {
@@ -275,6 +280,10 @@ module jp.osakana4242.kimiko.scenes {
 			this.score = 0;
 			this.timeLimitCounter = 0;
 			this.timeLimit = kimiko.secToFrame(180);
+			/** 条件を満たしてからゲームオーバーに移るまでの間隔 */
+			this.gameOverFrameMax = kimiko.secToFrame(3.0);
+			this.gameOverFrameCounter = this.gameOverFrameMax;
+			/** 条件を満たしてからゲームクリアに移るまでの間隔 */
 			this.celarFrameMax = kimiko.secToFrame(3.0);
 			this.clearFrameCounter = this.clearFrameMax;
 			this.statusTexts = [
@@ -374,7 +383,10 @@ module jp.osakana4242.kimiko.scenes {
 			scene.score = 0;
 
 			var player = this.player;
-			player.life.hp = player.life.hpMax;
+			player.life.recover();
+			player.visible = true;
+			player.opacity = 1.0;
+			
 		},
 
 		clear: function () {
@@ -461,7 +473,12 @@ module jp.osakana4242.kimiko.scenes {
 			//
 			this.checkCollision();
 			//
-			if (this.clearFrameCounter < this.clearFrameMax) {
+			if (this.gameOverFrameCounter < this.gameOverFrameMax) {
+				++this.gameOverFrameCounter;
+				if (this.gameOverFrameMax <= this.gameOverFrameCounter) {
+					this.state = this.stateGameOver;
+				}
+			} else if (this.clearFrameCounter < this.clearFrameMax) {
 				++this.clearFrameCounter;
 				if (this.clearFrameMax <= this.clearFrameCounter) {
 					this.state = this.stateGameClear;
@@ -550,23 +567,44 @@ module jp.osakana4242.kimiko.scenes {
 			var player = this.player;
 			utils.Rect.copyFrom(player.limitRect, camera.limitRect);
 
-			// カメラの追跡対象をプレイヤーにする
+			// カメラの追跡対象をプレイヤーにする.
 			camera.targetNode = player;
 			camera.moveToTarget();
 		},
 
 		onPlayerDead: function () {
 			var scene = this;
-			scene.state = scene.stateGameOver;
+			var player = this.player;
+			var sx = player.x;
+			var sy = player.y;
+			var t1x = sx + (- player.dirX * 96);
+			var t1y = sy - 64;
+			var dx = - player.dirX;
+			player.tl.
+				moveBy(dx * 96 * 0.25, -96 * 0.8, kimiko.secToFrame(0.2), Easing.LINEAR).
+				moveBy(dx * 96 * 0.25, -96 * 0.2, kimiko.secToFrame(0.2), Easing.LINEAR).
+				moveBy(dx * 96 * 0.25,  32 * 0.2, kimiko.secToFrame(0.3), Easing.LINEAR).
+				moveBy(dx * 96 * 0.25,  32 * 0.8, kimiko.secToFrame(0.3), Easing.LINEAR).
+				hide();
+
+			/*
+			player.tl.
+				moveTo(sx + (t1x - sx) * 0.5, sy + (t1y - sy) * 0.5 - 8, kimiko.secToFrame(0.2), Easing.LINEAR).
+				moveTo(sx + (t1x - sx) * 1.0, sy + (t1y - sy) * 1.0,     kimiko.secToFrame(0.3), Easing.LINEAR).
+				moveBy(- player.dirX * 48,   32,  kimiko.secToFrame(0.5), Easing.LINEAR).
+				hide();
+			*/
+			
+			// ゲームオーバーカウント開始.
+			scene.gameOverFrameMax = kimiko.secToFrame(1.0);
+			scene.gameOverFrameCounter = 0;
 		},
 		
 		onBossDead: function () {
 			var scene = this;
-			// ゲームクリア.
-			// クリアまですこし間を置く.
-			scene.clearFrameMax = kimiko.secToFrame(3.0);
+			// ゲームクリアカウント開始.
+			scene.clearFrameMax = kimiko.secToFrame(2.0);
 			scene.clearFrameCounter = 0;
-			// scene.state = scene.stateGameClear;
 		},
 		
 		getNearEnemy: function (sprite, searchRect: utils.IRect) {
