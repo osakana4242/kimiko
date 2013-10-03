@@ -1754,6 +1754,8 @@ var jp;
                         this.score = 0;
                         this.timeLimitCounter = 0;
                         this.timeLimit = kimiko.kimiko.secToFrame(180);
+                        this.celarFrameMax = kimiko.kimiko.secToFrame(3.0);
+                        this.clearFrameCounter = this.clearFrameMax;
                         this.statusTexts = [
                             [], 
                             [], 
@@ -1897,7 +1899,12 @@ var jp;
                         var mapCharaMgr = this.mapCharaMgr;
                         mapCharaMgr.step();
                         this.checkCollision();
-                        if(this.countTimeLimit()) {
+                        if(this.clearFrameCounter < this.clearFrameMax) {
+                            ++this.clearFrameCounter;
+                            if(this.clearFrameMax <= this.clearFrameCounter) {
+                                this.state = this.stateGameClear;
+                            }
+                        } else if(this.countTimeLimit()) {
                             this.state = this.stateGameOver;
                         }
                     },
@@ -1976,7 +1983,8 @@ var jp;
                     },
                     onBossDead: function () {
                         var scene = this;
-                        scene.state = scene.stateGameClear;
+                        scene.clearFrameMax = kimiko.kimiko.secToFrame(3.0);
+                        scene.clearFrameCounter = 0;
                     },
                     getNearEnemy: function (sprite, searchRect) {
                         var mapCharaMgr = this.mapCharaMgr;

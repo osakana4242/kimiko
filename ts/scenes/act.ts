@@ -49,7 +49,7 @@ module jp.osakana4242.kimiko.scenes {
 		public isGhostTime(): bool { return this.ghostFrameCounter < this.ghostFrameMax; }
 		public canAddDamage(): bool { return this.isAlive() && !this.isGhostTime(); }
 
-		public damage(v: number) {
+		public damage(v: number): void {
 			this.hp -= v;
 			this.ghostFrameCounter = 0;
 			if (this.damageListener) {
@@ -275,6 +275,8 @@ module jp.osakana4242.kimiko.scenes {
 			this.score = 0;
 			this.timeLimitCounter = 0;
 			this.timeLimit = kimiko.secToFrame(180);
+			this.celarFrameMax = kimiko.secToFrame(3.0);
+			this.clearFrameCounter = this.clearFrameMax;
 			this.statusTexts = [
 				[], [], [], [],
 			];
@@ -459,7 +461,12 @@ module jp.osakana4242.kimiko.scenes {
 			//
 			this.checkCollision();
 			//
-			if (this.countTimeLimit()) {
+			if (this.clearFrameCounter < this.clearFrameMax) {
+				++this.clearFrameCounter;
+				if (this.clearFrameMax <= this.clearFrameCounter) {
+					this.state = this.stateGameClear;
+				}
+			} else if (this.countTimeLimit()) {
 				// タイムオーバー.
 				this.state = this.stateGameOver;
 			}
@@ -555,7 +562,11 @@ module jp.osakana4242.kimiko.scenes {
 		
 		onBossDead: function () {
 			var scene = this;
-			scene.state = scene.stateGameClear;
+			// ゲームクリア.
+			// クリアまですこし間を置く.
+			scene.clearFrameMax = kimiko.secToFrame(3.0);
+			scene.clearFrameCounter = 0;
+			// scene.state = scene.stateGameClear;
 		},
 		
 		getNearEnemy: function (sprite, searchRect: utils.IRect) {
