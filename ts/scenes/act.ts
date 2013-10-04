@@ -186,7 +186,7 @@ module jp.osakana4242.kimiko.scenes {
 			scene.addChild(fadeFilm);
 			(() => {
 				var next = () => {
-					kimiko.core.replaceScene(new scenes.Act());
+					kimiko.core.replaceScene(kimiko.core.gameScene);
 				};
 				scene.tl.
 					then(() => { fadeFilm.tl.fadeTo(0.0, kimiko.secToFrame(0.5)); }).
@@ -235,11 +235,22 @@ module jp.osakana4242.kimiko.scenes {
 			});
 		}
 	});
+
+	/**
+		 GAME CLEAR!
+		REST TIME 999
+		SCORE 999
+		[SEND] | [RETRY]
+
+		残り時間はスコアに換算する.
+		残りライフもスコアに換算する.
+	*/
 	export var GameClear: any = Class.create(Scene, {
 		initialize: function () {
 			Scene.call(this);
 			
 			var scene = this;
+			var pd = kimiko.playerData;
 			//
 			var label1 = new enchant.Label("GAME CLEAR!");
 			((label: any) => {
@@ -249,19 +260,72 @@ module jp.osakana4242.kimiko.scenes {
 				label.color = "rgb(255, 255, 255)";
 				label.textAlign = "center";
 				var ax = (DF.SC1_W - label.width) / 2;
-				var ay = (DF.SC1_H - label.height) / 2;
+				var ay = 32 + 24 * 1;
 				label.x = ax;
-				label.y = ay;
+				label.y = ay - 8;
 				label.tl.
-					moveTo(ax + 0, ay + 8, kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).
-					moveTo(ax + 0, ay - 8, kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).
-					loop();
+					hide().
+					delay(kimiko.secToFrame(0.5)).
+					show().
+					moveTo(ax, ay, kimiko.secToFrame(0.5), Easing.SIN_EASEOUT);
 			}(label1));
+			//
+			var label2 = new enchant.Label("REST TIME " + Math.floor(kimiko.frameToSec(pd.restTimeCounter)));
+			((label: any) => {
+				label.font = DF.FONT_M;
+				label.width = DF.SC_W;
+				label.height = 12;
+				label.color = "rgb(255, 255, 255)";
+				label.textAlign = "center";
+				var ax = (DF.SC1_W - label.width) / 2;
+				var ay = 32 + 24 * 2;
+				label.x = ax;
+				label.y = ay - 8;
+				label.tl.
+					hide().
+					delay(kimiko.secToFrame(1.0)).
+					show().
+					moveTo(ax, ay, kimiko.secToFrame(0.5), Easing.SIN_EASEOUT);
+			}(label2));
+
+			var label3 = new enchant.Label("SCORE " + pd.score);
+			((label: any) => {
+				label.font = DF.FONT_M;
+				label.width = DF.SC_W;
+				label.height = 12;
+				label.color = "rgb(255, 255, 255)";
+				label.textAlign = "center";
+				var ax = (DF.SC1_W - label.width) / 2;
+				var ay = 32 + 24 * 3;
+				label.x = ax;
+				label.y = ay - 8;
+				label.tl.
+					hide().
+					delay(kimiko.secToFrame(1.5)).
+					show().
+					moveTo(ax, ay, kimiko.secToFrame(0.5), Easing.SIN_EASEOUT);
+			}(label3));
+
 			//
 			var layer1 = new enchant.Group();
 			layer1.addChild(label1); 
+			layer1.addChild(label2);
+			layer1.addChild(label3);
 			//
 			scene.addChild(layer1);
+			//
+			scene.tl.
+				delay(kimiko.secToFrame(3.0)).
+				waitUntil(() => {
+					if (pd.restTimeCounter < kimiko.secToFrame(1)) {
+						return true;
+					}
+					pd.restTimeCounter -= kimiko.secToFrame(1);
+					pd.score += Math.floor(10);
+					label2.text = "REST TIME " + Math.floor(kimiko.frameToSec(pd.restTimeCounter));
+					label3.text = "SCORE " + pd.score;
+					return false;
+				});
 			//
 			scene.addEventListener(Event.TOUCH_END, () => {
 				kimiko.core.popScene();
@@ -277,9 +341,6 @@ module jp.osakana4242.kimiko.scenes {
 
 			// systems
 			this.state = this.stateGameStart;
-			this.score = 0;
-			this.timeLimitCounter = 0;
-			this.timeLimit = kimiko.secToFrame(180);
 			/** 条件を満たしてからゲームオーバーに移るまでの間隔 */
 			this.gameOverFrameMax = 0;
 			this.gameOverFrameCounter = this.gameOverFrameMax;
@@ -380,7 +441,9 @@ module jp.osakana4242.kimiko.scenes {
 		// スコアリセット、プレイヤーHP回復。
 		initPlayerStatus: function () {
 			var scene = this;
-			scene.score = 0;
+			kimiko.playerData.score = 0;
+			kimiko.playerData.restTimeMax = kimiko.secToFrame(180);
+			kimiko.playerData.restTimeCounter = kimiko.playerData.restTimeMax;
 
 			var player = this.player;
 			player.life.recover();
@@ -445,6 +508,7 @@ module jp.osakana4242.kimiko.scenes {
 		stateGameStart: function () {
 			var scene = this;
 			scene.state = scene.stateNormal;
+			// scene.state = scene.stateGameClear;
 
 			this.clear();
 			this.initPlayerStatus();
@@ -503,8 +567,6 @@ module jp.osakana4242.kimiko.scenes {
 		
 		loadMapData: function (mapData: utils.IMapData) {
 			var map = this.map;
-			this.timeLimit = kimiko.secToFrame(180);
-			this.timeLimitCounter = 0;
 
 			(() => {
 				var layer = mapData.layers[0];
@@ -666,23 +728,25 @@ module jp.osakana4242.kimiko.scenes {
 		
 		/** タイムオーバーになったらtrue. */
 		countTimeLimit: function () {
-			if (this.timeLimit <= this.timeLimitCounter) {
+			var pd = kimiko.playerData;
+			if (pd.restTimeCounter <= 0) {
 				return true;
 			}
-			++this.timeLimitCounter;
-			return this.timeLimit <= this.timeLimitCounter;
+			--pd.restTimeCounter;
+			return pd.restTimeCounter <= 0;
 		},
 
 
 		updateStatusText: function () {
 			var scene = this;
 			var player = this.player;
+			var pd = kimiko.playerData;
 			var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
 			//" fps:" + Math.round(kimiko.core.actualFps)
 			var texts: string[][] = this.statusTexts;
 			var lifeText = utils.StringUtil.mul("o", player.life.hp) + utils.StringUtil.mul("_", player.life.hpMax - player.life.hp);
-			texts[0][0] = "SC " + scene.score + " " +
-				"TIME " + Math.floor(kimiko.frameToSec(this.timeLimit - this.timeLimitCounter));	
+			texts[0][0] = "SC " + kimiko.playerData.score + " " +
+				"TIME " + Math.floor(kimiko.frameToSec(pd.restTimeCounter));	
 			texts[1][0] = "LIFE " + lifeText + " " +
 				"WALL " + player.wallPushDir.x + "," + player.wallPushDir.y + " " +
 				(player.targetEnemy ? "LOCK" : "    ") + " " +
@@ -789,10 +853,10 @@ module jp.osakana4242.kimiko.scenes {
 						enemy.life.canAddDamage() &&
 						enemy.collider.intersect(bullet.collider)) {
 						enemy.damage(bullet);
-						scene.score += 10;
+						kimiko.playerData.score += 10;
 						if (enemy.life.isDead()) {
 							var ed: IEnemyData = enemy.getEnemyData();
-							scene.score += ed.score;
+							kimiko.playerData.score += ed.score;
 							if (enemy.isBoss()) {
 								scene.onBossDead();
 							}

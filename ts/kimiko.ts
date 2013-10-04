@@ -614,6 +614,11 @@ module jp.osakana4242.kimiko {
 		version: string;
 	}
 
+	export class PlayerData {
+		score: number;
+		restTimeCounter: number;
+		restTimeMax: number;
+	}
 
 	export class Kimiko {
 		
@@ -621,12 +626,15 @@ module jp.osakana4242.kimiko {
 		
 		numberUtil = new NumberUtil();
 		config: IConfig;
+		playerData: PlayerData;
+		gameScene: any;
 		
 		constructor(config: IConfig) {
 			if (Kimiko.instance) {
 				return;
 			}
 			Kimiko.instance = this;
+			this.playerData = new PlayerData();
 			this.config = config;
 			
 			var core: any = new enchant.Core(DF.SC_W, DF.SC_H);
@@ -673,6 +681,7 @@ module jp.osakana4242.kimiko {
 			
 			//
 			core.onload = function () {
+				this.gameScene = new jp.osakana4242.kimiko.scenes.Act()
 				var scene = new jp.osakana4242.kimiko.scenes.GameStart();
 				core.replaceScene(scene);
 			};

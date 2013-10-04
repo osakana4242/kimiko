@@ -576,6 +576,11 @@ var jp;
                 return NumberUtil;
             })();
             kimiko.NumberUtil = NumberUtil;            
+            var PlayerData = (function () {
+                function PlayerData() { }
+                return PlayerData;
+            })();
+            kimiko.PlayerData = PlayerData;            
             var Kimiko = (function () {
                 function Kimiko(config) {
                     this.numberUtil = new NumberUtil();
@@ -585,6 +590,7 @@ var jp;
                         return;
                     }
                     Kimiko.instance = this;
+                    this.playerData = new PlayerData();
                     this.config = config;
                     var core = new enchant.Core(DF.SC_W, DF.SC_H);
                     core.fps = config.fps || DF.BASE_FPS;
@@ -651,6 +657,7 @@ var jp;
                     core.keybind("W".charCodeAt(0), "up");
                     core.keybind("S".charCodeAt(0), "down");
                     core.onload = function () {
+                        this.gameScene = new jp.osakana4242.kimiko.scenes.Act();
                         var scene = new jp.osakana4242.kimiko.scenes.GameStart();
                         core.replaceScene(scene);
                     };
@@ -1729,7 +1736,7 @@ var jp;
                         scene.addChild(fadeFilm);
                         ((function () {
                             var next = function () {
-                                kimiko.kimiko.core.replaceScene(new kimiko.scenes.Act());
+                                kimiko.kimiko.core.replaceScene(kimiko.kimiko.core.gameScene);
                             };
                             scene.tl.then(function () {
                                 fadeFilm.tl.fadeTo(0.0, kimiko.kimiko.secToFrame(0.5));
@@ -1770,6 +1777,7 @@ var jp;
                     initialize: function () {
                         Scene.call(this);
                         var scene = this;
+                        var pd = kimiko.kimiko.playerData;
                         var label1 = new enchant.Label("GAME CLEAR!");
                         ((function (label) {
                             label.font = kimiko.DF.FONT_M;
@@ -1778,14 +1786,52 @@ var jp;
                             label.color = "rgb(255, 255, 255)";
                             label.textAlign = "center";
                             var ax = (kimiko.DF.SC1_W - label.width) / 2;
-                            var ay = (kimiko.DF.SC1_H - label.height) / 2;
+                            var ay = 32 + 24 * 1;
                             label.x = ax;
-                            label.y = ay;
-                            label.tl.moveTo(ax + 0, ay + 8, kimiko.kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).moveTo(ax + 0, ay - 8, kimiko.kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).loop();
+                            label.y = ay - 8;
+                            label.tl.hide().delay(kimiko.kimiko.secToFrame(0.5)).show().moveTo(ax, ay, kimiko.kimiko.secToFrame(0.5), Easing.SIN_EASEOUT);
                         })(label1));
+                        var label2 = new enchant.Label("REST TIME " + Math.floor(kimiko.kimiko.frameToSec(pd.restTimeCounter)));
+                        ((function (label) {
+                            label.font = kimiko.DF.FONT_M;
+                            label.width = kimiko.DF.SC_W;
+                            label.height = 12;
+                            label.color = "rgb(255, 255, 255)";
+                            label.textAlign = "center";
+                            var ax = (kimiko.DF.SC1_W - label.width) / 2;
+                            var ay = 32 + 24 * 2;
+                            label.x = ax;
+                            label.y = ay - 8;
+                            label.tl.hide().delay(kimiko.kimiko.secToFrame(1.0)).show().moveTo(ax, ay, kimiko.kimiko.secToFrame(0.5), Easing.SIN_EASEOUT);
+                        })(label2));
+                        var label3 = new enchant.Label("SCORE " + pd.score);
+                        ((function (label) {
+                            label.font = kimiko.DF.FONT_M;
+                            label.width = kimiko.DF.SC_W;
+                            label.height = 12;
+                            label.color = "rgb(255, 255, 255)";
+                            label.textAlign = "center";
+                            var ax = (kimiko.DF.SC1_W - label.width) / 2;
+                            var ay = 32 + 24 * 3;
+                            label.x = ax;
+                            label.y = ay - 8;
+                            label.tl.hide().delay(kimiko.kimiko.secToFrame(1.5)).show().moveTo(ax, ay, kimiko.kimiko.secToFrame(0.5), Easing.SIN_EASEOUT);
+                        })(label3));
                         var layer1 = new enchant.Group();
                         layer1.addChild(label1);
+                        layer1.addChild(label2);
+                        layer1.addChild(label3);
                         scene.addChild(layer1);
+                        scene.tl.delay(kimiko.kimiko.secToFrame(3.0)).waitUntil(function () {
+                            if(pd.restTimeCounter < kimiko.kimiko.secToFrame(1)) {
+                                return true;
+                            }
+                            pd.restTimeCounter -= kimiko.kimiko.secToFrame(1);
+                            pd.score += Math.floor(10);
+                            label2.text = "REST TIME " + Math.floor(kimiko.kimiko.frameToSec(pd.restTimeCounter));
+                            label3.text = "SCORE " + pd.score;
+                            return false;
+                        });
                         scene.addEventListener(Event.TOUCH_END, function () {
                             kimiko.kimiko.core.popScene();
                         });
@@ -1797,9 +1843,6 @@ var jp;
                         Scene.call(this);
                         var scene = this;
                         this.state = this.stateGameStart;
-                        this.score = 0;
-                        this.timeLimitCounter = 0;
-                        this.timeLimit = kimiko.kimiko.secToFrame(180);
                         this.gameOverFrameMax = 0;
                         this.gameOverFrameCounter = this.gameOverFrameMax;
                         this.celarFrameMax = 0;
@@ -1878,7 +1921,9 @@ var jp;
                     },
                     initPlayerStatus: function () {
                         var scene = this;
-                        scene.score = 0;
+                        kimiko.kimiko.playerData.score = 0;
+                        kimiko.kimiko.playerData.restTimeMax = kimiko.kimiko.secToFrame(180);
+                        kimiko.kimiko.playerData.restTimeCounter = kimiko.kimiko.playerData.restTimeMax;
                         var player = this.player;
                         player.life.recover();
                         player.visible = true;
@@ -1974,8 +2019,6 @@ var jp;
                     loadMapData: function (mapData) {
                         var _this = this;
                         var map = this.map;
-                        this.timeLimit = kimiko.kimiko.secToFrame(180);
-                        this.timeLimitCounter = 0;
                         ((function () {
                             var layer = mapData.layers[0];
                             map.loadData(layer.tiles);
@@ -2101,19 +2144,21 @@ var jp;
                         return false;
                     },
                     countTimeLimit: function () {
-                        if(this.timeLimit <= this.timeLimitCounter) {
+                        var pd = kimiko.kimiko.playerData;
+                        if(pd.restTimeCounter <= 0) {
                             return true;
                         }
-                        ++this.timeLimitCounter;
-                        return this.timeLimit <= this.timeLimitCounter;
+                        --pd.restTimeCounter;
+                        return pd.restTimeCounter <= 0;
                     },
                     updateStatusText: function () {
                         var scene = this;
                         var player = this.player;
+                        var pd = kimiko.kimiko.playerData;
                         var mapCharaMgr = this.mapCharaMgr;
                         var texts = this.statusTexts;
                         var lifeText = osakana4242.utils.StringUtil.mul("o", player.life.hp) + osakana4242.utils.StringUtil.mul("_", player.life.hpMax - player.life.hp);
-                        texts[0][0] = "SC " + scene.score + " " + "TIME " + Math.floor(kimiko.kimiko.frameToSec(this.timeLimit - this.timeLimitCounter));
+                        texts[0][0] = "SC " + kimiko.kimiko.playerData.score + " " + "TIME " + Math.floor(kimiko.kimiko.frameToSec(pd.restTimeCounter));
                         texts[1][0] = "LIFE " + lifeText + " " + "WALL " + player.wallPushDir.x + "," + player.wallPushDir.y + " " + (player.targetEnemy ? "LOCK" : "    ") + " " + "";
                         for(var i = 0, iNum = texts.length; i < iNum; ++i) {
                             var line = texts[i].join(" ");
@@ -2189,10 +2234,10 @@ var jp;
                                 var bullet = bullets[j];
                                 if(bullet.visible && enemy.life.canAddDamage() && enemy.collider.intersect(bullet.collider)) {
                                     enemy.damage(bullet);
-                                    scene.score += 10;
+                                    kimiko.kimiko.playerData.score += 10;
                                     if(enemy.life.isDead()) {
                                         var ed = enemy.getEnemyData();
-                                        scene.score += ed.score;
+                                        kimiko.kimiko.playerData.score += ed.score;
                                         if(enemy.isBoss()) {
                                             scene.onBossDead();
                                         }
