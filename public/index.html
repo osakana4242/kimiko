@@ -13,7 +13,8 @@
 			<script src="./javascripts/lib/enchant/enchant-0.7.1.js"></script>
 		-->
 		<script src="./javascripts/kimiko.js?v=201309292005.js"></script>
-		<script src="./javascripts/map.js?v=201309292005.js"></script>
+		<script src="./javascripts/map001.js?v=201309292005.js"></script>
+		<script src="./javascripts/map002.js?v=201309292005.js"></script>
 		<style>
 			body {
 				margin: 0;
@@ -23,8 +24,15 @@
 	<body>
 		<script>
 			(function () {
-				var isIos = ((navigator.userAgent.indexOf('iPhone') > 0 && navigator.userAgent.indexOf('iPad') == -1) || navigator.userAgent.indexOf('iPod') > 0);
-				var isAndroid = (navigator.userAgent.indexOf('Android') > 0);
+				// for enhant-0.5.x
+				if (!enchant.Core) {
+					enchant.Core = enchant.Game;
+				}
+				
+				//
+			 	var ua = navigator.userAgent;
+				var isIos = ((ua.indexOf('iPhone') > 0 && ua.indexOf('iPad') === -1) || ua.indexOf('iPod') > 0);
+				var isAndroid = (ua.indexOf('Android') > 0);
 				var isSp = isIos || isAndroid;
 				var isPc = !isSp;
 				var isTouchEnabled = isSp;
@@ -32,6 +40,7 @@
 				var config = {};
 				config.version = "201309292005";
 				config.fps = isPc ? 60 : 20;
+				// タッチとマウスでドラッグによるキャラの移動距離を変える.
 				config.swipeToMoveRate = {
 					"x": isTouchEnabled ? 1.25 : 1.50,
 					"y": isTouchEnabled ? 1.50 : 1.75
@@ -39,9 +48,7 @@
 				//config.isSoundEnabled = isPc;
 				config.isSoundEnabled = false;
 
-				if (!enchant.Core) {
-					enchant.Core = enchant.Game;
-				}
+				//
 				jp.osakana4242.kimiko.start(config);
 			}());
 		</script>

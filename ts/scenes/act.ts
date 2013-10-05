@@ -73,6 +73,10 @@ module jp.osakana4242.kimiko.scenes {
 			this.scene = scene;
 		}
 
+		public isAllDead(): bool {
+			return this.sleeps.length === 0 && this.actives.length === 0;
+		}
+
 		public clear(): void {
 			var arr = this.actives;
 			for (var i = arr.length - 1; 0 <= i; --i) {
@@ -441,12 +445,14 @@ module jp.osakana4242.kimiko.scenes {
 		// スコアリセット、プレイヤーHP回復。
 		initPlayerStatus: function () {
 			var scene = this;
-			kimiko.playerData.score = 0;
-			kimiko.playerData.restTimeMax = kimiko.secToFrame(180);
-			kimiko.playerData.restTimeCounter = kimiko.playerData.restTimeMax;
+			var pd = kimiko.playerData;
+			pd.restTimeMax = kimiko.secToFrame(180);
+			pd.restTimeCounter = kimiko.playerData.restTimeMax;
 
 			var player = this.player;
 			player.life.recover();
+			player.life.hpMax = pd.hpMax;
+			player.life.hp = pd.hp;
 			player.visible = true;
 			player.opacity = 1.0;
 			
@@ -513,7 +519,7 @@ module jp.osakana4242.kimiko.scenes {
 			this.clear();
 			this.initPlayerStatus();
 			this.world.addChild(this.player);
-			this.loadMapData( jp.osakana4242.kimiko["mapData"] );
+			this.loadMapData( jp.osakana4242.kimiko["mapData" + kimiko.playerData.mapId] );
 
 			if (kimiko.config.isSoundEnabled) {
 				var sound = kimiko.core.assets[Assets.SOUND_BGM];
@@ -554,12 +560,22 @@ module jp.osakana4242.kimiko.scenes {
 		},
 
 		stateGameOver: function () {
+			//
+			var pd = kimiko.playerData;
+			pd.reset();
+			//
 			kimiko.core.pushScene(new GameOver());
 			this.state = this.stateGameStart;
 		},
 
 		stateGameClear: function () {
-			kimiko.core.pushScene(new GameClear());
+			var pd = kimiko.playerData;
+			pd.hp = this.player.life.hp;
+			if (pd.mapId === DF.MAP_ID_MAX) {
+				kimiko.core.pushScene(new GameClear());
+			} else {
+				++pd.mapId;
+			}
 			this.state = this.stateGameStart;
 		},
 
@@ -661,8 +677,8 @@ module jp.osakana4242.kimiko.scenes {
 			scene.gameOverFrameMax = kimiko.secToFrame(1.0);
 			scene.gameOverFrameCounter = 0;
 		},
-		
-		onBossDead: function () {
+
+		onAllEnemyDead: function () {
 			var scene = this;
 			// ゲームクリアカウント開始.
 			scene.clearFrameMax = kimiko.secToFrame(3.0);
@@ -857,8 +873,8 @@ module jp.osakana4242.kimiko.scenes {
 						if (enemy.life.isDead()) {
 							var ed: IEnemyData = enemy.getEnemyData();
 							kimiko.playerData.score += ed.score;
-							if (enemy.isBoss()) {
-								scene.onBossDead();
+							if (mapCharaMgr.isAllDead()) {
+								scene.onAllEnemyDead();
 							}
 						}
 						bullet.free();

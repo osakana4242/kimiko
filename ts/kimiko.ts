@@ -557,6 +557,8 @@ module jp.osakana4242.kimiko {
 
 		export var FONT_M: string = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
 		export var GRAVITY: number = 0.25 * 60;
+		export var MAP_ID_MIN = 1;
+		export var MAP_ID_MAX = 2;
 
 		export var PLAYER_TOUCH_ANCHOR_ENABLE = true;
 		
@@ -615,9 +617,26 @@ module jp.osakana4242.kimiko {
 	}
 
 	export class PlayerData {
+		/** 残りHP */
+		hp: number;
+		hpMax: number;
 		score: number;
 		restTimeCounter: number;
 		restTimeMax: number;
+		mapId: number;
+		
+		constructor() {
+			this.reset();
+		}
+
+		public reset(): void {
+			this.hpMax= DF.PLAYER_HP;
+			this.hp = this.hpMax;
+			this.score= 0;
+			this.restTimeCounter= 0;
+			this.restTimeMax= 0;
+			this.mapId= DF.MAP_ID_MIN;
+		}
 	}
 
 	export class Kimiko {
@@ -678,7 +697,7 @@ module jp.osakana4242.kimiko {
 			core.keybind("D".charCodeAt(0), "right");	
 			core.keybind("W".charCodeAt(0), "up");	
 			core.keybind("S".charCodeAt(0), "down");	
-			
+
 			//
 			core.onload = function () {
 				this.gameScene = new jp.osakana4242.kimiko.scenes.Act()
@@ -705,9 +724,7 @@ module jp.osakana4242.kimiko {
 			return this.core.fps * sec;
 		}
 
-		frameToSec(frame: number): number {
-			return frame / this.core.fps;
-		}
+		frameToSec(frame: number): number { return frame / this.core.fps; }
 		
 		/**
 			毎秒Xドット(DotPerSec) を 毎フレームXドット(DotPerFrame) に変換。 

@@ -487,6 +487,8 @@ var jp;
                 DF.PLAYER_BULLET_NUM = 1;
                 DF.FONT_M = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
                 DF.GRAVITY = 0.25 * 60;
+                DF.MAP_ID_MIN = 1;
+                DF.MAP_ID_MAX = 2;
                 DF.PLAYER_TOUCH_ANCHOR_ENABLE = true;
                 DF.BIT_L = 1 << 0;
                 DF.BIT_R = 1 << 1;
@@ -577,7 +579,17 @@ var jp;
             })();
             kimiko.NumberUtil = NumberUtil;            
             var PlayerData = (function () {
-                function PlayerData() { }
+                function PlayerData() {
+                    this.reset();
+                }
+                PlayerData.prototype.reset = function () {
+                    this.hpMax = DF.PLAYER_HP;
+                    this.hp = this.hpMax;
+                    this.score = 0;
+                    this.restTimeCounter = 0;
+                    this.restTimeMax = 0;
+                    this.mapId = DF.MAP_ID_MIN;
+                };
                 return PlayerData;
             })();
             kimiko.PlayerData = PlayerData;            
@@ -1640,6 +1652,9 @@ var jp;
                         this.deads = [];
                         this.scene = scene;
                     }
+                    MapCharaManager.prototype.isAllDead = function () {
+                        return this.sleeps.length === 0 && this.actives.length === 0;
+                    };
                     MapCharaManager.prototype.clear = function () {
                         var arr = this.actives;
                         for(var i = arr.length - 1; 0 <= i; --i) {
@@ -1921,11 +1936,13 @@ var jp;
                     },
                     initPlayerStatus: function () {
                         var scene = this;
-                        kimiko.kimiko.playerData.score = 0;
-                        kimiko.kimiko.playerData.restTimeMax = kimiko.kimiko.secToFrame(180);
-                        kimiko.kimiko.playerData.restTimeCounter = kimiko.kimiko.playerData.restTimeMax;
+                        var pd = kimiko.kimiko.playerData;
+                        pd.restTimeMax = kimiko.kimiko.secToFrame(180);
+                        pd.restTimeCounter = kimiko.kimiko.playerData.restTimeMax;
                         var player = this.player;
                         player.life.recover();
+                        player.life.hpMax = pd.hpMax;
+                        player.life.hp = pd.hp;
                         player.visible = true;
                         player.opacity = 1.0;
                     },
@@ -1975,7 +1992,7 @@ var jp;
                         this.clear();
                         this.initPlayerStatus();
                         this.world.addChild(this.player);
-                        this.loadMapData(jp.osakana4242.kimiko["mapData"]);
+                        this.loadMapData(jp.osakana4242.kimiko["mapData" + kimiko.kimiko.playerData.mapId]);
                         if(kimiko.kimiko.config.isSoundEnabled) {
                             var sound = kimiko.kimiko.core.assets[kimiko.Assets.SOUND_BGM];
                             var soundSec = 15.922 + 0.5;
@@ -2009,11 +2026,19 @@ var jp;
                         }
                     },
                     stateGameOver: function () {
+                        var pd = kimiko.kimiko.playerData;
+                        pd.reset();
                         kimiko.kimiko.core.pushScene(new scenes.GameOver());
                         this.state = this.stateGameStart;
                     },
                     stateGameClear: function () {
-                        kimiko.kimiko.core.pushScene(new scenes.GameClear());
+                        var pd = kimiko.kimiko.playerData;
+                        pd.hp = this.player.life.hp;
+                        if(pd.mapId === kimiko.DF.MAP_ID_MAX) {
+                            kimiko.kimiko.core.pushScene(new scenes.GameClear());
+                        } else {
+                            ++pd.mapId;
+                        }
                         this.state = this.stateGameStart;
                     },
                     loadMapData: function (mapData) {
@@ -2087,7 +2112,7 @@ var jp;
                         scene.gameOverFrameMax = kimiko.kimiko.secToFrame(1.0);
                         scene.gameOverFrameCounter = 0;
                     },
-                    onBossDead: function () {
+                    onAllEnemyDead: function () {
                         var scene = this;
                         scene.clearFrameMax = kimiko.kimiko.secToFrame(3.0);
                         scene.clearFrameCounter = 0;
@@ -2238,8 +2263,8 @@ var jp;
                                     if(enemy.life.isDead()) {
                                         var ed = enemy.getEnemyData();
                                         kimiko.kimiko.playerData.score += ed.score;
-                                        if(enemy.isBoss()) {
-                                            scene.onBossDead();
+                                        if(mapCharaMgr.isAllDead()) {
+                                            scene.onAllEnemyDead();
                                         }
                                     }
                                     bullet.free();
