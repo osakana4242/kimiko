@@ -1386,9 +1386,6 @@ enchant.Node = enchant.Class.create(enchant.EventTarget, {
                 this.parentNode.dispatchEvent(e);
             }
         });
-        if (enchant.Timeline) {
-         var tl = this.tl = new enchant.Timeline(this);
-        }
     },
     /**
      * Move Node.
