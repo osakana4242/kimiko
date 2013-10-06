@@ -74,7 +74,10 @@ module jp.osakana4242.kimiko.scenes {
 		}
 
 		public isAllDead(): bool {
-			return this.sleeps.length === 0 && this.actives.length === 0;
+			if (0 < this.sleeps.length) {
+				return false;
+			}
+			return this.getAliveCount() === 0;
 		}
 
 		public clear(): void {
@@ -100,7 +103,13 @@ module jp.osakana4242.kimiko.scenes {
 		}
 
 		public getAliveCount(): number {
-			return this.sleeps.length + this.actives.length;
+			var count = this.sleeps.length
+			for (var i = this.actives.length - 1; 0 <= i; --i) {
+				if (this.actives[i].life.isAlive()) {
+					++count;
+				}
+			}
+			return count;
 		}
 
 		// 画面内に入ったキャラを発生させる。
@@ -144,6 +153,66 @@ module jp.osakana4242.kimiko.scenes {
 		}
 	}
 
+	export class Fader {
+		scene: any;
+		film: any;
+
+		constructor(scene: any) {
+			this.scene = scene;
+			this.film = (() => {
+				var spr = new enchant.Sprite(DF.SC1_W, DF.SC1_H);
+				spr.backgroundColor = "rgb(0, 0, 0)";
+				return spr;
+			}());
+		}
+
+		private addFilm(): any {
+			this.removeFilm();
+			this.scene.addChild(this.film);
+			return this.film;
+		}
+
+		private removeFilm(): any {
+			var film = this.film;
+			if (film.parentNode) {
+				film.parentNode.removeChild(film);
+			}
+			return film;
+		}
+
+		setBlack(isBlack: bool):void {
+			if (isBlack) {
+				var film = this.addFilm();
+				film.opacity = 1.0;
+			} else {
+				var film = this.removeFilm();
+				film.opacity = 0.0;
+			}
+		}
+		
+		fadeIn(fadeFrame: number, callback: () => void = null): void {
+			var film = this.addFilm();
+			film.tl.
+				clear().
+				fadeTo(0.0, fadeFrame);
+			if (callback) {
+				film.tl.then(callback);
+			}
+			film.tl.removeFromScene();
+		}
+
+		fadeOut(fadeFrame: number, callback: () => void = null): void {
+			var film = this.addFilm();
+			film.tl.
+				clear().
+				fadeTo(1.0, fadeFrame);
+			if (callback) {
+				film.tl.then(callback);
+			}
+		}	
+
+	}
+
 	export var GameStart: any = Class.create(Scene, {
 		initialize: function () {
 			Scene.call(this);
@@ -174,29 +243,24 @@ module jp.osakana4242.kimiko.scenes {
 					loop();
 			}(label1));
 			//
-			var fadeFilm = new utils.Sprite(DF.SC_W, DF.SC_H);
-			((sprite: any) => {
-				sprite.x = 0;
-				sprite.y = 0;
-				sprite.backgroundColor = "rgb(0, 0, 0)";
-			}(fadeFilm));
-
+			var fader = new Fader(this);
+			//
 			var layer1 = new enchant.Group();
 			layer1.addChild(bg1);
 			layer1.addChild(label1); 
 			//
 			scene.backgroundColor = "rgb(0, 0, 0)";
 			scene.addChild(layer1);
-			scene.addChild(fadeFilm);
 			(() => {
 				var next = () => {
 					kimiko.core.replaceScene(kimiko.core.gameScene);
 				};
+				fader.setBlack(true);
 				scene.tl.
-					then(() => { fadeFilm.tl.fadeTo(0.0, kimiko.secToFrame(0.5)); }).
+					then(() => { fader.fadeIn(kimiko.secToFrame(0.5)); }).
 					delay(kimiko.secToFrame(0.5)).
 					delay(kimiko.secToFrame(2.0)).
-					then(() => { fadeFilm.tl.fadeTo(1.0, kimiko.secToFrame(0.5)); }).
+					then(() => { fader.fadeOut(kimiko.secToFrame(0.5)); }).
 					delay(kimiko.secToFrame(0.5)).
 					then(next);
 					scene.addEventListener(Event.TOUCH_END, next);
@@ -439,6 +503,10 @@ module jp.osakana4242.kimiko.scenes {
 			this.mapCharaMgr = new MapCharaManager(this);
 			this.touch = new utils.Touch();
 
+			this.fader = new Fader(this);
+			this.fader.setBlack(true);
+			this.fader.fadeOut(0);
+
 		},
 
 		// はじめから。
@@ -511,11 +579,16 @@ module jp.osakana4242.kimiko.scenes {
 		//---------------------------------------------------------------------------
 		// states..
 		
+		stateWait: function () {
+		},
+
 		stateGameStart: function () {
 			var scene = this;
+			scene.fader.setBlack(true);
+			scene.fader.fadeIn(kimiko.secToFrame(0.2));
 			scene.state = scene.stateNormal;
 			// scene.state = scene.stateGameClear;
-
+			//
 			this.clear();
 			this.initPlayerStatus();
 			this.world.addChild(this.player);
@@ -573,10 +646,16 @@ module jp.osakana4242.kimiko.scenes {
 			pd.hp = this.player.life.hp;
 			if (pd.mapId === DF.MAP_ID_MAX) {
 				kimiko.core.pushScene(new GameClear());
+				this.state = this.stateGameStart;
 			} else {
 				++pd.mapId;
+				//
+				this.state = this.stateWait;
+				this.fader.fadeOut(kimiko.secToFrame(0.3), () => {
+					this.state = this.stateGameStart;
+				});
 			}
-			this.state = this.stateGameStart;
+
 		},
 
 		//---------------------------------------------------------------------------

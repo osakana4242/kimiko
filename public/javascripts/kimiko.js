@@ -1653,7 +1653,10 @@ var jp;
                         this.scene = scene;
                     }
                     MapCharaManager.prototype.isAllDead = function () {
-                        return this.sleeps.length === 0 && this.actives.length === 0;
+                        if(0 < this.sleeps.length) {
+                            return false;
+                        }
+                        return this.getAliveCount() === 0;
                     };
                     MapCharaManager.prototype.clear = function () {
                         var arr = this.actives;
@@ -1675,7 +1678,13 @@ var jp;
                         this.checkSleep();
                     };
                     MapCharaManager.prototype.getAliveCount = function () {
-                        return this.sleeps.length + this.actives.length;
+                        var count = this.sleeps.length;
+                        for(var i = this.actives.length - 1; 0 <= i; --i) {
+                            if(this.actives[i].life.isAlive()) {
+                                ++count;
+                            }
+                        }
+                        return count;
                     };
                     MapCharaManager.prototype.checkSpawn = function () {
                         var scene = this.scene;
@@ -1714,6 +1723,56 @@ var jp;
                     return MapCharaManager;
                 })();
                 scenes.MapCharaManager = MapCharaManager;                
+                var Fader = (function () {
+                    function Fader(scene) {
+                        this.scene = scene;
+                        this.film = ((function () {
+                            var spr = new enchant.Sprite(kimiko.DF.SC1_W, kimiko.DF.SC1_H);
+                            spr.backgroundColor = "rgb(0, 0, 0)";
+                            return spr;
+                        })());
+                    }
+                    Fader.prototype.addFilm = function () {
+                        this.removeFilm();
+                        this.scene.addChild(this.film);
+                        return this.film;
+                    };
+                    Fader.prototype.removeFilm = function () {
+                        var film = this.film;
+                        if(film.parentNode) {
+                            film.parentNode.removeChild(film);
+                        }
+                        return film;
+                    };
+                    Fader.prototype.setBlack = function (isBlack) {
+                        if(isBlack) {
+                            var film = this.addFilm();
+                            film.opacity = 1.0;
+                        } else {
+                            var film = this.removeFilm();
+                            film.opacity = 0.0;
+                        }
+                    };
+                    Fader.prototype.fadeIn = function (fadeFrame, callback) {
+                        if (typeof callback === "undefined") { callback = null; }
+                        var film = this.addFilm();
+                        film.tl.clear().fadeTo(0.0, fadeFrame);
+                        if(callback) {
+                            film.tl.then(callback);
+                        }
+                        film.tl.removeFromScene();
+                    };
+                    Fader.prototype.fadeOut = function (fadeFrame, callback) {
+                        if (typeof callback === "undefined") { callback = null; }
+                        var film = this.addFilm();
+                        film.tl.clear().fadeTo(1.0, fadeFrame);
+                        if(callback) {
+                            film.tl.then(callback);
+                        }
+                    };
+                    return Fader;
+                })();
+                scenes.Fader = Fader;                
                 scenes.GameStart = Class.create(Scene, {
                     initialize: function () {
                         Scene.call(this);
@@ -1737,26 +1796,21 @@ var jp;
                             label.y = ay;
                             label.tl.moveTo(ax + 0, ay + 8, kimiko.kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).moveTo(ax + 0, ay - 8, kimiko.kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).loop();
                         })(label1));
-                        var fadeFilm = new osakana4242.utils.Sprite(kimiko.DF.SC_W, kimiko.DF.SC_H);
-                        ((function (sprite) {
-                            sprite.x = 0;
-                            sprite.y = 0;
-                            sprite.backgroundColor = "rgb(0, 0, 0)";
-                        })(fadeFilm));
+                        var fader = new Fader(this);
                         var layer1 = new enchant.Group();
                         layer1.addChild(bg1);
                         layer1.addChild(label1);
                         scene.backgroundColor = "rgb(0, 0, 0)";
                         scene.addChild(layer1);
-                        scene.addChild(fadeFilm);
                         ((function () {
                             var next = function () {
                                 kimiko.kimiko.core.replaceScene(kimiko.kimiko.core.gameScene);
                             };
+                            fader.setBlack(true);
                             scene.tl.then(function () {
-                                fadeFilm.tl.fadeTo(0.0, kimiko.kimiko.secToFrame(0.5));
+                                fader.fadeIn(kimiko.kimiko.secToFrame(0.5));
                             }).delay(kimiko.kimiko.secToFrame(0.5)).delay(kimiko.kimiko.secToFrame(2.0)).then(function () {
-                                fadeFilm.tl.fadeTo(1.0, kimiko.kimiko.secToFrame(0.5));
+                                fader.fadeOut(kimiko.kimiko.secToFrame(0.5));
                             }).delay(kimiko.kimiko.secToFrame(0.5)).then(next);
                             scene.addEventListener(Event.TOUCH_END, next);
                             scene.addEventListener(Event.A_BUTTON_UP, next);
@@ -1933,6 +1987,9 @@ var jp;
                         });
                         this.mapCharaMgr = new MapCharaManager(this);
                         this.touch = new osakana4242.utils.Touch();
+                        this.fader = new Fader(this);
+                        this.fader.setBlack(true);
+                        this.fader.fadeOut(0);
                     },
                     initPlayerStatus: function () {
                         var scene = this;
@@ -1986,8 +2043,12 @@ var jp;
                         this.state();
                         this.updateStatusText();
                     },
+                    stateWait: function () {
+                    },
                     stateGameStart: function () {
                         var scene = this;
+                        scene.fader.setBlack(true);
+                        scene.fader.fadeIn(kimiko.kimiko.secToFrame(0.2));
                         scene.state = scene.stateNormal;
                         this.clear();
                         this.initPlayerStatus();
@@ -2032,14 +2093,19 @@ var jp;
                         this.state = this.stateGameStart;
                     },
                     stateGameClear: function () {
+                        var _this = this;
                         var pd = kimiko.kimiko.playerData;
                         pd.hp = this.player.life.hp;
                         if(pd.mapId === kimiko.DF.MAP_ID_MAX) {
                             kimiko.kimiko.core.pushScene(new scenes.GameClear());
+                            this.state = this.stateGameStart;
                         } else {
                             ++pd.mapId;
+                            this.state = this.stateWait;
+                            this.fader.fadeOut(kimiko.kimiko.secToFrame(0.3), function () {
+                                _this.state = _this.stateGameStart;
+                            });
                         }
-                        this.state = this.stateGameStart;
                     },
                     loadMapData: function (mapData) {
                         var _this = this;
