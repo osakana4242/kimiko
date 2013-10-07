@@ -19,15 +19,13 @@ module jp.osakana4242.kimiko.scenes {
 
 			initialize: function () {
 				Attacker.call(this);
-				this.image = kimiko.core.assets[Assets.IMAGE_CHARA001]
-				this.width = 32;
-				this.height = 32;
 				
 				this.bodyStyles = (() => {
 					var animWalk = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_WALK);
 					var animStand = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_STAND);
 					var animSquat = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_SQUAT);
 					var animDead = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_DEAD);
+					this.anim.sequence = animWalk;
 	
 					var colliderA = (() => {
 						var c = new utils.Collider();

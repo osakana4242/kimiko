@@ -13,6 +13,7 @@ module jp.osakana4242.kimiko.scenes {
 	export var EnemyBullet: any = Class.create(utils.Sprite, {
 		initialize: function () {
 			utils.Sprite.call(this, 16, 16);
+			this.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_BULLET002);
 			this.ageMax = 0;
 			this.force = new utils.Vector2D();
 			this.force.x = 0;
@@ -23,8 +24,6 @@ module jp.osakana4242.kimiko.scenes {
 				c.centerMiddle(4, 4);
 				return c;
 			}());
-			this.image = kimiko.core.assets[Assets.IMAGE_BULLET];
-			this.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_BULLET002);
 		},
 
 		onenterframe: function () {
@@ -67,6 +66,7 @@ module jp.osakana4242.kimiko.scenes {
 	export var OwnBullet: any = Class.create(utils.Sprite, {
 		initialize: function () {
 			utils.Sprite.call(this, 16, 16);
+			this.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_BULLET001);
 			this.ageMax = 0;
 			this.force = new utils.Vector2D();
 			this.force.x = 0;
@@ -77,8 +77,6 @@ module jp.osakana4242.kimiko.scenes {
 				c.centerMiddle(8, 8);
 				return c;
 			}());
-			this.image = kimiko.core.assets[Assets.IMAGE_BULLET];
-			this.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_BULLET001);
 		},
 
 		onenterframe: function () {
