@@ -294,7 +294,8 @@ var jp;
             })();
             utils.Touch = Touch;            
             var AnimSequence = (function () {
-                function AnimSequence(frameTime, frameList) {
+                function AnimSequence(imageName, frameTime, frameList) {
+                    this.imageName = imageName;
                     this.frameTime = frameTime;
                     this.frameNum = frameList.length;
                     this.frameList = frameList;
@@ -326,6 +327,7 @@ var jp;
                         this.frameIdx = 0;
                         this.speed = 1.0;
                         this.loopCnt = 0;
+                        this.sprite.image = osakana4242.kimiko.kimiko.core.assets[this.sequence.imageName];
                     },
                     enumerable: true,
                     configurable: true

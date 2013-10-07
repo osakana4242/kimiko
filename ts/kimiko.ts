@@ -341,11 +341,13 @@ module jp.osakana4242.utils {
 	}
 	
 	export class AnimSequence {
+		imageName: string;
 		frameTime: number;
 		frameNum: number;
 		frameList: number[];
 	
-		constructor(frameTime: number, frameList: number[]) {
+		constructor(imageName: string, frameTime: number, frameList: number[]) {
+			this.imageName = imageName;
 			this.frameTime = frameTime; // 1フレームにかける秒数。
 			this.frameNum = frameList.length;
 			this.frameList = frameList;
@@ -386,6 +388,7 @@ module jp.osakana4242.utils {
 			this.frameIdx = 0;
 			this.speed = 1.0;
 			this.loopCnt = 0;
+			this.sprite.image = kimiko.kimiko.core.assets[this.sequence.imageName];
 		}
 		
 		get curFrame(): number {
