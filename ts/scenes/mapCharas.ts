@@ -34,35 +34,30 @@ module jp.osakana4242.kimiko.scenes {
 			var camera = this.scene.camera;
 			
 			if (this.ageMax < this.age) {
-				this.free();
+				this.miss();
 				return;	
 			}
 			
 			if (camera.isOutsideSleepRect(this)) {
-				this.free();
+				this.miss();
 				return;
 			}
 					
 			if (!this.scene.intersectActiveArea(this)) {
-				this.free();
+				this.miss();
 				return;
 			}
 
-			this.scene.checkMapCollision(this, this.free);
+			this.scene.checkMapCollision(this, this.miss);
 		},
+
+		miss: function () {
+			this.scene.addEffect(DF.ANIM_ID_MISS, this.center);
+			this.free();
+		},
+
 			
 		free: function () {
-			if (!this.scene) {
-				var a = 0;
-			}
-			var effect = this.scene.effectPool.alloc();
-			if (effect) {
-				effect.image = kimiko.core.assets[Assets.IMAGE_EFFECT];
-				effect.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_DAMAGE);
-				utils.Vector2D.copyFrom(effect.center, this.center);
-				this.scene.world.addChild(effect);
-			}
-
 			this.scene.enemyBulletPool.free(this);
 		},
 
@@ -112,28 +107,8 @@ module jp.osakana4242.kimiko.scenes {
 		},
 	
 		miss: function () {
-			this.addEffectMiss();
+			this.scene.addEffect(DF.ANIM_ID_MISS, this.center);
 			this.free();
-		},
-		
-		addEffectHit: function () {
-			var effect = this.scene.effectPool.alloc();
-			if (effect) {
-				effect.image = kimiko.core.assets[Assets.IMAGE_EFFECT];
-				effect.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_DAMAGE);
-				utils.Vector2D.copyFrom(effect.center, this.center);
-				this.scene.world.addChild(effect);
-			}
-		},
-
-		addEffectMiss: function () {
-			var effect = this.scene.effectPool.alloc();
-			if (effect) {
-				effect.image = kimiko.core.assets[Assets.IMAGE_EFFECT];
-				effect.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_MISS);
-				utils.Vector2D.copyFrom(effect.center, this.center);
-				this.scene.world.addChild(effect);
-			}
 		},
 		
 		free: function () {

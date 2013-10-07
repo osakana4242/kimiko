@@ -729,6 +729,19 @@ module jp.osakana4242.kimiko.scenes {
 			camera.moveToTarget();
 		},
 
+		addEffect: function (animId: number, pos: utils.IVector2D) {
+			var effect = this.scene.effectPool.alloc();
+			if (effect === null) {
+				return;
+			}
+			// TODO: image を汎用的に.
+			effect.image = kimiko.core.assets[Assets.IMAGE_EFFECT];
+			effect.anim.sequence = kimiko.getAnimFrames(animId);
+			utils.Vector2D.copyFrom(effect.center, pos);
+			this.world.addChild(effect);
+			return effect;
+		},
+
 		onPlayerDead: function () {
 			var scene = this;
 			var player = this.player;
@@ -935,6 +948,7 @@ module jp.osakana4242.kimiko.scenes {
 					if (player.life.isDead()) {
 						this.onPlayerDead();
 					}
+					this.addEffect(DF.ANIM_ID_DAMAGE, bullet.center);
 					bullet.free();
 				}
 			}
@@ -956,7 +970,7 @@ module jp.osakana4242.kimiko.scenes {
 								scene.onAllEnemyDead();
 							}
 						}
-						bullet.addEffectHit();
+						this.addEffect(DF.ANIM_ID_DAMAGE, bullet.center);
 						bullet.free();
 					}
 				}

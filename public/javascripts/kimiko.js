@@ -835,30 +835,24 @@ var jp;
                         this.y += this.force.y;
                         var camera = this.scene.camera;
                         if(this.ageMax < this.age) {
-                            this.free();
+                            this.miss();
                             return;
                         }
                         if(camera.isOutsideSleepRect(this)) {
-                            this.free();
+                            this.miss();
                             return;
                         }
                         if(!this.scene.intersectActiveArea(this)) {
-                            this.free();
+                            this.miss();
                             return;
                         }
-                        this.scene.checkMapCollision(this, this.free);
+                        this.scene.checkMapCollision(this, this.miss);
+                    },
+                    miss: function () {
+                        this.scene.addEffect(kimiko.DF.ANIM_ID_MISS, this.center);
+                        this.free();
                     },
                     free: function () {
-                        if(!this.scene) {
-                            var a = 0;
-                        }
-                        var effect = this.scene.effectPool.alloc();
-                        if(effect) {
-                            effect.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_EFFECT];
-                            effect.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_DAMAGE);
-                            osakana4242.utils.Vector2D.copyFrom(effect.center, this.center);
-                            this.scene.world.addChild(effect);
-                        }
                         this.scene.enemyBulletPool.free(this);
                     }
                 });
@@ -899,26 +893,8 @@ var jp;
                         scene.checkMapCollision(this, this.miss);
                     },
                     miss: function () {
-                        this.addEffectMiss();
+                        this.scene.addEffect(kimiko.DF.ANIM_ID_MISS, this.center);
                         this.free();
-                    },
-                    addEffectHit: function () {
-                        var effect = this.scene.effectPool.alloc();
-                        if(effect) {
-                            effect.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_EFFECT];
-                            effect.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_DAMAGE);
-                            osakana4242.utils.Vector2D.copyFrom(effect.center, this.center);
-                            this.scene.world.addChild(effect);
-                        }
-                    },
-                    addEffectMiss: function () {
-                        var effect = this.scene.effectPool.alloc();
-                        if(effect) {
-                            effect.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_EFFECT];
-                            effect.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_MISS);
-                            osakana4242.utils.Vector2D.copyFrom(effect.center, this.center);
-                            this.scene.world.addChild(effect);
-                        }
                     },
                     free: function () {
                         this.scene.ownBulletPool.free(this);
@@ -2188,6 +2164,17 @@ var jp;
                         camera.targetNode = player;
                         camera.moveToTarget();
                     },
+                    addEffect: function (animId, pos) {
+                        var effect = this.scene.effectPool.alloc();
+                        if(effect === null) {
+                            return;
+                        }
+                        effect.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_EFFECT];
+                        effect.anim.sequence = kimiko.kimiko.getAnimFrames(animId);
+                        osakana4242.utils.Vector2D.copyFrom(effect.center, pos);
+                        this.world.addChild(effect);
+                        return effect;
+                    },
                     onPlayerDead: function () {
                         var scene = this;
                         var player = this.player;
@@ -2337,6 +2324,7 @@ var jp;
                                 if(player.life.isDead()) {
                                     this.onPlayerDead();
                                 }
+                                this.addEffect(kimiko.DF.ANIM_ID_DAMAGE, bullet.center);
                                 bullet.free();
                             }
                         }
@@ -2355,7 +2343,7 @@ var jp;
                                             scene.onAllEnemyDead();
                                         }
                                     }
-                                    bullet.addEffectHit();
+                                    this.addEffect(kimiko.DF.ANIM_ID_DAMAGE, bullet.center);
                                     bullet.free();
                                 }
                             }
