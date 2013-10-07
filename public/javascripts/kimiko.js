@@ -47,6 +47,10 @@ var jp;
                     this.x = x;
                     this.y = y;
                 };
+                Vector2D.prototype.set = function (v) {
+                    this.x = v.x;
+                    this.y = v.y;
+                };
                 Vector2D.copyFrom = function copyFrom(dest, src) {
                     dest.x = src.x;
                     dest.y = src.y;
@@ -107,6 +111,10 @@ var jp;
                     enumerable: true,
                     configurable: true
                 });
+                RectCenter.prototype.set = function (v) {
+                    this.x = v.x;
+                    this.y = v.y;
+                };
                 return RectCenter;
             })();
             utils.RectCenter = RectCenter;            
@@ -153,6 +161,12 @@ var jp;
                     this.y = y;
                     this.width = width;
                     this.height = height;
+                };
+                Rect.prototype.set = function (v) {
+                    this.x = v.x;
+                    this.y = v.y;
+                    this.width = v.width;
+                    this.height = v.height;
                 };
                 Rect.copyFrom = function copyFrom(a, b) {
                     a.x = b.x;
@@ -294,8 +308,11 @@ var jp;
             })();
             utils.Touch = Touch;            
             var AnimSequence = (function () {
-                function AnimSequence(frameTime, frameList) {
+                function AnimSequence(imageName, frameWidth, frameHeight, frameTime, frameList) {
+                    this.imageName = imageName;
                     this.frameTime = frameTime;
+                    this.frameWidth = frameWidth;
+                    this.frameHeight = frameHeight;
                     this.frameNum = frameList.length;
                     this.frameList = frameList;
                 }
@@ -321,11 +338,17 @@ var jp;
                         return this.sequence_;
                     },
                     set: function (v) {
+                        if(!v) {
+                            throw "sequcence is null";
+                        }
                         this.sequence_ = v;
                         this.waitCnt = 0;
                         this.frameIdx = 0;
                         this.speed = 1.0;
                         this.loopCnt = 0;
+                        this.sprite.width = v.frameWidth;
+                        this.sprite.height = v.frameHeight;
+                        this.sprite.image = osakana4242.kimiko.kimiko.core.assets[v.imageName];
                     },
                     enumerable: true,
                     configurable: true
@@ -596,6 +619,7 @@ var jp;
             kimiko.PlayerData = PlayerData;            
             var Kimiko = (function () {
                 function Kimiko(config) {
+                    var _this = this;
                     this.numberUtil = new NumberUtil();
                     this.animFrames = {
                     };
@@ -622,54 +646,60 @@ var jp;
                         }
                         core.preload(newPath);
                     }
-                    this.registerAnimFrames(DF.ANIM_ID_CHARA001_WALK, [
-                        0, 
-                        1, 
-                        0, 
-                        2
-                    ], 0.1);
-                    this.registerAnimFrames(DF.ANIM_ID_CHARA001_STAND, [
-                        0
-                    ], 0.1);
-                    this.registerAnimFrames(DF.ANIM_ID_CHARA001_SQUAT, [
-                        4
-                    ], 0.1);
-                    this.registerAnimFrames(DF.ANIM_ID_CHARA001_DEAD, [
-                        0, 
-                        1, 
-                        0, 
-                        2
-                    ], 0.1);
-                    this.registerAnimFrames(DF.ANIM_ID_CHARA002_WALK, [
-                        0, 
-                        1, 
-                        2, 
-                        3
-                    ], 0.1);
-                    this.registerAnimFrames(DF.ANIM_ID_BULLET001, [
-                        0, 
-                        1, 
-                        2, 
-                        3
-                    ], 0.1);
-                    this.registerAnimFrames(DF.ANIM_ID_BULLET002, [
-                        4, 
-                        5, 
-                        6, 
-                        7
-                    ], 0.1);
-                    this.registerAnimFrames(DF.ANIM_ID_DAMAGE, [
-                        8, 
-                        9, 
-                        10, 
-                        11
-                    ], 0.1);
-                    this.registerAnimFrames(DF.ANIM_ID_MISS, [
-                        12, 
-                        13, 
-                        14, 
-                        15
-                    ], 0.1);
+                    ((function () {
+                        var r = function (animId, imageName, frameWidth, frameHeight, frameSec, frames) {
+                            var seq = new osakana4242.utils.AnimSequence(imageName, frameWidth, frameHeight, frameSec, frames);
+                            _this.registerAnimFrames(animId, seq);
+                        };
+                        r(DF.ANIM_ID_CHARA001_WALK, Assets.IMAGE_CHARA001, 32, 32, 0.1, [
+                            0, 
+                            1, 
+                            0, 
+                            2
+                        ]);
+                        r(DF.ANIM_ID_CHARA001_STAND, Assets.IMAGE_CHARA001, 32, 32, 0.1, [
+                            0
+                        ]);
+                        r(DF.ANIM_ID_CHARA001_SQUAT, Assets.IMAGE_CHARA001, 32, 32, 0.1, [
+                            4
+                        ]);
+                        r(DF.ANIM_ID_CHARA001_DEAD, Assets.IMAGE_CHARA001, 32, 32, 0.1, [
+                            0, 
+                            1, 
+                            0, 
+                            2
+                        ]);
+                        r(DF.ANIM_ID_CHARA002_WALK, Assets.IMAGE_CHARA002, 32, 32, 0.1, [
+                            0, 
+                            1, 
+                            2, 
+                            3
+                        ]);
+                        r(DF.ANIM_ID_BULLET001, Assets.IMAGE_BULLET, 16, 16, 0.1, [
+                            0, 
+                            1, 
+                            2, 
+                            3
+                        ]);
+                        r(DF.ANIM_ID_BULLET002, Assets.IMAGE_BULLET, 16, 16, 0.1, [
+                            4, 
+                            5, 
+                            6, 
+                            7
+                        ]);
+                        r(DF.ANIM_ID_DAMAGE, Assets.IMAGE_EFFECT, 16, 16, 0.1, [
+                            8, 
+                            9, 
+                            10, 
+                            11
+                        ]);
+                        r(DF.ANIM_ID_MISS, Assets.IMAGE_EFFECT, 16, 16, 0.1, [
+                            12, 
+                            13, 
+                            14, 
+                            15
+                        ]);
+                    })());
                     core.keybind(" ".charCodeAt(0), "a");
                     core.keybind("A".charCodeAt(0), "left");
                     core.keybind("D".charCodeAt(0), "right");
@@ -682,9 +712,8 @@ var jp;
                     };
                 }
                 Kimiko.instance = null;
-                Kimiko.prototype.registerAnimFrames = function (animId, arr, frameSec) {
-                    if (typeof frameSec === "undefined") { frameSec = 0.1; }
-                    this.animFrames[animId] = new osakana4242.utils.AnimSequence(frameSec, arr);
+                Kimiko.prototype.registerAnimFrames = function (animId, seq) {
+                    this.animFrames[animId] = seq;
                 };
                 Kimiko.prototype.getAnimFrames = function (animId) {
                     return this.animFrames[animId];
@@ -817,6 +846,7 @@ var jp;
                     initialize: function () {
                         var _this = this;
                         osakana4242.utils.Sprite.call(this, 16, 16);
+                        this.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_BULLET002);
                         this.ageMax = 0;
                         this.force = new osakana4242.utils.Vector2D();
                         this.force.x = 0;
@@ -827,8 +857,6 @@ var jp;
                             c.centerMiddle(4, 4);
                             return c;
                         })());
-                        this.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_BULLET];
-                        this.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_BULLET002);
                     },
                     onenterframe: function () {
                         this.x += this.force.x;
@@ -860,6 +888,7 @@ var jp;
                     initialize: function () {
                         var _this = this;
                         osakana4242.utils.Sprite.call(this, 16, 16);
+                        this.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_BULLET001);
                         this.ageMax = 0;
                         this.force = new osakana4242.utils.Vector2D();
                         this.force.x = 0;
@@ -870,8 +899,6 @@ var jp;
                             c.centerMiddle(8, 8);
                             return c;
                         })());
-                        this.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_BULLET];
-                        this.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_BULLET001);
                     },
                     onenterframe: function () {
                         this.x += this.force.x;
@@ -1228,14 +1255,12 @@ var jp;
                     initialize: function () {
                         var _this = this;
                         scenes.Attacker.call(this);
-                        this.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_CHARA001];
-                        this.width = 32;
-                        this.height = 32;
                         this.bodyStyles = ((function () {
                             var animWalk = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA001_WALK);
                             var animStand = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA001_STAND);
                             var animSquat = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA001_SQUAT);
                             var animDead = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA001_DEAD);
+                            _this.anim.sequence = animWalk;
                             var colliderA = ((function () {
                                 var c = new osakana4242.utils.Collider();
                                 c.parent = _this;
@@ -2029,7 +2054,6 @@ var jp;
                         var touch = this.touch;
                         touch.saveTouchEnd(event);
                         var player = this.player;
-                        player.anim.sequence = player.animStand;
                         player.force.x = 0;
                         player.force.y = 0;
                         if(Math.abs(touch.totalDiff.x) + Math.abs(touch.totalDiff.y) < 16) {
@@ -2169,9 +2193,10 @@ var jp;
                         if(effect === null) {
                             return;
                         }
-                        effect.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_EFFECT];
                         effect.anim.sequence = kimiko.kimiko.getAnimFrames(animId);
-                        osakana4242.utils.Vector2D.copyFrom(effect.center, pos);
+                        effect.center.set(pos);
+                        effect.x += -2 + Math.random() * 5;
+                        effect.y += -2 + Math.random() * 5;
                         this.world.addChild(effect);
                         return effect;
                     },

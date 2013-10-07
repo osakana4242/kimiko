@@ -48,7 +48,6 @@ module jp.osakana4242.utils {
 			Vector2D.pool.push(r);
 		}
 
-
 		constructor(
 			public x: number = 0,
 			public y: number = 0) {
@@ -57,6 +56,11 @@ module jp.osakana4242.utils {
 		public reset(x: number, y: number): void {
 			this.x = x;
 			this.y = y;
+		}
+
+		public set(v: IVector2D): void {
+			this.x = v.x;
+			this.y = v.y;
 		}
 
 		public static copyFrom(dest: IVector2D, src: IVector2D): void {
@@ -123,6 +127,11 @@ module jp.osakana4242.utils {
 			this.rect.y = v - (this.rect.height / 2);
 		}
 
+		set(v: IVector2D): void {
+			this.x = v.x;
+			this.y = v.y;
+		}
+
 	}
 
 	export interface IRect {
@@ -178,6 +187,13 @@ module jp.osakana4242.utils {
 			this.y = y;
 			this.width = width;
 			this.height = height;
+		}
+
+		public set(v: IRect): void {
+			this.x = v.x;
+			this.y = v.y;
+			this.width = v.width;
+			this.height = v.height;
 		}
 
 		public static copyFrom(a: IRect, b: IRect): void {
@@ -341,12 +357,18 @@ module jp.osakana4242.utils {
 	}
 	
 	export class AnimSequence {
+		imageName: string;
 		frameTime: number;
 		frameNum: number;
+		frameWidth: number;
+		frameHeight: number;
 		frameList: number[];
 	
-		constructor(frameTime: number, frameList: number[]) {
+		constructor(imageName: string, frameWidth: number, frameHeight: number, frameTime: number, frameList: number[]) {
+			this.imageName = imageName;
 			this.frameTime = frameTime; // 1フレームにかける秒数。
+			this.frameWidth = frameWidth;
+			this.frameHeight = frameHeight;
 			this.frameNum = frameList.length;
 			this.frameList = frameList;
 		}
@@ -381,11 +403,17 @@ module jp.osakana4242.utils {
 		}
 		
 		set sequence(v: AnimSequence) {
+			if (!v) {
+				throw "sequcence is null";
+			}
 			this.sequence_ = v;
 			this.waitCnt = 0;
 			this.frameIdx = 0;
 			this.speed = 1.0;
 			this.loopCnt = 0;
+			this.sprite.width = v.frameWidth;
+			this.sprite.height = v.frameHeight;
+			this.sprite.image = kimiko.kimiko.core.assets[v.imageName];
 		}
 		
 		get curFrame(): number {
@@ -681,18 +709,24 @@ module jp.osakana4242.kimiko {
 			}
 			
 			// anim
-			this.registerAnimFrames(DF.ANIM_ID_CHARA001_WALK,  [0, 1, 0, 2], 0.1);
-			this.registerAnimFrames(DF.ANIM_ID_CHARA001_STAND, [0], 0.1);
-			this.registerAnimFrames(DF.ANIM_ID_CHARA001_SQUAT, [4], 0.1);
-			this.registerAnimFrames(DF.ANIM_ID_CHARA001_DEAD,  [0, 1, 0, 2], 0.1);
-	
-			this.registerAnimFrames(DF.ANIM_ID_CHARA002_WALK, [0, 1, 2, 3], 0.1);
+			(() => {
+				var r = (animId: number, imageName: string, frameWidth: number, frameHeight: number, frameSec: number, frames: number[]) => {
+					var seq = new utils.AnimSequence(imageName, frameWidth, frameHeight, frameSec, frames);
+					this.registerAnimFrames(animId, seq);
+				}
+				r(DF.ANIM_ID_CHARA001_WALK,  Assets.IMAGE_CHARA001, 32, 32, 0.1, [0, 1, 0, 2]);
+				r(DF.ANIM_ID_CHARA001_STAND, Assets.IMAGE_CHARA001, 32, 32, 0.1, [0]);
+				r(DF.ANIM_ID_CHARA001_SQUAT, Assets.IMAGE_CHARA001, 32, 32, 0.1, [4]);
+				r(DF.ANIM_ID_CHARA001_DEAD,  Assets.IMAGE_CHARA001, 32, 32, 0.1, [0, 1, 0, 2]);
+		
+				r(DF.ANIM_ID_CHARA002_WALK,  Assets.IMAGE_CHARA002, 32, 32, 0.1, [0, 1, 2, 3]);
 
-			this.registerAnimFrames(DF.ANIM_ID_BULLET001, [0, 1, 2, 3], 0.1);
-			this.registerAnimFrames(DF.ANIM_ID_BULLET002, [4, 5, 6, 7], 0.1);
+				r(DF.ANIM_ID_BULLET001,      Assets.IMAGE_BULLET,   16, 16, 0.1, [0, 1, 2, 3]);
+				r(DF.ANIM_ID_BULLET002,      Assets.IMAGE_BULLET,   16, 16, 0.1, [4, 5, 6, 7]);
 
-			this.registerAnimFrames(DF.ANIM_ID_DAMAGE, [8, 9, 10, 11], 0.1);
-			this.registerAnimFrames(DF.ANIM_ID_MISS, [12, 13, 14, 15], 0.1);
+				r(DF.ANIM_ID_DAMAGE,         Assets.IMAGE_EFFECT,   16, 16, 0.1, [8, 9, 10, 11]);
+				r(DF.ANIM_ID_MISS,           Assets.IMAGE_EFFECT,   16, 16, 0.1, [12, 13, 14, 15]);
+			}());
 
 			// key bind
 			core.keybind(" ".charCodeAt(0), "a");	
@@ -711,8 +745,8 @@ module jp.osakana4242.kimiko {
 
 		animFrames: { [index: number]: utils.AnimSequence; } = <any>{};
 
-		registerAnimFrames(animId: number, arr: number[], frameSec: number = 0.1) {
-			this.animFrames[animId] = new utils.AnimSequence(frameSec, arr);
+		registerAnimFrames(animId: number, seq: utils.AnimSequence) {
+			this.animFrames[animId] = seq;
 		}
 
 		getAnimFrames(animId: number) {

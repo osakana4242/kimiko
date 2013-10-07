@@ -560,10 +560,8 @@ module jp.osakana4242.kimiko.scenes {
 			// this.statusTexts[0][1] = (<any[]>["touch end diff", Math.floor(touch.totalDiff.x), Math.floor(touch.totalDiff.y)]).join();
 			
 			var player = this.player;
-			player.anim.sequence = player.animStand;
 			player.force.x = 0;
 			player.force.y = 0;
-			//player.force.x += NumUtil.trim(touch.diffX * 0.05, -16, 16);
 			
 			if (Math.abs(touch.totalDiff.x) + Math.abs(touch.totalDiff.y) < 16) {
 				player.attack();
@@ -734,10 +732,10 @@ module jp.osakana4242.kimiko.scenes {
 			if (effect === null) {
 				return;
 			}
-			// TODO: image を汎用的に.
-			effect.image = kimiko.core.assets[Assets.IMAGE_EFFECT];
 			effect.anim.sequence = kimiko.getAnimFrames(animId);
-			utils.Vector2D.copyFrom(effect.center, pos);
+			effect.center.set(pos);
+			effect.x += -2 + Math.random() * 5;
+			effect.y += -2 + Math.random() * 5;
 			this.world.addChild(effect);
 			return effect;
 		},
