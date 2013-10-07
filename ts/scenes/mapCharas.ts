@@ -2,17 +2,15 @@
 /// <reference path="act.ts" />
 
 module jp.osakana4242.kimiko.scenes {
+
 	var Class = enchant.Class;
-	var Core = enchant.Core;
-	var Scene = enchant.Scene;
-	var Label = enchant.Label;
 	var Event = enchant.Event;
 	var Easing = enchant.Easing;
 
 	/** 敵弾 */
-	export var EnemyBullet: any = Class.create(utils.Sprite, {
+	export var EnemyBullet: any = Class.create(enchant.Sprite, {
 		initialize: function () {
-			utils.Sprite.call(this, 16, 16);
+			enchant.Sprite.call(this, 16, 16);
 			this.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_BULLET002);
 			this.ageMax = 0;
 			this.force = new utils.Vector2D();
@@ -63,9 +61,9 @@ module jp.osakana4242.kimiko.scenes {
 	});
 		
 	/** 自弾 */
-	export var OwnBullet: any = Class.create(utils.Sprite, {
+	export var OwnBullet: any = Class.create(enchant.Sprite, {
 		initialize: function () {
-			utils.Sprite.call(this, 16, 16);
+			enchant.Sprite.call(this, 16, 16);
 			this.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_BULLET001);
 			this.ageMax = 0;
 			this.force = new utils.Vector2D();
@@ -115,9 +113,9 @@ module jp.osakana4242.kimiko.scenes {
 	});
 
 	/** とりあえず攻撃できるひと */
-	export var Attacker: any = Class.create(utils.Sprite, {
+	export var Attacker: any = Class.create(enchant.Sprite, {
 		initialize: function () {
-			utils.Sprite.call(this);
+			enchant.Sprite.call(this);
 			this.dirX = 1;
 			this.force = new utils.Vector2D();
 			this.force.x = 0;
@@ -222,9 +220,9 @@ module jp.osakana4242.kimiko.scenes {
 	});
 
 	/** 死亡エフェクト */
-	export var DeadEffect: any = Class.create(utils.Sprite, {
+	export var DeadEffect: any = Class.create(enchant.Sprite, {
 		initialize: function (attacker, delay: number) {
-			utils.Sprite.call(this);
+			enchant.Sprite.call(this);
 			this.width = attacker.width;
 			this.height = attacker.height;
 			this.center.x = attacker.center.x;

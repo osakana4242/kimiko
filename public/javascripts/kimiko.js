@@ -391,13 +391,14 @@ var jp;
                 return AnimSequencer;
             })();
             utils.AnimSequencer = AnimSequencer;            
-            utils.Sprite = enchant.Class.create(enchant.Sprite, {
-                initialize: function (w, h) {
-                    enchant.Sprite.call(this, w, h);
+            ((function () {
+                var orig = enchant.Sprite.prototype.initialize;
+                enchant.Sprite.prototype.initialize = function () {
+                    orig.apply(this, arguments);
                     this.center = new utils.RectCenter(this);
                     this.anim = new utils.AnimSequencer(this);
-                }
-            });
+                };
+            })());
             var SpritePool = (function () {
                 function SpritePool(capacity, makeSprite) {
                     this.sleeps = [];
@@ -837,15 +838,12 @@ var jp;
         (function (kimiko) {
             (function (scenes) {
                 var Class = enchant.Class;
-                var Core = enchant.Core;
-                var Scene = enchant.Scene;
-                var Label = enchant.Label;
                 var Event = enchant.Event;
                 var Easing = enchant.Easing;
-                scenes.EnemyBullet = Class.create(osakana4242.utils.Sprite, {
+                scenes.EnemyBullet = Class.create(enchant.Sprite, {
                     initialize: function () {
                         var _this = this;
-                        osakana4242.utils.Sprite.call(this, 16, 16);
+                        enchant.Sprite.call(this, 16, 16);
                         this.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_BULLET002);
                         this.ageMax = 0;
                         this.force = new osakana4242.utils.Vector2D();
@@ -884,10 +882,10 @@ var jp;
                         this.scene.enemyBulletPool.free(this);
                     }
                 });
-                scenes.OwnBullet = Class.create(osakana4242.utils.Sprite, {
+                scenes.OwnBullet = Class.create(enchant.Sprite, {
                     initialize: function () {
                         var _this = this;
-                        osakana4242.utils.Sprite.call(this, 16, 16);
+                        enchant.Sprite.call(this, 16, 16);
                         this.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_BULLET001);
                         this.ageMax = 0;
                         this.force = new osakana4242.utils.Vector2D();
@@ -927,10 +925,10 @@ var jp;
                         this.scene.ownBulletPool.free(this);
                     }
                 });
-                scenes.Attacker = Class.create(osakana4242.utils.Sprite, {
+                scenes.Attacker = Class.create(enchant.Sprite, {
                     initialize: function () {
                         var _this = this;
-                        osakana4242.utils.Sprite.call(this);
+                        enchant.Sprite.call(this);
                         this.dirX = 1;
                         this.force = new osakana4242.utils.Vector2D();
                         this.force.x = 0;
@@ -1027,10 +1025,10 @@ var jp;
                         return this.enemyId === kimiko.DF.ENEMY_ID_BOSS;
                     }
                 });
-                scenes.DeadEffect = Class.create(osakana4242.utils.Sprite, {
+                scenes.DeadEffect = Class.create(enchant.Sprite, {
                     initialize: function (attacker, delay) {
                         var _this = this;
-                        osakana4242.utils.Sprite.call(this);
+                        enchant.Sprite.call(this);
                         this.width = attacker.width;
                         this.height = attacker.height;
                         this.center.x = attacker.center.x;
@@ -1246,9 +1244,6 @@ var jp;
         (function (kimiko) {
             (function (scenes) {
                 var Class = enchant.Class;
-                var Core = enchant.Core;
-                var Scene = enchant.Scene;
-                var Label = enchant.Label;
                 var Event = enchant.Event;
                 var Easing = enchant.Easing;
                 scenes.Player = Class.create(scenes.Attacker, {
@@ -1800,7 +1795,7 @@ var jp;
                     initialize: function () {
                         Scene.call(this);
                         var scene = this;
-                        var bg1 = new osakana4242.utils.Sprite(kimiko.DF.SC1_W, kimiko.DF.SC1_H);
+                        var bg1 = new enchant.Sprite(kimiko.DF.SC1_W, kimiko.DF.SC1_H);
                         ((function (sprite) {
                             sprite.x = 0;
                             sprite.y = 0;
@@ -1975,7 +1970,7 @@ var jp;
                             _this.addChild(group);
                             group.x = kimiko.DF.SC2_X1;
                             group.y = kimiko.DF.SC2_Y1;
-                            sprite = new osakana4242.utils.Sprite(kimiko.DF.SC2_W, kimiko.DF.SC2_H);
+                            sprite = new enchant.Sprite(kimiko.DF.SC2_W, kimiko.DF.SC2_H);
                             group.addChild(sprite);
                             _this.controllArea = sprite;
                             sprite.x = 0;
@@ -2001,7 +1996,7 @@ var jp;
                             return spr;
                         });
                         this.effectPool = new osakana4242.utils.SpritePool(64, function () {
-                            var spr = new osakana4242.utils.Sprite(16, 16);
+                            var spr = new enchant.Sprite(16, 16);
                             spr.ageMax = 0;
                             spr.anim.loopListener = function () {
                                 _this.effectPool.free(spr);
@@ -2195,8 +2190,8 @@ var jp;
                         }
                         effect.anim.sequence = kimiko.kimiko.getAnimFrames(animId);
                         effect.center.set(pos);
-                        effect.x += -2 + Math.random() * 5;
-                        effect.y += -2 + Math.random() * 5;
+                        effect.x += -1 + Math.random() * 3;
+                        effect.y += -1 + Math.random() * 3;
                         this.world.addChild(effect);
                         return effect;
                     },

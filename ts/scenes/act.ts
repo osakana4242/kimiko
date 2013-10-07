@@ -219,7 +219,7 @@ module jp.osakana4242.kimiko.scenes {
 			
 			var scene = this;
 			//
-			var bg1 = new utils.Sprite(DF.SC1_W, DF.SC1_H);
+			var bg1 = new enchant.Sprite(DF.SC1_W, DF.SC1_H);
 			((sprite: any) => {
 				sprite.x = 0;
 				sprite.y = 0;
@@ -460,7 +460,7 @@ module jp.osakana4242.kimiko.scenes {
 				group.y = DF.SC2_Y1;
 
 				// 背景.
-				sprite = new utils.Sprite(DF.SC2_W, DF.SC2_H);
+				sprite = new enchant.Sprite(DF.SC2_W, DF.SC2_H);
 				group.addChild(sprite);
 				this.controllArea = sprite;
 				sprite.x = 0;
@@ -492,7 +492,7 @@ module jp.osakana4242.kimiko.scenes {
 			});
 	
 			this.effectPool = new utils.SpritePool(64, () => {
-				var spr = new utils.Sprite(16, 16);
+				var spr = new enchant.Sprite(16, 16);
 				spr.ageMax = 0;
 				spr.anim.loopListener = () => {
 					this.effectPool.free(spr);
@@ -734,8 +734,8 @@ module jp.osakana4242.kimiko.scenes {
 			}
 			effect.anim.sequence = kimiko.getAnimFrames(animId);
 			effect.center.set(pos);
-			effect.x += -2 + Math.random() * 5;
-			effect.y += -2 + Math.random() * 5;
+			effect.x += -1 + Math.random() * 3;
+			effect.y += -1 + Math.random() * 3;
 			this.world.addChild(effect);
 			return effect;
 		},

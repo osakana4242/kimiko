@@ -446,14 +446,17 @@ module jp.osakana4242.utils {
 		}
 	}
 	
-	/** 拡張Sprite */
-	export var Sprite: any = enchant.Class.create(enchant.Sprite, {
-		initialize: function (w: number, h: number) {
-			enchant.Sprite.call(this, w, h);
+	/**
+	 * enchant.Sprite拡張.
+	 */
+	(function() {
+		var orig = enchant.Sprite.prototype.initialize;
+		enchant.Sprite.prototype.initialize = function() {
+			orig.apply(this, arguments);
 			this.center = new utils.RectCenter(this);
 			this.anim = new utils.AnimSequencer(this);
-		},
-	});
+		};
+	}());
 
 	export class SpritePool {
 		actives: any[];
