@@ -93,25 +93,30 @@ module jp.osakana4242.kimiko.scenes {
 			var camera = this.scene.camera;
 			
 			if (this.ageMax <= this.age) {
-				this.free();
+				this.miss();
 				return;
 			}
 
 			if (camera.isOutsideSleepRect(this)) {
-				this.free();
+				this.miss();
 				return;
 			}
 					
 			if (!this.scene.intersectActiveArea(this)) {
-				this.free();
+				this.miss();
 				return;
 			}
 
-			scene.checkMapCollision(this, this.free);
+			scene.checkMapCollision(this, this.miss);
 
 		},
+	
+		miss: function () {
+			this.addEffectMiss();
+			this.free();
+		},
 		
-		free: function () {
+		addEffectHit: function () {
 			var effect = this.scene.effectPool.alloc();
 			if (effect) {
 				effect.image = kimiko.core.assets[Assets.IMAGE_EFFECT];
@@ -119,7 +124,19 @@ module jp.osakana4242.kimiko.scenes {
 				utils.Vector2D.copyFrom(effect.center, this.center);
 				this.scene.world.addChild(effect);
 			}
+		},
 
+		addEffectMiss: function () {
+			var effect = this.scene.effectPool.alloc();
+			if (effect) {
+				effect.image = kimiko.core.assets[Assets.IMAGE_EFFECT];
+				effect.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_MISS);
+				utils.Vector2D.copyFrom(effect.center, this.center);
+				this.scene.world.addChild(effect);
+			}
+		},
+		
+		free: function () {
 			this.scene.ownBulletPool.free(this);
 		},
 	});

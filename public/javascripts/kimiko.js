@@ -481,6 +481,7 @@ var jp;
                 DF.ANIM_ID_BULLET001 = 30;
                 DF.ANIM_ID_BULLET002 = 31;
                 DF.ANIM_ID_DAMAGE = 40;
+                DF.ANIM_ID_MISS = 41;
                 DF.TOUCH_TO_CHARA_MOVE_LIMIT = 320;
                 DF.PLAYER_MOVE_RESOLUTION = 8;
                 DF.PLAYER_HP = 3;
@@ -662,6 +663,12 @@ var jp;
                         9, 
                         10, 
                         11
+                    ], 0.1);
+                    this.registerAnimFrames(DF.ANIM_ID_MISS, [
+                        12, 
+                        13, 
+                        14, 
+                        15
                     ], 0.1);
                     core.keybind(" ".charCodeAt(0), "a");
                     core.keybind("A".charCodeAt(0), "left");
@@ -878,20 +885,24 @@ var jp;
                         var scene = this.scene;
                         var camera = this.scene.camera;
                         if(this.ageMax <= this.age) {
-                            this.free();
+                            this.miss();
                             return;
                         }
                         if(camera.isOutsideSleepRect(this)) {
-                            this.free();
+                            this.miss();
                             return;
                         }
                         if(!this.scene.intersectActiveArea(this)) {
-                            this.free();
+                            this.miss();
                             return;
                         }
-                        scene.checkMapCollision(this, this.free);
+                        scene.checkMapCollision(this, this.miss);
                     },
-                    free: function () {
+                    miss: function () {
+                        this.addEffectMiss();
+                        this.free();
+                    },
+                    addEffectHit: function () {
                         var effect = this.scene.effectPool.alloc();
                         if(effect) {
                             effect.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_EFFECT];
@@ -899,6 +910,17 @@ var jp;
                             osakana4242.utils.Vector2D.copyFrom(effect.center, this.center);
                             this.scene.world.addChild(effect);
                         }
+                    },
+                    addEffectMiss: function () {
+                        var effect = this.scene.effectPool.alloc();
+                        if(effect) {
+                            effect.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_EFFECT];
+                            effect.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_MISS);
+                            osakana4242.utils.Vector2D.copyFrom(effect.center, this.center);
+                            this.scene.world.addChild(effect);
+                        }
+                    },
+                    free: function () {
                         this.scene.ownBulletPool.free(this);
                     }
                 });
@@ -2333,6 +2355,7 @@ var jp;
                                             scene.onAllEnemyDead();
                                         }
                                     }
+                                    bullet.addEffectHit();
                                     bullet.free();
                                 }
                             }

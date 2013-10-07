@@ -956,6 +956,7 @@ module jp.osakana4242.kimiko.scenes {
 								scene.onAllEnemyDead();
 							}
 						}
+						bullet.addEffectHit();
 						bullet.free();
 					}
 				}
