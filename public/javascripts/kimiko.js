@@ -51,6 +51,12 @@ var jp;
                     this.x = v.x;
                     this.y = v.y;
                 };
+                Vector2D.prototype.rotate = function (rad) {
+                    var x = this.x;
+                    var y = this.y;
+                    this.x = x * Math.cos(rad) - (y * Math.sin(rad));
+                    this.y = y * Math.cos(rad) + (x * Math.sin(rad));
+                };
                 Vector2D.copyFrom = function copyFrom(dest, src) {
                     dest.x = src.x;
                     dest.y = src.y;
@@ -614,6 +620,7 @@ var jp;
                     this.restTimeCounter = 0;
                     this.restTimeMax = 0;
                     this.mapId = DF.MAP_ID_MIN;
+                    this.mapId = 2;
                 };
                 return PlayerData;
             })();
@@ -767,11 +774,10 @@ var jp;
                         this.fireCount = 1;
                         this.fireInterval = kimiko.kimiko.secToFrame(0.2);
                         this.reloadFrameCount = kimiko.kimiko.secToFrame(3.0);
-                        this.dir = {
-                            x: 1,
-                            y: 0
-                        };
+                        this.dir = new osakana4242.utils.Vector2D(1, 0);
+                        this.targetPos = new osakana4242.utils.Vector2D();
                         this.speed = kimiko.kimiko.dpsToDpf(60 * 1.0);
+                        this.fireFunc = WeaponA.fireC;
                     }
                     WeaponA.prototype.step = function () {
                         this.state();
@@ -809,9 +815,75 @@ var jp;
                             var speed = this.speed;
                             bullet.force.x = (this.dir.x * Math.cos(rad) - (this.dir.y * Math.sin(rad))) * speed;
                             bullet.force.y = (this.dir.y * Math.cos(rad) + (this.dir.x * Math.sin(rad))) * speed;
-                            bullet.center.x = parent.center.x;
-                            bullet.center.y = parent.center.y;
+                            bullet.center.set(parent.center);
+                            if(true) {
+                                var v1 = osakana4242.utils.Vector2D.alloc();
+                                var v2 = osakana4242.utils.Vector2D.alloc();
+                                v1.set(this.targetPos);
+                                v1.x -= parent.center.x;
+                                v1.y -= parent.center.y;
+                                v1.rotate(rad);
+                                v1.x += parent.center.x;
+                                v1.y += parent.center.y;
+                                this.fireFunc(bullet, v1);
+                                osakana4242.utils.Vector2D.free(v1);
+                                osakana4242.utils.Vector2D.free(v2);
+                            }
                         }
+                    };
+                    WeaponA.fireA = function fireA(bullet, tpos) {
+                        bullet.force.x = 0;
+                        bullet.force.y = 0;
+                        var d = osakana4242.utils.Vector2D.alloc();
+                        d.x = tpos.x - bullet.center.x;
+                        d.y = tpos.y - bullet.center.y;
+                        var m = osakana4242.utils.Vector2D.magnitude(d);
+                        var d2 = 480;
+                        d.x = d.x * d2 / m;
+                        d.y = d.y * d2 / m;
+                        var frame = Math.floor(d2 / kimiko.kimiko.dpsToDpf(3 * 60));
+                        bullet.tl.moveBy(d.x, d.y, frame).then(function () {
+                            this.miss();
+                        });
+                        osakana4242.utils.Vector2D.free(d);
+                    };
+                    WeaponA.fireC = function fireC(bullet, tpos) {
+                        bullet.force.x = 0;
+                        bullet.force.y = 0;
+                        var d = osakana4242.utils.Vector2D.alloc();
+                        d.x = tpos.x - bullet.center.x;
+                        d.y = tpos.y - bullet.center.y;
+                        var m = osakana4242.utils.Vector2D.magnitude(d);
+                        var d2 = 480;
+                        var dx = d.x * d2 / m;
+                        var dy = d.y * d2 / m;
+                        var frame1 = Math.floor(d2 * 0.2 / kimiko.kimiko.dpsToDpf(4 * 60));
+                        var frame2 = Math.floor(d2 * 0.8 / kimiko.kimiko.dpsToDpf(1 * 60));
+                        bullet.tl.moveBy(dx * 0.2, dy * 0.2, frame1).moveBy(dx * 0.8, dy * 0.8, frame2).then(function () {
+                            this.miss();
+                        });
+                        osakana4242.utils.Vector2D.free(d);
+                    };
+                    WeaponA.fireB = function fireB(bullet, tpos) {
+                        bullet.force.x = 0;
+                        bullet.force.y = 0;
+                        var dx = tpos.x - bullet.center.x;
+                        var dy = tpos.y - bullet.center.y;
+                        var frameNum = kimiko.kimiko.secToFrame(1.0);
+                        bullet.tl.moveBy(dx * 0.25, dy * 0.25 - 64 * 0.7, frameNum * 0.25).moveBy(dx * 0.25, dy * 0.25 - 64 * 0.3, frameNum * 0.25).moveBy(dx * 0.25, dy * 0.25 + 64 * 0.3, frameNum * 0.25).moveBy(dx * 0.25, dy * 0.25 + 64 * 0.7, frameNum * 0.25).moveBy(dx, 320, frameNum).then(function () {
+                            this.miss();
+                        });
+                    };
+                    WeaponA.prototype.lookAtPlayer = function () {
+                        var player = this.parent.scene.player;
+                        this.dir.x = player.center.x - this.parent.center.x;
+                        this.dir.y = player.center.y - this.parent.center.y;
+                        this.targetPos.set(player.center);
+                        osakana4242.utils.Vector2D.normalize(this.dir);
+                    };
+                    WeaponA.prototype.lookAtFront = function () {
+                        this.targetPos.x = this.parent.center.x + this.dir.x * 320;
+                        this.targetPos.y = this.parent.center.y + this.dir.y * 320;
                     };
                     WeaponA.prototype.startFire = function () {
                         this.fireCounter = 0;
@@ -1099,6 +1171,7 @@ var jp;
                             wp.speed = kimiko.kimiko.dpsToDpf(1.5 * kimiko.DF.BASE_FPS);
                             wp.dir.x = player.x - sprite.x;
                             wp.dir.y = 0;
+                            wp.lookAtPlayer();
                             osakana4242.utils.Vector2D.normalize(wp.dir);
                             wp.startFire();
                         };
@@ -1164,11 +1237,8 @@ var jp;
                         var waitFire = function () {
                             return !sprite.weapon.isStateFire();
                         };
-                        function lookAtPlayer(wp) {
-                            var player = sprite.scene.player;
-                            wp.dir.x = player.center.x - sprite.center.x;
-                            wp.dir.y = player.center.y - sprite.center.y;
-                            osakana4242.utils.Vector2D.normalize(wp.dir);
+                        function runup() {
+                            return sprite.tl.moveBy(0, -24, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, 24, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, -8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).moveBy(0, 8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5));
                         }
                         function fireToPlayer() {
                             var wp = sprite.weapon;
@@ -1176,11 +1246,8 @@ var jp;
                             wp.wayNum = 6;
                             wp.fireInterval = kimiko.kimiko.secToFrame(0.3);
                             wp.speed = kimiko.kimiko.dpsToDpf(3 * kimiko.DF.BASE_FPS);
-                            lookAtPlayer(wp);
+                            wp.lookAtPlayer();
                             wp.startFire();
-                        }
-                        function runup() {
-                            return sprite.tl.moveBy(0, -24, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, 24, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, -8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).moveBy(0, 8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5));
                         }
                         function fireToPlayer2() {
                             var wp = sprite.weapon;
@@ -1188,7 +1255,7 @@ var jp;
                             wp.wayNum = 1;
                             wp.fireInterval = kimiko.kimiko.secToFrame(0.2);
                             wp.speed = kimiko.kimiko.dpsToDpf(5 * kimiko.DF.BASE_FPS);
-                            lookAtPlayer(wp);
+                            wp.lookAtPlayer();
                             wp.startFire();
                         }
                         function fire1() {

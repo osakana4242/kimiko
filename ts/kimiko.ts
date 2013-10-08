@@ -62,6 +62,13 @@ module jp.osakana4242.utils {
 			this.x = v.x;
 			this.y = v.y;
 		}
+		
+		public rotate(rad: number): void {
+			var x = this.x;
+			var y = this.y;
+			this.x = x * Math.cos(rad) - (y * Math.sin(rad));
+			this.y = y * Math.cos(rad) + (x * Math.sin(rad));
+		}
 
 		public static copyFrom(dest: IVector2D, src: IVector2D): void {
 			dest.x = src.x;
@@ -669,6 +676,7 @@ module jp.osakana4242.kimiko {
 			this.restTimeCounter= 0;
 			this.restTimeMax= 0;
 			this.mapId= DF.MAP_ID_MIN;
+			this.mapId= 2;
 		}
 	}
 

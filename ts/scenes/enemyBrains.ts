@@ -54,8 +54,10 @@ module jp.osakana4242.kimiko.scenes {
 				wp.speed = kimiko.dpsToDpf(1.5 * DF.BASE_FPS);
 				wp.dir.x = player.x - sprite.x;
 				wp.dir.y = 0;
+				wp.lookAtPlayer();
 				utils.Vector2D.normalize(wp.dir);
 				wp.startFire();
+				
 			};
 			var waitFire = () => { return !sprite.weapon.isStateFire(); };
 			
@@ -155,24 +157,7 @@ module jp.osakana4242.kimiko.scenes {
 			var range = 196;
 
 			var waitFire = () => { return !sprite.weapon.isStateFire(); };
-			function lookAtPlayer(wp: WeaponA) {
-				var player = sprite.scene.player;
-				wp.dir.x = player.center.x - sprite.center.x;
-				wp.dir.y = player.center.y - sprite.center.y;
-				utils.Vector2D.normalize(wp.dir);
-			}
 
-			function fireToPlayer() {
-				var wp: WeaponA = sprite.weapon;
-				wp.fireCount = 3;
-				wp.wayNum = 6;
-				wp.fireInterval = kimiko.secToFrame(0.3);
-				wp.speed = kimiko.dpsToDpf(3 * DF.BASE_FPS);
-
-				lookAtPlayer(wp);
-				wp.startFire();
-			}
-			
 			// 発砲の予備動作.
 			function runup() {
 				return sprite.tl.
@@ -183,6 +168,18 @@ module jp.osakana4242.kimiko.scenes {
 					delay(kimiko.secToFrame(0.5));
 			}
 
+			function fireToPlayer() {
+				var wp: WeaponA = sprite.weapon;
+				wp.fireCount = 3;
+				wp.wayNum = 6;
+				wp.fireInterval = kimiko.secToFrame(0.3);
+				wp.speed = kimiko.dpsToDpf(3 * DF.BASE_FPS);
+
+				wp.lookAtPlayer();
+				wp.startFire();
+			}
+	
+
 			function fireToPlayer2() {
 				var wp: WeaponA = sprite.weapon;
 				wp.fireCount = 3;
@@ -190,7 +187,7 @@ module jp.osakana4242.kimiko.scenes {
 				wp.fireInterval = kimiko.secToFrame(0.2);
 				wp.speed = kimiko.dpsToDpf(5 * DF.BASE_FPS);
 
-				lookAtPlayer(wp);
+				wp.lookAtPlayer();
 				wp.startFire();
 			}
 			
