@@ -136,7 +136,9 @@ module jp.osakana4242.kimiko.scenes {
 			var frame2 = Math.floor(d2 * 0.8 / kimiko.dpsToDpf(1 * 60));
 	
 			bullet.tl.
+				// 早く移動.
 				moveBy(dx * 0.2, dy * 0.2, frame1).
+				// 遅く移動.
 				moveBy(dx * 0.8, dy * 0.8, frame2).
 				then(function () {
 					this.miss();

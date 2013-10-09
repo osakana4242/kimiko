@@ -620,7 +620,6 @@ var jp;
                     this.restTimeCounter = 0;
                     this.restTimeMax = 0;
                     this.mapId = DF.MAP_ID_MIN;
-                    this.mapId = 2;
                 };
                 return PlayerData;
             })();
@@ -715,8 +714,14 @@ var jp;
                     core.keybind("S".charCodeAt(0), "down");
                     core.onload = function () {
                         this.gameScene = new jp.osakana4242.kimiko.scenes.Act();
-                        var scene = new jp.osakana4242.kimiko.scenes.GameStart();
-                        core.replaceScene(scene);
+                        if(false) {
+                            var scene = new jp.osakana4242.kimiko.scenes.GameStart();
+                            core.replaceScene(scene);
+                        } else {
+                            kimiko.kimiko.playerData.reset();
+                            kimiko.kimiko.playerData.mapId = DF.MAP_ID_MAX;
+                            core.replaceScene(this.gameScene);
+                        }
                     };
                 }
                 Kimiko.instance = null;
@@ -741,6 +746,9 @@ var jp;
                 };
                 Kimiko.prototype.dpsToDpf = function (dotPerSec) {
                     return dotPerSec ? dotPerSec / this.core.fps : 0;
+                };
+                Kimiko.prototype.getFrameCountByHoge = function (distance, dps) {
+                    return distance / this.dpsToDpf(dps);
                 };
                 return Kimiko;
             })();
@@ -1143,10 +1151,10 @@ var jp;
                     }
                     EnemyBodys.body1 = body1;
                     function body2(sprite) {
-                        sprite.width = 64;
-                        sprite.height = 64;
-                        sprite.backgroundColor = "rgb(192, 128, 192)";
-                        sprite.collider.centerBottom(60, 60);
+                        sprite.width = 48;
+                        sprite.height = 48;
+                        sprite.backgroundColor = "rgb(96, 96, 96)";
+                        sprite.collider.centerBottom(40, 40);
                     }
                     EnemyBodys.body2 = body2;
                 })(scenes.EnemyBodys || (scenes.EnemyBodys = {}));
@@ -1233,7 +1241,6 @@ var jp;
                     EnemyBrains.brain3 = brain3;
                     function brainBoss(sprite) {
                         var anchor = sprite.anchor;
-                        var range = 196;
                         var waitFire = function () {
                             return !sprite.weapon.isStateFire();
                         };
@@ -1244,7 +1251,7 @@ var jp;
                             var wp = sprite.weapon;
                             wp.fireCount = 3;
                             wp.wayNum = 6;
-                            wp.fireInterval = kimiko.kimiko.secToFrame(0.3);
+                            wp.fireInterval = kimiko.kimiko.secToFrame(0.5);
                             wp.speed = kimiko.kimiko.dpsToDpf(3 * kimiko.DF.BASE_FPS);
                             wp.lookAtPlayer();
                             wp.startFire();
@@ -1253,7 +1260,7 @@ var jp;
                             var wp = sprite.weapon;
                             wp.fireCount = 3;
                             wp.wayNum = 1;
-                            wp.fireInterval = kimiko.kimiko.secToFrame(0.2);
+                            wp.fireInterval = kimiko.kimiko.secToFrame(0.3);
                             wp.speed = kimiko.kimiko.dpsToDpf(5 * kimiko.DF.BASE_FPS);
                             wp.lookAtPlayer();
                             wp.startFire();
@@ -1264,9 +1271,14 @@ var jp;
                         function fire2() {
                             return runup().then(fireToPlayer2).waitUntil(waitFire);
                         }
-                        sprite.tl.moveTo(anchor.x - range, anchor.y, kimiko.kimiko.secToFrame(2.0), Easing.CUBIC_EASEIN);
-                        fire1().moveTo(sprite.anchor.x - range / 2, sprite.anchor.y - 32, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN);
-                        fire2().moveTo(sprite.anchor.x, sprite.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN);
+                        var top = sprite.anchor.y - 96;
+                        var bottom = sprite.anchor.y;
+                        var left = sprite.anchor.x - 200;
+                        var right = sprite.anchor.x + 0;
+                        sprite.tl.moveTo(left, bottom, kimiko.kimiko.secToFrame(0.5));
+                        fire2().moveTo(left, top, kimiko.kimiko.secToFrame(1.0));
+                        fire1().moveTo(right, top, kimiko.kimiko.secToFrame(0.5));
+                        fire2().moveTo(right, bottom, kimiko.kimiko.secToFrame(1.0));
                         fire1().loop();
                     }
                     EnemyBrains.brainBoss = brainBoss;
@@ -1889,6 +1901,8 @@ var jp;
                         scene.addChild(layer1);
                         ((function () {
                             var next = function () {
+                                var pd = kimiko.kimiko.playerData;
+                                pd.reset();
                                 kimiko.kimiko.core.replaceScene(kimiko.kimiko.core.gameScene);
                             };
                             fader.setBlack(true);
@@ -1988,6 +2002,7 @@ var jp;
                         });
                         scene.addEventListener(Event.TOUCH_END, function () {
                             kimiko.kimiko.core.popScene();
+                            kimiko.kimiko.core.replaceScene(new scenes.GameStart());
                         });
                     }
                 });

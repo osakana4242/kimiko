@@ -21,11 +21,12 @@ module jp.osakana4242.kimiko.scenes {
 			sprite.collider.centerBottom(28, 28);
 		}
 
+		// クネクネカラス
 		export function body2(sprite: any) {
-			sprite.width = 64;
-			sprite.height = 64;
-			sprite.backgroundColor = "rgb(192, 128, 192)";
-			sprite.collider.centerBottom(60, 60);
+			sprite.width = 48;
+			sprite.height = 48;
+			sprite.backgroundColor = "rgb(96, 96, 96)";
+			sprite.collider.centerBottom(40, 40);
 		}
 	}
 
@@ -154,7 +155,6 @@ module jp.osakana4242.kimiko.scenes {
 		// BOSS.
 		export function brainBoss(sprite: any): void {
 			var anchor = sprite.anchor;
-			var range = 196;
 
 			var waitFire = () => { return !sprite.weapon.isStateFire(); };
 
@@ -172,7 +172,7 @@ module jp.osakana4242.kimiko.scenes {
 				var wp: WeaponA = sprite.weapon;
 				wp.fireCount = 3;
 				wp.wayNum = 6;
-				wp.fireInterval = kimiko.secToFrame(0.3);
+				wp.fireInterval = kimiko.secToFrame(0.5);
 				wp.speed = kimiko.dpsToDpf(3 * DF.BASE_FPS);
 
 				wp.lookAtPlayer();
@@ -184,7 +184,7 @@ module jp.osakana4242.kimiko.scenes {
 				var wp: WeaponA = sprite.weapon;
 				wp.fireCount = 3;
 				wp.wayNum = 1;
-				wp.fireInterval = kimiko.secToFrame(0.2);
+				wp.fireInterval = kimiko.secToFrame(0.3);
 				wp.speed = kimiko.dpsToDpf(5 * DF.BASE_FPS);
 
 				wp.lookAtPlayer();
@@ -204,12 +204,18 @@ module jp.osakana4242.kimiko.scenes {
 					then(fireToPlayer2).
 					waitUntil(waitFire);
 			}
+			var top = sprite.anchor.y - 96;
+			var bottom = sprite.anchor.y;
+			var left = sprite.anchor.x - 200;
+			var right = sprite.anchor.x + 0;
 			sprite.tl.
-				moveTo(anchor.x - range, anchor.y, kimiko.secToFrame(2.0), Easing.CUBIC_EASEIN);
-			fire1().
-				moveTo(sprite.anchor.x - range / 2, sprite.anchor.y - 32, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN);
+				moveTo(left, bottom, kimiko.secToFrame(0.5));
 			fire2().
-				moveTo(sprite.anchor.x, sprite.anchor.y, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN);
+				moveTo(left, top, kimiko.secToFrame(1.0));
+			fire1().
+				moveTo(right, top, kimiko.secToFrame(0.5));
+			fire2().
+				moveTo(right, bottom, kimiko.secToFrame(1.0));
 			fire1().
 				loop();
 		}

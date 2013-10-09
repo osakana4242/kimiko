@@ -676,7 +676,6 @@ module jp.osakana4242.kimiko {
 			this.restTimeCounter= 0;
 			this.restTimeMax= 0;
 			this.mapId= DF.MAP_ID_MIN;
-			this.mapId= 2;
 		}
 	}
 
@@ -749,8 +748,14 @@ module jp.osakana4242.kimiko {
 			//
 			core.onload = function () {
 				this.gameScene = new jp.osakana4242.kimiko.scenes.Act()
-				var scene = new jp.osakana4242.kimiko.scenes.GameStart();
-				core.replaceScene(scene);
+				if (false) {
+					var scene = new jp.osakana4242.kimiko.scenes.GameStart();
+					core.replaceScene(scene);
+				} else {
+					kimiko.playerData.reset();
+					kimiko.playerData.mapId = DF.MAP_ID_MAX;
+					core.replaceScene(this.gameScene);
+				}
 			};
 		}
 
@@ -784,6 +789,13 @@ module jp.osakana4242.kimiko {
 			return dotPerSec
 				? dotPerSec / this.core.fps
 				: 0;
+		}
+		
+		/** 指定距離を指定dpsで通過できる時間(frame)
+			関数名が決まらない. ('A`)
+		*/
+		getFrameCountByHoge(distance: number, dps: number): number {
+			return distance / this.dpsToDpf(dps);
 		}
 
 		//dotPerSecToDotPerFrame

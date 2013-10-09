@@ -253,6 +253,8 @@ module jp.osakana4242.kimiko.scenes {
 			scene.addChild(layer1);
 			(() => {
 				var next = () => {
+					var pd = kimiko.playerData;
+					pd.reset();
 					kimiko.core.replaceScene(kimiko.core.gameScene);
 				};
 				fader.setBlack(true);
@@ -397,6 +399,7 @@ module jp.osakana4242.kimiko.scenes {
 			//
 			scene.addEventListener(Event.TOUCH_END, () => {
 				kimiko.core.popScene();
+				kimiko.core.replaceScene(new GameStart());
 			});
 		}
 	});
