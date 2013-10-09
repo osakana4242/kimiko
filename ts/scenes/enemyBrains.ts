@@ -173,6 +173,7 @@ module jp.osakana4242.kimiko.scenes {
 				wp.wayNum = 6;
 				wp.fireInterval = kimiko.secToFrame(0.5);
 				wp.speed = kimiko.dpsToDpf(3 * DF.BASE_FPS);
+				wp.fireFunc = WeaponA.fireC;
 
 				wp.lookAtPlayer();
 				wp.startFire();
@@ -185,6 +186,7 @@ module jp.osakana4242.kimiko.scenes {
 				wp.wayNum = 1;
 				wp.fireInterval = kimiko.secToFrame(0.3);
 				wp.speed = kimiko.dpsToDpf(5 * DF.BASE_FPS);
+				wp.fireFunc = WeaponA.fireB;
 
 				wp.lookAtPlayer();
 				wp.startFire();
@@ -208,11 +210,13 @@ module jp.osakana4242.kimiko.scenes {
 			var left = sprite.anchor.x - 200;
 			var right = sprite.anchor.x + 0;
 			sprite.tl.
-				moveTo(left, bottom, kimiko.secToFrame(0.5));
+				moveTo(left, bottom, kimiko.secToFrame(0.5), Easing.CUBIC_EASEIN).
+				scaleTo(1.0, 1.0, 1);
 			fire2().
 				moveTo(left, top, kimiko.secToFrame(1.0));
 			fire1().
-				moveTo(right, top, kimiko.secToFrame(0.5));
+				moveTo(right, top, kimiko.secToFrame(0.5), Easing.CUBIC_EASEIN).
+				scaleTo(-1.0, 1.0, 1);
 			fire2().
 				moveTo(right, bottom, kimiko.secToFrame(1.0));
 			fire1().

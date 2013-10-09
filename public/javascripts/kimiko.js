@@ -1260,6 +1260,7 @@ var jp;
                             wp.wayNum = 6;
                             wp.fireInterval = kimiko.kimiko.secToFrame(0.5);
                             wp.speed = kimiko.kimiko.dpsToDpf(3 * kimiko.DF.BASE_FPS);
+                            wp.fireFunc = scenes.WeaponA.fireC;
                             wp.lookAtPlayer();
                             wp.startFire();
                         }
@@ -1269,6 +1270,7 @@ var jp;
                             wp.wayNum = 1;
                             wp.fireInterval = kimiko.kimiko.secToFrame(0.3);
                             wp.speed = kimiko.kimiko.dpsToDpf(5 * kimiko.DF.BASE_FPS);
+                            wp.fireFunc = scenes.WeaponA.fireB;
                             wp.lookAtPlayer();
                             wp.startFire();
                         }
@@ -1282,9 +1284,9 @@ var jp;
                         var bottom = sprite.anchor.y;
                         var left = sprite.anchor.x - 200;
                         var right = sprite.anchor.x + 0;
-                        sprite.tl.moveTo(left, bottom, kimiko.kimiko.secToFrame(0.5));
+                        sprite.tl.moveTo(left, bottom, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEIN).scaleTo(1.0, 1.0, 1);
                         fire2().moveTo(left, top, kimiko.kimiko.secToFrame(1.0));
-                        fire1().moveTo(right, top, kimiko.kimiko.secToFrame(0.5));
+                        fire1().moveTo(right, top, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEIN).scaleTo(-1.0, 1.0, 1);
                         fire2().moveTo(right, bottom, kimiko.kimiko.secToFrame(1.0));
                         fire1().loop();
                     }
