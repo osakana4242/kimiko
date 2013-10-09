@@ -540,6 +540,7 @@ module jp.osakana4242.kimiko {
 		export var IMAGE_MAP = "./images/map.png";
 		export var IMAGE_CHARA001 = "./images/chara001.png";
 		export var IMAGE_CHARA002 = "./images/chara002.png";
+		export var IMAGE_CHARA003 = "./images/chara003.png";
 		export var IMAGE_BULLET = "./images/bullet.png";
 		export var IMAGE_EFFECT = "./images/bullet.png";
 		export var SOUND_BGM = "./sounds/bgm.mp3";
@@ -579,12 +580,13 @@ module jp.osakana4242.kimiko {
 		export var ANIM_ID_CHARA001_DEAD = 13;
 
 		export var ANIM_ID_CHARA002_WALK = 20;
+		export var ANIM_ID_CHARA003_WALK = 30;
 
-		export var ANIM_ID_BULLET001 = 30;
-		export var ANIM_ID_BULLET002 = 31;
+		export var ANIM_ID_BULLET001 = 300;
+		export var ANIM_ID_BULLET002 = 301;
 
-		export var ANIM_ID_DAMAGE = 40;
-		export var ANIM_ID_MISS = 41;
+		export var ANIM_ID_DAMAGE = 400;
+		export var ANIM_ID_MISS = 401;
 	
 
 		// スワイプで1フレームにキャラが移動できる最大距離.
@@ -730,6 +732,7 @@ module jp.osakana4242.kimiko {
 				r(DF.ANIM_ID_CHARA001_DEAD,  Assets.IMAGE_CHARA001, 32, 32, 0.1, [0, 1, 0, 2]);
 		
 				r(DF.ANIM_ID_CHARA002_WALK,  Assets.IMAGE_CHARA002, 32, 32, 0.1, [0, 1, 2, 3]);
+				r(DF.ANIM_ID_CHARA003_WALK,  Assets.IMAGE_CHARA003, 64, 64, 0.1, [0, 1, 2, 3]);
 
 				r(DF.ANIM_ID_BULLET001,      Assets.IMAGE_BULLET,   16, 16, 0.1, [0, 1, 2, 3]);
 				r(DF.ANIM_ID_BULLET002,      Assets.IMAGE_BULLET,   16, 16, 0.1, [4, 5, 6, 7]);

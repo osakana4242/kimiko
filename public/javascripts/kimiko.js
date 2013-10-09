@@ -471,6 +471,7 @@ var jp;
                 Assets.IMAGE_MAP = "./images/map.png";
                 Assets.IMAGE_CHARA001 = "./images/chara001.png";
                 Assets.IMAGE_CHARA002 = "./images/chara002.png";
+                Assets.IMAGE_CHARA003 = "./images/chara003.png";
                 Assets.IMAGE_BULLET = "./images/bullet.png";
                 Assets.IMAGE_EFFECT = "./images/bullet.png";
                 Assets.SOUND_BGM = "./sounds/bgm.mp3";
@@ -508,10 +509,11 @@ var jp;
                 DF.ANIM_ID_CHARA001_SQUAT = 12;
                 DF.ANIM_ID_CHARA001_DEAD = 13;
                 DF.ANIM_ID_CHARA002_WALK = 20;
-                DF.ANIM_ID_BULLET001 = 30;
-                DF.ANIM_ID_BULLET002 = 31;
-                DF.ANIM_ID_DAMAGE = 40;
-                DF.ANIM_ID_MISS = 41;
+                DF.ANIM_ID_CHARA003_WALK = 30;
+                DF.ANIM_ID_BULLET001 = 300;
+                DF.ANIM_ID_BULLET002 = 301;
+                DF.ANIM_ID_DAMAGE = 400;
+                DF.ANIM_ID_MISS = 401;
                 DF.TOUCH_TO_CHARA_MOVE_LIMIT = 320;
                 DF.PLAYER_MOVE_RESOLUTION = 8;
                 DF.PLAYER_HP = 3;
@@ -677,6 +679,12 @@ var jp;
                             2
                         ]);
                         r(DF.ANIM_ID_CHARA002_WALK, Assets.IMAGE_CHARA002, 32, 32, 0.1, [
+                            0, 
+                            1, 
+                            2, 
+                            3
+                        ]);
+                        r(DF.ANIM_ID_CHARA003_WALK, Assets.IMAGE_CHARA003, 64, 64, 0.1, [
                             0, 
                             1, 
                             2, 
@@ -1145,16 +1153,15 @@ var jp;
                     function body1(sprite) {
                         sprite.width = 32;
                         sprite.height = 32;
-                        sprite.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_CHARA002];
                         sprite.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA002_WALK);
                         sprite.collider.centerBottom(28, 28);
                     }
                     EnemyBodys.body1 = body1;
                     function body2(sprite) {
-                        sprite.width = 48;
-                        sprite.height = 48;
-                        sprite.backgroundColor = "rgb(96, 96, 96)";
-                        sprite.collider.centerBottom(40, 40);
+                        sprite.width = 64;
+                        sprite.height = 64;
+                        sprite.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA003_WALK);
+                        sprite.collider.centerMiddle(56, 56);
                     }
                     EnemyBodys.body2 = body2;
                 })(scenes.EnemyBodys || (scenes.EnemyBodys = {}));

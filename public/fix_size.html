@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes"> 
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+		<title>kimiko</title>
+			<script src="./javascripts/lib/enchant/enchant-0.5.3.js"></script>
+			<script src="./javascripts/lib/enchant/plugin/tl.enchant.js"></script>
+		<!--
+			<script src="./javascripts/lib/enchant/enchant-0.6.3.js"></script>
+			<script src="./javascripts/lib/enchant/enchant-0.7.1.js"></script>
+		-->
+		<script src="./javascripts/kimiko.js?v=201309292005.js"></script>
+		<script src="./javascripts/map001.js?v=201309292005.js"></script>
+		<script src="./javascripts/map002.js?v=201309292005.js"></script>
+		<style>
+			body {
+				margin: 0;
+			}
+
+			#enchant-stage {
+				margin: 8px auto;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="enchant-stage"></div>
+		<script>
+			(function () {
+				// for enhant-0.5.x
+				if (!enchant.Core) {
+					enchant.Core = enchant.Game;
+				}
+				
+				//
+			 	var ua = navigator.userAgent;
+				var isIos = ((ua.indexOf('iPhone') > 0 && ua.indexOf('iPad') === -1) || ua.indexOf('iPod') > 0);
+				var isAndroid = (ua.indexOf('Android') > 0);
+				var isSp = isIos || isAndroid;
+				var isPc = !isSp;
+				var isTouchEnabled = isSp;
+
+				var config = {};
+				config.version = "201309292005";
+				config.fps = isPc ? 60 : 20;
+				// タッチとマウスでドラッグによるキャラの移動距離を変える.
+				config.swipeToMoveRate = {
+					"x": isTouchEnabled ? 1.25 : 1.50,
+					"y": isTouchEnabled ? 1.50 : 1.75
+				};
+				//config.isSoundEnabled = isPc;
+				config.isSoundEnabled = false;
+
+				//
+				jp.osakana4242.kimiko.start(config);
+			}());
+		</script>
+	</body>
+</html>

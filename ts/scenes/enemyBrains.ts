@@ -16,17 +16,16 @@ module jp.osakana4242.kimiko.scenes {
 		export function body1(sprite: any) {
 			sprite.width = 32;
 			sprite.height = 32;
-			sprite.image = kimiko.core.assets[Assets.IMAGE_CHARA002]
 			sprite.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
 			sprite.collider.centerBottom(28, 28);
 		}
 
 		// クネクネカラス
 		export function body2(sprite: any) {
-			sprite.width = 48;
-			sprite.height = 48;
-			sprite.backgroundColor = "rgb(96, 96, 96)";
-			sprite.collider.centerBottom(40, 40);
+			sprite.width = 64;
+			sprite.height = 64;
+			sprite.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_CHARA003_WALK);
+			sprite.collider.centerMiddle(56, 56);
 		}
 	}
 
