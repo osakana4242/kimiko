@@ -54,6 +54,7 @@ module jp.osakana4242.kimiko.scenes {
 				wp.speed = kimiko.dpsToDpf(1.5 * DF.BASE_FPS);
 				wp.dir.x = player.x - sprite.x;
 				wp.dir.y = 0;
+				wp.fireFunc = WeaponA.fireA;
 				wp.lookAtPlayer();
 				utils.Vector2D.normalize(wp.dir);
 				wp.startFire();
@@ -74,6 +75,8 @@ module jp.osakana4242.kimiko.scenes {
 			var anchor = sprite.anchor;
 			var range = 16;
 			var waitFire = () => { return !sprite.weapon.isStateFire(); };
+			sprite.weapon.fireFunc = WeaponA.fireA;
+	
 			sprite.tl
 				.moveTo(sprite.anchor.x + range, sprite.anchor.y, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN)
 				.then(() => {
@@ -126,6 +129,7 @@ module jp.osakana4242.kimiko.scenes {
 				wp.wayNum = 1;
 				wp.dir.x = player.center.x - sprite.center.x;
 				wp.dir.y = player.center.y - sprite.center.y;
+				wp.fireFunc = WeaponA.fireA;
 				utils.Vector2D.normalize(wp.dir);
 				wp.startFire();
 			}
@@ -170,11 +174,11 @@ module jp.osakana4242.kimiko.scenes {
 			function fireToPlayer() {
 				var wp: WeaponA = sprite.weapon;
 				wp.fireCount = 3;
-				wp.wayNum = 6;
-				wp.fireInterval = kimiko.secToFrame(0.5);
+				wp.wayNum = 5;
+				wp.fireInterval = kimiko.secToFrame(1.0);
 				wp.speed = kimiko.dpsToDpf(3 * DF.BASE_FPS);
 				wp.fireFunc = WeaponA.fireC;
-
+				wp.isTracePlayer = false;
 				wp.lookAtPlayer();
 				wp.startFire();
 			}
@@ -182,12 +186,12 @@ module jp.osakana4242.kimiko.scenes {
 
 			function fireToPlayer2() {
 				var wp: WeaponA = sprite.weapon;
-				wp.fireCount = 3;
+				wp.fireCount = 9 
 				wp.wayNum = 1;
-				wp.fireInterval = kimiko.secToFrame(0.3);
-				wp.speed = kimiko.dpsToDpf(5 * DF.BASE_FPS);
+				wp.fireInterval = kimiko.secToFrame(0.5);
+				wp.speed = kimiko.dpsToDpf(3 * DF.BASE_FPS);
 				wp.fireFunc = WeaponA.fireB;
-
+				wp.isTracePlayer = true;
 				wp.lookAtPlayer();
 				wp.startFire();
 			}
@@ -209,18 +213,27 @@ module jp.osakana4242.kimiko.scenes {
 			var bottom = sprite.anchor.y;
 			var left = sprite.anchor.x - 200;
 			var right = sprite.anchor.x + 0;
+			sprite.x = right;
+			sprite.y = top;
 			sprite.tl.
-				moveTo(left, bottom, kimiko.secToFrame(0.5), Easing.CUBIC_EASEIN).
-				scaleTo(1.0, 1.0, 1);
-			fire2().
-				moveTo(left, top, kimiko.secToFrame(1.0));
-			fire1().
-				moveTo(right, top, kimiko.secToFrame(0.5), Easing.CUBIC_EASEIN).
-				scaleTo(-1.0, 1.0, 1);
-			fire2().
-				moveTo(right, bottom, kimiko.secToFrame(1.0));
-			fire1().
-				loop();
+				delay(kimiko.secToFrame(1.0)).
+				moveTo(right, bottom, kimiko.secToFrame(2.0)).
+				scaleTo(-1.0, 1.0, 1).
+				delay(kimiko.secToFrame(0.5)).
+				then(function () {
+					sprite.tl.
+						moveTo(left, bottom, kimiko.secToFrame(0.5), Easing.CUBIC_EASEIN).
+						scaleTo(1.0, 1.0, 1);
+					fire2().
+						moveTo(left, top, kimiko.secToFrame(1.0));
+					fire1().
+						moveTo(right, top, kimiko.secToFrame(0.5), Easing.CUBIC_EASEIN).
+						scaleTo(-1.0, 1.0, 1);
+					fire2().
+						moveTo(right, bottom, kimiko.secToFrame(1.0));
+					fire1().
+						loop();
+				});
 		}
 
 	}

@@ -794,6 +794,7 @@ var jp;
                         this.targetPos = new osakana4242.utils.Vector2D();
                         this.speed = kimiko.kimiko.dpsToDpf(60 * 1.0);
                         this.fireFunc = WeaponA.fireC;
+                        this.isTracePlayer = false;
                     }
                     WeaponA.prototype.step = function () {
                         this.state();
@@ -816,6 +817,9 @@ var jp;
                         this.state = this.stateNeutral;
                     };
                     WeaponA.prototype.fire = function () {
+                        if(this.isTracePlayer) {
+                            this.lookAtPlayer();
+                        }
                         var parent = this.parent;
                         var wayNum = this.wayNum;
                         var degToRad = Math.PI / 180;
@@ -1186,6 +1190,7 @@ var jp;
                             wp.speed = kimiko.kimiko.dpsToDpf(1.5 * kimiko.DF.BASE_FPS);
                             wp.dir.x = player.x - sprite.x;
                             wp.dir.y = 0;
+                            wp.fireFunc = scenes.WeaponA.fireA;
                             wp.lookAtPlayer();
                             osakana4242.utils.Vector2D.normalize(wp.dir);
                             wp.startFire();
@@ -1202,6 +1207,7 @@ var jp;
                         var waitFire = function () {
                             return !sprite.weapon.isStateFire();
                         };
+                        sprite.weapon.fireFunc = scenes.WeaponA.fireA;
                         sprite.tl.moveTo(sprite.anchor.x + range, sprite.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).then(function () {
                             var wp = sprite.weapon;
                             wp.dir.x = 1;
@@ -1240,6 +1246,7 @@ var jp;
                             wp.wayNum = 1;
                             wp.dir.x = player.center.x - sprite.center.x;
                             wp.dir.y = player.center.y - sprite.center.y;
+                            wp.fireFunc = scenes.WeaponA.fireA;
                             osakana4242.utils.Vector2D.normalize(wp.dir);
                             wp.startFire();
                         }
@@ -1257,20 +1264,22 @@ var jp;
                         function fireToPlayer() {
                             var wp = sprite.weapon;
                             wp.fireCount = 3;
-                            wp.wayNum = 6;
-                            wp.fireInterval = kimiko.kimiko.secToFrame(0.5);
+                            wp.wayNum = 5;
+                            wp.fireInterval = kimiko.kimiko.secToFrame(1.0);
                             wp.speed = kimiko.kimiko.dpsToDpf(3 * kimiko.DF.BASE_FPS);
                             wp.fireFunc = scenes.WeaponA.fireC;
+                            wp.isTracePlayer = false;
                             wp.lookAtPlayer();
                             wp.startFire();
                         }
                         function fireToPlayer2() {
                             var wp = sprite.weapon;
-                            wp.fireCount = 3;
+                            wp.fireCount = 9;
                             wp.wayNum = 1;
-                            wp.fireInterval = kimiko.kimiko.secToFrame(0.3);
-                            wp.speed = kimiko.kimiko.dpsToDpf(5 * kimiko.DF.BASE_FPS);
+                            wp.fireInterval = kimiko.kimiko.secToFrame(0.5);
+                            wp.speed = kimiko.kimiko.dpsToDpf(3 * kimiko.DF.BASE_FPS);
                             wp.fireFunc = scenes.WeaponA.fireB;
+                            wp.isTracePlayer = true;
                             wp.lookAtPlayer();
                             wp.startFire();
                         }
@@ -1284,11 +1293,15 @@ var jp;
                         var bottom = sprite.anchor.y;
                         var left = sprite.anchor.x - 200;
                         var right = sprite.anchor.x + 0;
-                        sprite.tl.moveTo(left, bottom, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEIN).scaleTo(1.0, 1.0, 1);
-                        fire2().moveTo(left, top, kimiko.kimiko.secToFrame(1.0));
-                        fire1().moveTo(right, top, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEIN).scaleTo(-1.0, 1.0, 1);
-                        fire2().moveTo(right, bottom, kimiko.kimiko.secToFrame(1.0));
-                        fire1().loop();
+                        sprite.x = right;
+                        sprite.y = top;
+                        sprite.tl.delay(kimiko.kimiko.secToFrame(1.0)).moveTo(right, bottom, kimiko.kimiko.secToFrame(2.0)).scaleTo(-1.0, 1.0, 1).delay(kimiko.kimiko.secToFrame(0.5)).then(function () {
+                            sprite.tl.moveTo(left, bottom, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEIN).scaleTo(1.0, 1.0, 1);
+                            fire2().moveTo(left, top, kimiko.kimiko.secToFrame(1.0));
+                            fire1().moveTo(right, top, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEIN).scaleTo(-1.0, 1.0, 1);
+                            fire2().moveTo(right, bottom, kimiko.kimiko.secToFrame(1.0));
+                            fire1().loop();
+                        });
                     }
                     EnemyBrains.brainBoss = brainBoss;
                 })(scenes.EnemyBrains || (scenes.EnemyBrains = {}));
@@ -2218,6 +2231,14 @@ var jp;
                     loadMapData: function (mapData) {
                         var _this = this;
                         var map = this.map;
+                        switch(kimiko.kimiko.playerData.mapId) {
+                            case 1:
+                                this.backgroundColor = "rgb(32, 32, 64)";
+                                break;
+                            case 2:
+                                this.backgroundColor = "rgb(196, 32, 32)";
+                                break;
+                        }
                         ((function () {
                             var layer = mapData.layers[0];
                             map.loadData(layer.tiles);

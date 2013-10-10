@@ -23,6 +23,7 @@ module jp.osakana4242.kimiko.scenes {
 		parent: any;
 		targetPos: utils.Vector2D;
 		dir: utils.Vector2D;
+		isTracePlayer: bool;
 
 		state: () => void;
 		fireFunc: (bullet: any, tpos: utils.Vector2D) => void;
@@ -38,6 +39,7 @@ module jp.osakana4242.kimiko.scenes {
 			this.targetPos = new utils.Vector2D();
 			this.speed = kimiko.dpsToDpf(60 * 1.0);
 			this.fireFunc = WeaponA.fireC;
+			this.isTracePlayer = false;
 		}
 
 		public step(): void {
@@ -65,6 +67,9 @@ module jp.osakana4242.kimiko.scenes {
 	}
 
 		private fire(): void {
+			if (this.isTracePlayer) {
+				this.lookAtPlayer();
+			}
 			var parent = this.parent;
 			var wayNum = this.wayNum;
 			var degToRad = Math.PI / 180;

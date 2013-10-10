@@ -663,6 +663,10 @@ module jp.osakana4242.kimiko.scenes {
 		
 		loadMapData: function (mapData: utils.IMapData) {
 			var map = this.map;
+			switch (kimiko.playerData.mapId) {
+			case 1: this.backgroundColor = "rgb(32, 32, 64)"; break;
+			case 2: this.backgroundColor = "rgb(196, 32, 32)"; break;
+			}
 
 			(() => {
 				var layer = mapData.layers[0];
