@@ -845,13 +845,13 @@ var jp;
                                 v1.rotate(rad);
                                 v1.x += parent.center.x;
                                 v1.y += parent.center.y;
-                                this.fireFunc(bullet, v1);
+                                this.fireFunc(bullet, v1, speed);
                                 osakana4242.utils.Vector2D.free(v1);
                                 osakana4242.utils.Vector2D.free(v2);
                             }
                         }
                     };
-                    WeaponA.fireA = function fireA(bullet, tpos) {
+                    WeaponA.fireA = function fireA(bullet, tpos, speed) {
                         bullet.force.x = 0;
                         bullet.force.y = 0;
                         var d = osakana4242.utils.Vector2D.alloc();
@@ -861,13 +861,13 @@ var jp;
                         var d2 = 480;
                         d.x = d.x * d2 / m;
                         d.y = d.y * d2 / m;
-                        var frame = Math.floor(d2 / kimiko.kimiko.dpsToDpf(3 * 60));
+                        var frame = Math.floor(d2 / speed);
                         bullet.tl.moveBy(d.x, d.y, frame).then(function () {
                             this.miss();
                         });
                         osakana4242.utils.Vector2D.free(d);
                     };
-                    WeaponA.fireC = function fireC(bullet, tpos) {
+                    WeaponA.fireC = function fireC(bullet, tpos, speed) {
                         bullet.force.x = 0;
                         bullet.force.y = 0;
                         var d = osakana4242.utils.Vector2D.alloc();
@@ -884,7 +884,7 @@ var jp;
                         });
                         osakana4242.utils.Vector2D.free(d);
                     };
-                    WeaponA.fireB = function fireB(bullet, tpos) {
+                    WeaponA.fireB = function fireB(bullet, tpos, speed) {
                         bullet.force.x = 0;
                         bullet.force.y = 0;
                         var dx = tpos.x - bullet.center.x;
@@ -1101,14 +1101,25 @@ var jp;
                         var _this = this;
                         scenes.Attacker.call(this);
                         this.enemyId = -1;
-                        this.weapon = new scenes.WeaponA(this);
+                        this.weapons = [];
+                        for(var i = 0, iNum = 8; i < iNum; ++i) {
+                            this.weapons[i] = new scenes.WeaponA(this);
+                        }
+                        this.weaponNum = 1;
                         this.anchor = new osakana4242.utils.Vector2D();
                         this.collider = new osakana4242.utils.Collider();
                         this.collider.parent = this;
                         this.life.setGhostFrameMax(kimiko.kimiko.secToFrame(0.2));
                         this.addEventListener(Event.ENTER_FRAME, function () {
-                            _this.weapon.step();
+                            for(var i = 0, iNum = _this.weaponNum; i < iNum; ++i) {
+                                _this.weapons[i].step();
+                            }
                         });
+                    },
+                    weapon: {
+                        get: function () {
+                            return this.weapons[0];
+                        }
                     },
                     getEnemyData: function () {
                         return scenes.EnemyData[this.enemyId];
@@ -1166,6 +1177,7 @@ var jp;
                         sprite.height = 64;
                         sprite.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA003_WALK);
                         sprite.collider.centerMiddle(56, 56);
+                        sprite.weaponNum = 3;
                     }
                     EnemyBodys.body2 = body2;
                 })(scenes.EnemyBodys || (scenes.EnemyBodys = {}));
@@ -1262,14 +1274,22 @@ var jp;
                             return sprite.tl.moveBy(0, -24, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, 24, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, -8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).moveBy(0, 8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5));
                         }
                         function fireToPlayer() {
-                            var wp = sprite.weapon;
+                            var wp = sprite.weapons[0];
                             wp.fireCount = 3;
-                            wp.wayNum = 5;
-                            wp.fireInterval = kimiko.kimiko.secToFrame(1.0);
+                            wp.wayNum = 4;
+                            wp.fireInterval = kimiko.kimiko.secToFrame(0.5);
                             wp.speed = kimiko.kimiko.dpsToDpf(3 * kimiko.DF.BASE_FPS);
                             wp.fireFunc = scenes.WeaponA.fireC;
                             wp.isTracePlayer = false;
                             wp.lookAtPlayer();
+                            wp.startFire();
+                            wp = sprite.weapons[1];
+                            wp.fireCount = 3;
+                            wp.wayNum = 1;
+                            wp.fireInterval = kimiko.kimiko.secToFrame(0.75);
+                            wp.speed = kimiko.kimiko.dpsToDpf(2 * kimiko.DF.BASE_FPS);
+                            wp.fireFunc = scenes.WeaponA.fireA;
+                            wp.isTracePlayer = true;
                             wp.startFire();
                         }
                         function fireToPlayer2() {
@@ -1281,6 +1301,14 @@ var jp;
                             wp.fireFunc = scenes.WeaponA.fireB;
                             wp.isTracePlayer = true;
                             wp.lookAtPlayer();
+                            wp.startFire();
+                            wp = sprite.weapons[1];
+                            wp.fireCount = 3;
+                            wp.wayNum = 1;
+                            wp.fireInterval = kimiko.kimiko.secToFrame(1.5);
+                            wp.speed = kimiko.kimiko.dpsToDpf(1 * kimiko.DF.BASE_FPS);
+                            wp.fireFunc = scenes.WeaponA.fireA;
+                            wp.isTracePlayer = true;
                             wp.startFire();
                         }
                         function fire1() {

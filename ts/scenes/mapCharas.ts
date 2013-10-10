@@ -204,15 +204,25 @@ module jp.osakana4242.kimiko.scenes {
 			Attacker.call(this);
 
 			this.enemyId = -1;
-			this.weapon = new WeaponA(this);
+			this.weapons = [];
+			for (var i = 0, iNum = 8; i < iNum; ++i) {
+				this.weapons[i] = new WeaponA(this);
+			}
+			this.weaponNum = 1;
 			this.anchor = new utils.Vector2D();
 			this.collider = new utils.Collider();
 			this.collider.parent = this;
 			this.life.setGhostFrameMax(kimiko.secToFrame(0.2));
 			this.addEventListener(Event.ENTER_FRAME, () => {
-				this.weapon.step();
+				for (var i = 0, iNum = this.weaponNum; i < iNum; ++i) {
+					this.weapons[i].step();
+				}
 			});
 		},
+		
+		weapon: { get: function () {
+				return this.weapons[0];
+		}, },
 		
 		getEnemyData: function () { return EnemyData[this.enemyId]; },
 		isBoss: function () { return this.enemyId === DF.ENEMY_ID_BOSS; },

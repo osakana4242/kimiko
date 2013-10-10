@@ -96,7 +96,7 @@ module jp.osakana4242.kimiko.scenes {
 					v1.rotate(rad);
 					v1.x += parent.center.x;
 					v1.y += parent.center.y;
-					this.fireFunc(bullet, v1);
+					this.fireFunc(bullet, v1, speed);
 
 					utils.Vector2D.free(v1);
 					utils.Vector2D.free(v2);
@@ -106,7 +106,7 @@ module jp.osakana4242.kimiko.scenes {
 		}
 
 		// 直進.
-		public static fireA(bullet: any, tpos: utils.Vector2D): void {
+		public static fireA(bullet: any, tpos: utils.Vector2D, speed: number): void {
 			bullet.force.x = 0;
 			bullet.force.y = 0;
 			var d = utils.Vector2D.alloc();
@@ -116,7 +116,7 @@ module jp.osakana4242.kimiko.scenes {
 			var d2 = 480;
 			d.x = d.x * d2 / m;
 			d.y = d.y * d2 / m;
-			var frame = Math.floor(d2 / kimiko.dpsToDpf(3 * 60));
+			var frame = Math.floor(d2 / speed);
 			
 			bullet.tl.
 				moveBy(d.x, d.y, frame).
@@ -127,7 +127,7 @@ module jp.osakana4242.kimiko.scenes {
 		}
 
 		// 直進. 最初早い.
-		public static fireC(bullet: any, tpos: utils.Vector2D): void {
+		public static fireC(bullet: any, tpos: utils.Vector2D, speed: number): void {
 			bullet.force.x = 0;
 			bullet.force.y = 0;
 			var d = utils.Vector2D.alloc();
@@ -153,7 +153,7 @@ module jp.osakana4242.kimiko.scenes {
 
 		
 		// なんちゃって放物線.
-		public static fireB(bullet: any, tpos: utils.Vector2D): void {
+		public static fireB(bullet: any, tpos: utils.Vector2D, speed: number): void {
 			bullet.force.x = 0;
 			bullet.force.y = 0;
 			var dx = tpos.x - bullet.center.x;

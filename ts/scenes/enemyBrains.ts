@@ -26,6 +26,7 @@ module jp.osakana4242.kimiko.scenes {
 			sprite.height = 64;
 			sprite.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_CHARA003_WALK);
 			sprite.collider.centerMiddle(56, 56);
+			sprite.weaponNum = 3;
 		}
 	}
 
@@ -172,14 +173,23 @@ module jp.osakana4242.kimiko.scenes {
 			}
 
 			function fireToPlayer() {
-				var wp: WeaponA = sprite.weapon;
+				var wp: WeaponA = sprite.weapons[0];
 				wp.fireCount = 3;
-				wp.wayNum = 5;
-				wp.fireInterval = kimiko.secToFrame(1.0);
+				wp.wayNum = 4;
+				wp.fireInterval = kimiko.secToFrame(0.5);
 				wp.speed = kimiko.dpsToDpf(3 * DF.BASE_FPS);
 				wp.fireFunc = WeaponA.fireC;
 				wp.isTracePlayer = false;
 				wp.lookAtPlayer();
+				wp.startFire();
+				
+				wp = sprite.weapons[1];
+				wp.fireCount = 3;
+				wp.wayNum = 1;
+				wp.fireInterval = kimiko.secToFrame(0.75);
+				wp.speed = kimiko.dpsToDpf(2 * DF.BASE_FPS);
+				wp.fireFunc = WeaponA.fireA;
+				wp.isTracePlayer = true;
 				wp.startFire();
 			}
 	
@@ -193,6 +203,15 @@ module jp.osakana4242.kimiko.scenes {
 				wp.fireFunc = WeaponA.fireB;
 				wp.isTracePlayer = true;
 				wp.lookAtPlayer();
+				wp.startFire();
+
+				wp = sprite.weapons[1];
+				wp.fireCount = 3;
+				wp.wayNum = 1;
+				wp.fireInterval = kimiko.secToFrame(1.5);
+				wp.speed = kimiko.dpsToDpf(1 * DF.BASE_FPS);
+				wp.fireFunc = WeaponA.fireA;
+				wp.isTracePlayer = true;
 				wp.startFire();
 			}
 			
