@@ -600,7 +600,7 @@ module jp.osakana4242.kimiko {
 		export var FONT_M: string = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
 		export var GRAVITY: number = 0.25 * 60;
 		export var MAP_ID_MIN = 1;
-		export var MAP_ID_MAX = 2;
+		export var MAP_ID_MAX = 4;
 
 		export var PLAYER_TOUCH_ANCHOR_ENABLE = true;
 		

@@ -26,7 +26,7 @@ module jp.osakana4242.kimiko.scenes {
 		isTracePlayer: bool;
 
 		state: () => void;
-		fireFunc: (bullet: any, tpos: utils.Vector2D) => void;
+		fireFunc: (bullet: any, tpos: utils.Vector2D, speed: number) => void;
 
 		constructor(sprite: any) {
 			this.parent = sprite;

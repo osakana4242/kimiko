@@ -174,12 +174,12 @@ module jp.osakana4242.kimiko.scenes {
 
 			function fireToPlayer() {
 				var wp: WeaponA = sprite.weapons[0];
-				wp.fireCount = 3;
+				wp.fireCount = 5;
 				wp.wayNum = 4;
 				wp.fireInterval = kimiko.secToFrame(0.5);
 				wp.speed = kimiko.dpsToDpf(3 * DF.BASE_FPS);
 				wp.fireFunc = WeaponA.fireC;
-				wp.isTracePlayer = false;
+				wp.isTracePlayer = true;
 				wp.lookAtPlayer();
 				wp.startFire();
 				
@@ -206,7 +206,7 @@ module jp.osakana4242.kimiko.scenes {
 				wp.startFire();
 
 				wp = sprite.weapons[1];
-				wp.fireCount = 3;
+				wp.fireCount = 1;
 				wp.wayNum = 1;
 				wp.fireInterval = kimiko.secToFrame(1.5);
 				wp.speed = kimiko.dpsToDpf(1 * DF.BASE_FPS);
@@ -215,6 +215,27 @@ module jp.osakana4242.kimiko.scenes {
 				wp.startFire();
 			}
 			
+			function fireToPlayer3() {
+				var wp: WeaponA = sprite.weapons[0];
+				wp.fireCount = 1;
+				wp.wayNum = 6;
+				wp.fireInterval = kimiko.secToFrame(0.5);
+				wp.speed = kimiko.dpsToDpf(1 * DF.BASE_FPS);
+				wp.fireFunc = WeaponA.fireA;
+				wp.isTracePlayer = false;
+				wp.lookAtPlayer();
+				wp.startFire();
+				
+				wp = sprite.weapons[1];
+				wp.fireCount = 2;
+				wp.wayNum = 1;
+				wp.fireInterval = kimiko.secToFrame(0.2);
+				wp.speed = kimiko.dpsToDpf(3 * DF.BASE_FPS);
+				wp.fireFunc = WeaponA.fireA;
+				wp.isTracePlayer = true;
+				wp.startFire();
+			}
+
 			function fire1() {
 				return runup().
 					then(fireToPlayer).
@@ -228,6 +249,15 @@ module jp.osakana4242.kimiko.scenes {
 					then(fireToPlayer2).
 					waitUntil(waitFire);
 			}
+
+			function fire3() {
+				return runup().
+					then(fireToPlayer3).
+					moveBy(8, 0, kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).
+					delay(kimiko.secToFrame(0.5)).
+					waitUntil(waitFire);
+			}
+
 			var top = sprite.anchor.y - 96;
 			var bottom = sprite.anchor.y;
 			var left = sprite.anchor.x - 200;
@@ -251,6 +281,16 @@ module jp.osakana4242.kimiko.scenes {
 					fire2().
 						moveTo(right, bottom, kimiko.secToFrame(1.0));
 					fire1().
+						moveTo(left, top, kimiko.secToFrame(2.0));
+					fire3().
+						moveTo(right, top, kimiko.secToFrame(0.5), Easing.CUBIC_EASEIN);
+					fire3().
+						moveTo(left, top, kimiko.secToFrame(0.5), Easing.CUBIC_EASEIN);
+					fire3().
+						moveTo(right, top, kimiko.secToFrame(0.5));
+					fire3().
+						delay(kimiko.secToFrame(1.0)).
+						moveTo(right, bottom, kimiko.secToFrame(2.0)).
 						loop();
 				});
 		}

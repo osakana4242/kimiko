@@ -213,6 +213,27 @@ module jp.osakana4242.kimiko.scenes {
 
 	}
 
+	export var Title: any = Class.create(Scene, {
+		initialize: function () {
+			Scene.call(this);
+			
+			var scene = this;
+			//
+		(() => {
+				var next = () => {
+					var pd = kimiko.playerData;
+					pd.reset();
+					kimiko.core.replaceScene(new scenes.GameStart());
+				};
+				scene.tl.
+					scene.addEventListener(Event.TOUCH_END, next);
+					scene.addEventListener(Event.A_BUTTON_UP, next);
+			}());
+		},
+
+	});
+
+
 	export var GameStart: any = Class.create(Scene, {
 		initialize: function () {
 			Scene.call(this);
@@ -664,8 +685,10 @@ module jp.osakana4242.kimiko.scenes {
 		loadMapData: function (mapData: utils.IMapData) {
 			var map = this.map;
 			switch (kimiko.playerData.mapId) {
-			case 1: this.backgroundColor = "rgb(32, 32, 64)"; break;
-			case 2: this.backgroundColor = "rgb(196, 32, 32)"; break;
+			case 1:
+			case 2:
+			case 3: this.backgroundColor = "rgb(32, 32, 64)"; break;
+			case 4: this.backgroundColor = "rgb(196, 32, 32)"; break;
 			}
 
 			(() => {
@@ -677,7 +700,8 @@ module jp.osakana4242.kimiko.scenes {
 				for (var y = 0, yNum = layer.tiles.length; y < yNum; ++y) {
 					var line = [];
 					for (var x = 0, xNum = layer.tiles[y].length; x < xNum; ++x) {
-						line.push(layer.tiles[y][x] !== -1);
+						var tile = layer.tiles[y][x];
+						line.push(0x0 <= tile && tile <= 0xf);
 					}
 					collisionData.push(line);
 				}

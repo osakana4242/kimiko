@@ -521,7 +521,7 @@ var jp;
                 DF.FONT_M = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
                 DF.GRAVITY = 0.25 * 60;
                 DF.MAP_ID_MIN = 1;
-                DF.MAP_ID_MAX = 2;
+                DF.MAP_ID_MAX = 4;
                 DF.PLAYER_TOUCH_ANCHOR_ENABLE = true;
                 DF.BIT_L = 1 << 0;
                 DF.BIT_R = 1 << 1;
@@ -1275,12 +1275,12 @@ var jp;
                         }
                         function fireToPlayer() {
                             var wp = sprite.weapons[0];
-                            wp.fireCount = 3;
+                            wp.fireCount = 5;
                             wp.wayNum = 4;
                             wp.fireInterval = kimiko.kimiko.secToFrame(0.5);
                             wp.speed = kimiko.kimiko.dpsToDpf(3 * kimiko.DF.BASE_FPS);
                             wp.fireFunc = scenes.WeaponA.fireC;
-                            wp.isTracePlayer = false;
+                            wp.isTracePlayer = true;
                             wp.lookAtPlayer();
                             wp.startFire();
                             wp = sprite.weapons[1];
@@ -1303,10 +1303,29 @@ var jp;
                             wp.lookAtPlayer();
                             wp.startFire();
                             wp = sprite.weapons[1];
-                            wp.fireCount = 3;
+                            wp.fireCount = 1;
                             wp.wayNum = 1;
                             wp.fireInterval = kimiko.kimiko.secToFrame(1.5);
                             wp.speed = kimiko.kimiko.dpsToDpf(1 * kimiko.DF.BASE_FPS);
+                            wp.fireFunc = scenes.WeaponA.fireA;
+                            wp.isTracePlayer = true;
+                            wp.startFire();
+                        }
+                        function fireToPlayer3() {
+                            var wp = sprite.weapons[0];
+                            wp.fireCount = 1;
+                            wp.wayNum = 6;
+                            wp.fireInterval = kimiko.kimiko.secToFrame(0.5);
+                            wp.speed = kimiko.kimiko.dpsToDpf(1 * kimiko.DF.BASE_FPS);
+                            wp.fireFunc = scenes.WeaponA.fireA;
+                            wp.isTracePlayer = false;
+                            wp.lookAtPlayer();
+                            wp.startFire();
+                            wp = sprite.weapons[1];
+                            wp.fireCount = 2;
+                            wp.wayNum = 1;
+                            wp.fireInterval = kimiko.kimiko.secToFrame(0.2);
+                            wp.speed = kimiko.kimiko.dpsToDpf(3 * kimiko.DF.BASE_FPS);
                             wp.fireFunc = scenes.WeaponA.fireA;
                             wp.isTracePlayer = true;
                             wp.startFire();
@@ -1316,6 +1335,9 @@ var jp;
                         }
                         function fire2() {
                             return runup().then(fireToPlayer2).waitUntil(waitFire);
+                        }
+                        function fire3() {
+                            return runup().then(fireToPlayer3).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire);
                         }
                         var top = sprite.anchor.y - 96;
                         var bottom = sprite.anchor.y;
@@ -1328,7 +1350,11 @@ var jp;
                             fire2().moveTo(left, top, kimiko.kimiko.secToFrame(1.0));
                             fire1().moveTo(right, top, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEIN).scaleTo(-1.0, 1.0, 1);
                             fire2().moveTo(right, bottom, kimiko.kimiko.secToFrame(1.0));
-                            fire1().loop();
+                            fire1().moveTo(left, top, kimiko.kimiko.secToFrame(2.0));
+                            fire3().moveTo(right, top, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEIN);
+                            fire3().moveTo(left, top, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEIN);
+                            fire3().moveTo(right, top, kimiko.kimiko.secToFrame(0.5));
+                            fire3().delay(kimiko.kimiko.secToFrame(1.0)).moveTo(right, bottom, kimiko.kimiko.secToFrame(2.0)).loop();
                         });
                     }
                     EnemyBrains.brainBoss = brainBoss;
@@ -1920,6 +1946,21 @@ var jp;
                     return Fader;
                 })();
                 scenes.Fader = Fader;                
+                scenes.Title = Class.create(Scene, {
+                    initialize: function () {
+                        Scene.call(this);
+                        var scene = this;
+                        ((function () {
+                            var next = function () {
+                                var pd = kimiko.kimiko.playerData;
+                                pd.reset();
+                                kimiko.kimiko.core.replaceScene(new kimiko.scenes.GameStart());
+                            };
+                            scene.tl.scene.addEventListener(Event.TOUCH_END, next);
+                            scene.addEventListener(Event.A_BUTTON_UP, next);
+                        })());
+                    }
+                });
                 scenes.GameStart = Class.create(Scene, {
                     initialize: function () {
                         Scene.call(this);
@@ -2261,9 +2302,11 @@ var jp;
                         var map = this.map;
                         switch(kimiko.kimiko.playerData.mapId) {
                             case 1:
+                            case 2:
+                            case 3:
                                 this.backgroundColor = "rgb(32, 32, 64)";
                                 break;
-                            case 2:
+                            case 4:
                                 this.backgroundColor = "rgb(196, 32, 32)";
                                 break;
                         }
@@ -2274,7 +2317,8 @@ var jp;
                             for(var y = 0, yNum = layer.tiles.length; y < yNum; ++y) {
                                 var line = [];
                                 for(var x = 0, xNum = layer.tiles[y].length; x < xNum; ++x) {
-                                    line.push(layer.tiles[y][x] !== -1);
+                                    var tile = layer.tiles[y][x];
+                                    line.push(0x0 <= tile && tile <= 0xf);
                                 }
                                 collisionData.push(line);
                             }
