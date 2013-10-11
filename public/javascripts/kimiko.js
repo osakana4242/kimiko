@@ -722,7 +722,7 @@ var jp;
                     core.keybind("S".charCodeAt(0), "down");
                     core.onload = function () {
                         this.gameScene = new jp.osakana4242.kimiko.scenes.Act();
-                        if(false) {
+                        if(true) {
                             var scene = new jp.osakana4242.kimiko.scenes.GameStart();
                             core.replaceScene(scene);
                         } else {
@@ -2304,10 +2304,10 @@ var jp;
                             case 1:
                             case 2:
                             case 3:
-                                this.backgroundColor = "rgb(32, 32, 64)";
+                                this.backgroundColor = "rgb(  8,   8,  16)";
                                 break;
                             case 4:
-                                this.backgroundColor = "rgb(196, 32, 32)";
+                                this.backgroundColor = "rgb(196,  32,  32)";
                                 break;
                         }
                         ((function () {

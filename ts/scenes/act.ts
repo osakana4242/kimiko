@@ -687,8 +687,8 @@ module jp.osakana4242.kimiko.scenes {
 			switch (kimiko.playerData.mapId) {
 			case 1:
 			case 2:
-			case 3: this.backgroundColor = "rgb(32, 32, 64)"; break;
-			case 4: this.backgroundColor = "rgb(196, 32, 32)"; break;
+			case 3: this.backgroundColor = "rgb(  8,   8,  16)"; break;
+			case 4: this.backgroundColor = "rgb(196,  32,  32)"; break;
 			}
 
 			(() => {

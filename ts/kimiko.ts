@@ -751,7 +751,7 @@ module jp.osakana4242.kimiko {
 			//
 			core.onload = function () {
 				this.gameScene = new jp.osakana4242.kimiko.scenes.Act()
-				if (false) {
+				if (true) {
 					var scene = new jp.osakana4242.kimiko.scenes.GameStart();
 					core.replaceScene(scene);
 				} else {
