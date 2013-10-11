@@ -812,8 +812,8 @@ module jp.osakana4242.kimiko.scenes {
 			var map = this.map;
 			switch (kimiko.playerData.mapId) {
 			case 1:
-			case 2:
-			case 3: this.backgroundColor = "rgb(  8,   8,  16)"; break;
+			case 2: this.backgroundColor = "rgb(  8,   8,  16)"; break;
+			case 3: this.backgroundColor = "rgb( 32, 196, 255)"; break;
 			case 4: this.backgroundColor = "rgb(196,  32,  32)"; break;
 			}
 
