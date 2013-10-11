@@ -5,7 +5,7 @@ node.js
 nginx
 
 # シンボリックリンク作成
-nginx¥html>mklink /d kimiko C:¥Users¥osakana4242¥prj¥kimiko¥kimiko¥project¥kimiko¥public
+nginx\html>mklink /d kimiko C:\Users\osakana4242\prj\kimiko\kimiko\project\kimiko\public
 # nginx の起動、再起動
 nginx>start nginx
 nginx>nginx -s reload
@@ -69,6 +69,7 @@ nginx>nginx -s reload
 
 タイトル案：
 	きみこのナイトメア
+	ゆめみのきみこ
 
 ストーリー
 	きみこは夏休みが開けて数日経ったあたりから妙な夢を見るようになる
