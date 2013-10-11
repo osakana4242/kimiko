@@ -114,8 +114,7 @@ module jp.osakana4242.utils {
 	}
 
 	export class RectCenter implements IVector2D {
-		constructor(
-			public rect: IRect) {
+		constructor(public rect: IRect) {
 		}
 
 		get x(): number {
@@ -598,6 +597,8 @@ module jp.osakana4242.kimiko {
 		export var PLAYER_BULLET_NUM = 1;
 
 		export var FONT_M: string = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
+		export var FONT_L: string = '24px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
+	
 		export var GRAVITY: number = 0.25 * 60;
 		export var MAP_ID_MIN = 1;
 		export var MAP_ID_MAX = 4;
@@ -752,7 +753,7 @@ module jp.osakana4242.kimiko {
 			core.onload = function () {
 				this.gameScene = new jp.osakana4242.kimiko.scenes.Act()
 				if (true) {
-					var scene = new jp.osakana4242.kimiko.scenes.GameStart();
+					var scene = new jp.osakana4242.kimiko.scenes.Title();
 					core.replaceScene(scene);
 				} else {
 					kimiko.playerData.reset();

@@ -519,6 +519,7 @@ var jp;
                 DF.PLAYER_HP = 3;
                 DF.PLAYER_BULLET_NUM = 1;
                 DF.FONT_M = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
+                DF.FONT_L = '24px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
                 DF.GRAVITY = 0.25 * 60;
                 DF.MAP_ID_MIN = 1;
                 DF.MAP_ID_MAX = 4;
@@ -723,7 +724,7 @@ var jp;
                     core.onload = function () {
                         this.gameScene = new jp.osakana4242.kimiko.scenes.Act();
                         if(true) {
-                            var scene = new jp.osakana4242.kimiko.scenes.GameStart();
+                            var scene = new jp.osakana4242.kimiko.scenes.Title();
                             core.replaceScene(scene);
                         } else {
                             kimiko.kimiko.playerData.reset();
@@ -1950,15 +1951,132 @@ var jp;
                     initialize: function () {
                         Scene.call(this);
                         var scene = this;
-                        ((function () {
-                            var next = function () {
-                                var pd = kimiko.kimiko.playerData;
-                                pd.reset();
-                                kimiko.kimiko.core.replaceScene(new kimiko.scenes.GameStart());
-                            };
-                            scene.tl.scene.addEventListener(Event.TOUCH_END, next);
-                            scene.addEventListener(Event.A_BUTTON_UP, next);
+                        var mapIds = [
+                            1, 
+                            2, 
+                            3, 
+                            4, 
+                            
+                        ];
+                        var mapIdsIdx = 0;
+                        var title = ((function () {
+                            var spr = new enchant.Label("KIMIKO'S NIGHTMARE");
+                            spr.font = kimiko.DF.FONT_L;
+                            spr.color = "rgb(255, 255, 255)";
+                            spr.width = kimiko.DF.SC_W;
+                            spr.height = 24;
+                            spr.textAlign = "center";
+                            spr.x = 0;
+                            spr.y = 8;
+                            return spr;
                         })());
+                        var player = ((function () {
+                            var spr = new enchant.Sprite();
+                            spr.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA001_WALK);
+                            spr.center.x = kimiko.DF.SC_W / 2;
+                            spr.y = 200;
+                            var ax = spr.x;
+                            var ay = spr.y;
+                            spr.addEventListener(Event.TOUCH_END, function () {
+                                if(0 < spr.tl.queue.length) {
+                                    return;
+                                }
+                                spr.tl.clear().moveTo(ax, ay - 32, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).moveTo(ax, ay, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEIN);
+                            });
+                            return spr;
+                        })());
+                        var author = ((function () {
+                            var spr = new enchant.Label("created by @osakana4242");
+                            spr.font = kimiko.DF.FONT_M;
+                            spr.color = "rgb(255, 255, 255)";
+                            spr.width = kimiko.DF.SC_W;
+                            spr.height = 12;
+                            spr.textAlign = "center";
+                            spr.x = 0;
+                            spr.y = 300;
+                            return spr;
+                        })());
+                        var mapLabel = ((function () {
+                            var spr = new enchant.Label();
+                            spr.font = kimiko.DF.FONT_L;
+                            spr.color = "rgb(255, 255, 255)";
+                            spr.width = kimiko.DF.SC_W;
+                            spr.height = 24;
+                            spr.textAlign = "center";
+                            spr.x = 0;
+                            spr.y = 80;
+                            return spr;
+                        })());
+                        function updateMapLabel() {
+                            mapLabel.text = "MAP" + mapIds[mapIdsIdx];
+                        }
+                        updateMapLabel();
+                        var leftBtn = ((function () {
+                            var spr = new enchant.Label("<-");
+                            spr.font = kimiko.DF.FONT_L;
+                            spr.backgroundColor = "rgb(64, 64, 64)";
+                            spr.color = "rgb(255, 255, 0)";
+                            spr.textAlign = "center";
+                            spr.width = 56;
+                            spr.height = 32;
+                            spr.x = kimiko.DF.SC_W / 3 * 0 + (spr.width / 2);
+                            spr.y = 80;
+                            spr.addEventListener(Event.TOUCH_END, function () {
+                                mapIdsIdx = (mapIdsIdx + mapIds.length - 1) % mapIds.length;
+                                updateMapLabel();
+                            });
+                            return spr;
+                        })());
+                        var rightBtn = ((function () {
+                            var spr = new enchant.Label("->");
+                            spr.font = kimiko.DF.FONT_L;
+                            spr.backgroundColor = "rgb(64, 64, 64)";
+                            spr.color = "rgb(255, 255, 0)";
+                            spr.textAlign = "center";
+                            spr.width = 56;
+                            spr.height = 32;
+                            spr.x = kimiko.DF.SC_W / 3 * 2 + (spr.width / 2);
+                            spr.y = 80;
+                            spr.addEventListener(Event.TOUCH_END, function () {
+                                mapIdsIdx = (mapIdsIdx + mapIds.length + 1) % mapIds.length;
+                                updateMapLabel();
+                            });
+                            return spr;
+                        })());
+                        var startBtn = ((function () {
+                            var spr = new enchant.Label("START");
+                            spr.font = kimiko.DF.FONT_L;
+                            spr.color = "rgb(255, 255, 0)";
+                            spr.backgroundColor = "rgb(64, 64, 64)";
+                            spr.width = kimiko.DF.SC_W / 2;
+                            spr.height = 32;
+                            spr.textAlign = "center";
+                            spr.x = (kimiko.DF.SC_W - spr.width) / 2;
+                            spr.y = 120;
+                            spr.addEventListener(Event.TOUCH_END, function () {
+                                gotoGameStart();
+                            });
+                            return spr;
+                        })());
+                        scene.backgroundColor = "rgb( 32, 32, 32)";
+                        scene.addChild(player);
+                        scene.addChild(title);
+                        scene.addChild(author);
+                        scene.addChild(mapLabel);
+                        scene.addChild(leftBtn);
+                        scene.addChild(rightBtn);
+                        scene.addChild(startBtn);
+                        scene.addEventListener(Event.A_BUTTON_UP, gotoGameStart);
+                        var fader = new Fader(this);
+                        function gotoGameStart() {
+                            var pd = kimiko.kimiko.playerData;
+                            pd.reset();
+                            pd.mapId = mapIds[mapIdsIdx];
+                            fader.fadeOut(kimiko.kimiko.secToFrame(0.3), function () {
+                                kimiko.kimiko.core.replaceScene(new kimiko.scenes.GameStart());
+                            });
+                        }
+                        ;
                     }
                 });
                 scenes.GameStart = Class.create(Scene, {
@@ -1992,8 +2110,6 @@ var jp;
                         scene.addChild(layer1);
                         ((function () {
                             var next = function () {
-                                var pd = kimiko.kimiko.playerData;
-                                pd.reset();
                                 kimiko.kimiko.core.replaceScene(kimiko.kimiko.core.gameScene);
                             };
                             fader.setBlack(true);
@@ -2093,7 +2209,7 @@ var jp;
                         });
                         scene.addEventListener(Event.TOUCH_END, function () {
                             kimiko.kimiko.core.popScene();
-                            kimiko.kimiko.core.replaceScene(new scenes.GameStart());
+                            kimiko.kimiko.core.replaceScene(new scenes.Title());
                         });
                     }
                 });

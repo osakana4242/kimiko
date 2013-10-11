@@ -218,17 +218,145 @@ module jp.osakana4242.kimiko.scenes {
 			Scene.call(this);
 			
 			var scene = this;
+			var mapIds = [
+				1, 2, 3, 4,
+			];
+			var mapIdsIdx = 0;
 			//
-		(() => {
-				var next = () => {
-					var pd = kimiko.playerData;
-					pd.reset();
-					kimiko.core.replaceScene(new scenes.GameStart());
-				};
-				scene.tl.
-					scene.addEventListener(Event.TOUCH_END, next);
-					scene.addEventListener(Event.A_BUTTON_UP, next);
+			var title = (() => {
+				var spr = new enchant.Label("KIMIKO'S NIGHTMARE");
+				spr.font = DF.FONT_L;
+				spr.color = "rgb(255, 255, 255)";
+				spr.width = DF.SC_W;
+				spr.height =24;
+				spr.textAlign = "center";
+				spr.x = 0;
+				spr.y = 8;
+				return spr;
 			}());
+
+			var player = (() => {
+				var spr = new enchant.Sprite();
+				spr.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_WALK);
+				spr.center.x = DF.SC_W / 2;
+				spr.y = 200;
+				var ax = spr.x;
+				var ay = spr.y;
+				spr.addEventListener(Event.TOUCH_END, function () {
+					if (0 < spr.tl.queue.length) {
+						// 演出終わってないのでカエル.
+						return;
+					}
+					spr.tl.
+						clear().
+						moveTo(ax, ay - 32, kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).
+						moveTo(ax, ay,      kimiko.secToFrame(0.1), Easing.CUBIC_EASEIN);
+				});
+				return spr;
+			}());
+		
+			var author = (() => {
+				var spr = new enchant.Label("created by @osakana4242");
+				spr.font = DF.FONT_M;
+				spr.color = "rgb(255, 255, 255)";
+				spr.width = DF.SC_W;
+				spr.height = 12;
+				spr.textAlign = "center";
+				spr.x = 0;
+				spr.y = 300;
+				return spr;
+			}());
+
+			var mapLabel = (() => {
+				var spr = new enchant.Label();
+				spr.font = DF.FONT_L;
+				spr.color = "rgb(255, 255, 255)";
+				spr.width = DF.SC_W;
+				spr.height = 24;
+				spr.textAlign = "center";
+				spr.x = 0;
+				spr.y = 80;
+				return spr;
+			}());
+			
+			function updateMapLabel() {
+				mapLabel.text = "MAP" + mapIds[mapIdsIdx];
+			}
+			updateMapLabel();
+
+			var leftBtn = (() => {
+				var spr = new enchant.Label("<-");
+				spr.font = DF.FONT_L;
+				spr.backgroundColor = "rgb(64, 64, 64)";
+				spr.color = "rgb(255, 255, 0)";
+				spr.textAlign = "center";
+				spr.width = 56;
+				spr.height = 32;
+				spr.x = DF.SC_W / 3 * 0 + (spr.width / 2);
+				spr.y = 80;
+				spr.addEventListener(Event.TOUCH_END, function () {
+					mapIdsIdx = (mapIdsIdx + mapIds.length - 1) % mapIds.length;
+					updateMapLabel();
+				});
+				return spr;
+			}());
+
+			var rightBtn = (() => {
+				var spr = new enchant.Label("->");
+				spr.font = DF.FONT_L;
+				spr.backgroundColor = "rgb(64, 64, 64)";
+				spr.color = "rgb(255, 255, 0)";
+				spr.textAlign = "center";
+				spr.width = 56;
+				spr.height = 32;
+				spr.x = DF.SC_W / 3 * 2 + (spr.width / 2);
+				spr.y = 80;
+				spr.addEventListener(Event.TOUCH_END, function () {
+					mapIdsIdx = (mapIdsIdx + mapIds.length + 1) % mapIds.length;
+					updateMapLabel();
+				});
+				return spr;
+			}());
+		
+			var startBtn = (() => {
+				var spr = new enchant.Label("START");
+				spr.font = DF.FONT_L;
+				spr.color = "rgb(255, 255, 0)";
+				spr.backgroundColor = "rgb(64, 64, 64)";
+				spr.width = DF.SC_W / 2;
+				spr.height = 32;
+				spr.textAlign = "center";
+				spr.x = (DF.SC_W - spr.width) / 2;
+				spr.y = 120;
+				spr.addEventListener(Event.TOUCH_END, function () {
+					gotoGameStart();
+				});
+				return spr;
+			}());
+
+
+			//
+			scene.backgroundColor = "rgb( 32, 32, 32)";
+			scene.addChild(player);
+			scene.addChild(title);
+			scene.addChild(author);
+			scene.addChild(mapLabel);
+			scene.addChild(leftBtn);
+			scene.addChild(rightBtn);
+			scene.addChild(startBtn);
+			//
+			scene.addEventListener(Event.A_BUTTON_UP, gotoGameStart);
+
+			var fader = new Fader(this);
+	
+			function gotoGameStart() {
+				var pd = kimiko.playerData;
+				pd.reset();
+				pd.mapId = mapIds[mapIdsIdx];
+				fader.fadeOut(kimiko.secToFrame(0.3), () => {
+					kimiko.core.replaceScene(new scenes.GameStart());
+				});
+			};
 		},
 
 	});
@@ -274,8 +402,6 @@ module jp.osakana4242.kimiko.scenes {
 			scene.addChild(layer1);
 			(() => {
 				var next = () => {
-					var pd = kimiko.playerData;
-					pd.reset();
 					kimiko.core.replaceScene(kimiko.core.gameScene);
 				};
 				fader.setBlack(true);
@@ -420,7 +546,7 @@ module jp.osakana4242.kimiko.scenes {
 			//
 			scene.addEventListener(Event.TOUCH_END, () => {
 				kimiko.core.popScene();
-				kimiko.core.replaceScene(new GameStart());
+				kimiko.core.replaceScene(new Title());
 			});
 		}
 	});
