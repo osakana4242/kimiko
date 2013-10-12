@@ -1901,7 +1901,7 @@ var jp;
                     function Fader(scene) {
                         this.scene = scene;
                         this.film = ((function () {
-                            var spr = new enchant.Sprite(kimiko.DF.SC1_W, kimiko.DF.SC1_H);
+                            var spr = new enchant.Sprite(kimiko.DF.SC_W, kimiko.DF.SC_H);
                             spr.backgroundColor = "rgb(0, 0, 0)";
                             return spr;
                         })());
@@ -1974,7 +1974,7 @@ var jp;
                             var spr = new enchant.Sprite();
                             spr.anim.sequence = kimiko.kimiko.getAnimFrames(kimiko.DF.ANIM_ID_CHARA001_WALK);
                             spr.center.x = kimiko.DF.SC_W / 2;
-                            spr.y = 200;
+                            spr.y = 240;
                             var ax = spr.x;
                             var ay = spr.y;
                             spr.addEventListener(Event.TOUCH_END, function () {
@@ -2068,6 +2068,8 @@ var jp;
                         scene.addChild(startBtn);
                         scene.addEventListener(Event.A_BUTTON_UP, gotoGameStart);
                         var fader = new Fader(this);
+                        fader.setBlack(true);
+                        fader.fadeIn(kimiko.kimiko.secToFrame(0.3));
                         function gotoGameStart() {
                             var pd = kimiko.kimiko.playerData;
                             pd.reset();

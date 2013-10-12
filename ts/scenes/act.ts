@@ -160,7 +160,7 @@ module jp.osakana4242.kimiko.scenes {
 		constructor(scene: any) {
 			this.scene = scene;
 			this.film = (() => {
-				var spr = new enchant.Sprite(DF.SC1_W, DF.SC1_H);
+				var spr = new enchant.Sprite(DF.SC_W, DF.SC_H);
 				spr.backgroundColor = "rgb(0, 0, 0)";
 				return spr;
 			}());
@@ -222,6 +222,7 @@ module jp.osakana4242.kimiko.scenes {
 				1, 2, 3, 4,
 			];
 			var mapIdsIdx = 0;
+			
 			//
 			var title = (() => {
 				var spr = new enchant.Label("KIMIKO'S NIGHTMARE");
@@ -239,7 +240,7 @@ module jp.osakana4242.kimiko.scenes {
 				var spr = new enchant.Sprite();
 				spr.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_WALK);
 				spr.center.x = DF.SC_W / 2;
-				spr.y = 200;
+				spr.y = 240;
 				var ax = spr.x;
 				var ay = spr.y;
 				spr.addEventListener(Event.TOUCH_END, function () {
@@ -334,7 +335,6 @@ module jp.osakana4242.kimiko.scenes {
 				return spr;
 			}());
 
-
 			//
 			scene.backgroundColor = "rgb( 32, 32, 32)";
 			scene.addChild(player);
@@ -346,9 +346,12 @@ module jp.osakana4242.kimiko.scenes {
 			scene.addChild(startBtn);
 			//
 			scene.addEventListener(Event.A_BUTTON_UP, gotoGameStart);
-
+			//
 			var fader = new Fader(this);
+			fader.setBlack(true);
+			fader.fadeIn(kimiko.secToFrame(0.3));
 	
+
 			function gotoGameStart() {
 				var pd = kimiko.playerData;
 				pd.reset();
