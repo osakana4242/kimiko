@@ -2021,10 +2021,7 @@ var jp;
                             spr.height = 32;
                             spr.x = kimiko.DF.SC_W / 3 * 0 + (spr.width / 2);
                             spr.y = 80;
-                            spr.addEventListener(Event.TOUCH_END, function () {
-                                mapIdsIdx = (mapIdsIdx + mapIds.length - 1) % mapIds.length;
-                                updateMapLabel();
-                            });
+                            spr.addEventListener(Event.TOUCH_END, prevMap);
                             return spr;
                         })());
                         var rightBtn = ((function () {
@@ -2037,10 +2034,7 @@ var jp;
                             spr.height = 32;
                             spr.x = kimiko.DF.SC_W / 3 * 2 + (spr.width / 2);
                             spr.y = 80;
-                            spr.addEventListener(Event.TOUCH_END, function () {
-                                mapIdsIdx = (mapIdsIdx + mapIds.length + 1) % mapIds.length;
-                                updateMapLabel();
-                            });
+                            spr.addEventListener(Event.TOUCH_END, nextMap);
                             return spr;
                         })());
                         var startBtn = ((function () {
@@ -2053,9 +2047,7 @@ var jp;
                             spr.textAlign = "center";
                             spr.x = (kimiko.DF.SC_W - spr.width) / 2;
                             spr.y = 120;
-                            spr.addEventListener(Event.TOUCH_END, function () {
-                                gotoGameStart();
-                            });
+                            spr.addEventListener(Event.TOUCH_END, gotoGameStart);
                             return spr;
                         })());
                         scene.backgroundColor = "rgb( 32, 32, 32)";
@@ -2067,9 +2059,19 @@ var jp;
                         scene.addChild(rightBtn);
                         scene.addChild(startBtn);
                         scene.addEventListener(Event.A_BUTTON_UP, gotoGameStart);
+                        scene.addEventListener(Event.LEFT_BUTTON_UP, prevMap);
+                        scene.addEventListener(Event.RIGHT_BUTTON_UP, nextMap);
                         var fader = new Fader(this);
                         fader.setBlack(true);
                         fader.fadeIn(kimiko.kimiko.secToFrame(0.3));
+                        function nextMap() {
+                            mapIdsIdx = (mapIdsIdx + mapIds.length + 1) % mapIds.length;
+                            updateMapLabel();
+                        }
+                        function prevMap() {
+                            mapIdsIdx = (mapIdsIdx + mapIds.length - 1) % mapIds.length;
+                            updateMapLabel();
+                        }
                         function gotoGameStart() {
                             var pd = kimiko.kimiko.playerData;
                             pd.reset();

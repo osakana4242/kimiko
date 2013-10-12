@@ -295,10 +295,7 @@ module jp.osakana4242.kimiko.scenes {
 				spr.height = 32;
 				spr.x = DF.SC_W / 3 * 0 + (spr.width / 2);
 				spr.y = 80;
-				spr.addEventListener(Event.TOUCH_END, function () {
-					mapIdsIdx = (mapIdsIdx + mapIds.length - 1) % mapIds.length;
-					updateMapLabel();
-				});
+				spr.addEventListener(Event.TOUCH_END, prevMap);
 				return spr;
 			}());
 
@@ -312,10 +309,7 @@ module jp.osakana4242.kimiko.scenes {
 				spr.height = 32;
 				spr.x = DF.SC_W / 3 * 2 + (spr.width / 2);
 				spr.y = 80;
-				spr.addEventListener(Event.TOUCH_END, function () {
-					mapIdsIdx = (mapIdsIdx + mapIds.length + 1) % mapIds.length;
-					updateMapLabel();
-				});
+				spr.addEventListener(Event.TOUCH_END, nextMap);
 				return spr;
 			}());
 		
@@ -329,9 +323,7 @@ module jp.osakana4242.kimiko.scenes {
 				spr.textAlign = "center";
 				spr.x = (DF.SC_W - spr.width) / 2;
 				spr.y = 120;
-				spr.addEventListener(Event.TOUCH_END, function () {
-					gotoGameStart();
-				});
+				spr.addEventListener(Event.TOUCH_END, gotoGameStart);
 				return spr;
 			}());
 
@@ -346,11 +338,23 @@ module jp.osakana4242.kimiko.scenes {
 			scene.addChild(startBtn);
 			//
 			scene.addEventListener(Event.A_BUTTON_UP, gotoGameStart);
+			scene.addEventListener(Event.LEFT_BUTTON_UP, prevMap);
+			scene.addEventListener(Event.RIGHT_BUTTON_UP, nextMap);
+	
 			//
 			var fader = new Fader(this);
 			fader.setBlack(true);
 			fader.fadeIn(kimiko.secToFrame(0.3));
 	
+			function nextMap() {
+				mapIdsIdx = (mapIdsIdx + mapIds.length + 1) % mapIds.length;
+				updateMapLabel();
+			}
+
+			function prevMap() {
+				mapIdsIdx = (mapIdsIdx + mapIds.length - 1) % mapIds.length;
+				updateMapLabel();
+			}
 
 			function gotoGameStart() {
 				var pd = kimiko.playerData;
