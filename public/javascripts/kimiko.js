@@ -622,6 +622,8 @@ var jp;
                     this.score = 0;
                     this.restTimeCounter = 0;
                     this.restTimeMax = 0;
+                    this.restTimeMax = kimiko.kimiko.secToFrame(180);
+                    this.restTimeCounter = this.restTimeMax;
                     this.mapId = DF.MAP_ID_MIN;
                 };
                 return PlayerData;
@@ -637,7 +639,6 @@ var jp;
                         return;
                     }
                     Kimiko.instance = this;
-                    this.playerData = new PlayerData();
                     this.config = config;
                     var core = new enchant.Core(DF.SC_W, DF.SC_H);
                     core.fps = config.fps || DF.BASE_FPS;
@@ -723,6 +724,7 @@ var jp;
                     core.keybind("S".charCodeAt(0), "down");
                     core.onload = function () {
                         this.gameScene = new jp.osakana4242.kimiko.scenes.Act();
+                        kimiko.kimiko.playerData = new PlayerData();
                         if(true) {
                             var scene = new jp.osakana4242.kimiko.scenes.Title();
                             core.replaceScene(scene);
@@ -1944,6 +1946,70 @@ var jp;
                             film.tl.then(callback);
                         }
                     };
+                    Fader.prototype.fadeOut2 = function (fadeFrame, target, callback) {
+                        if (typeof callback === "undefined") { callback = null; }
+                        var _this = this;
+                        var films = [];
+                        var w = kimiko.DF.SC_W;
+                        var h = kimiko.DF.SC_H;
+                        var frame = fadeFrame * 0.9;
+                        for(var i = 0, iNum = 4; i < iNum; ++i) {
+                            var film = new enchant.Sprite(kimiko.DF.SC_W, kimiko.DF.SC_H);
+                            film.backgroundColor = "rgb(0, 0, 0)";
+                            var mx = 0;
+                            var my = 0;
+                            switch(i) {
+                                case 0:
+                                    film.x = -w * 2;
+                                    film.y = -h / 2;
+                                    mx = (-w) - film.x;
+                                    my = 0;
+                                    break;
+                                case 1:
+                                    film.x = w;
+                                    film.y = -h / 2;
+                                    mx = (0) - film.x;
+                                    my = 0;
+                                    break;
+                                case 2:
+                                    film.x = -w / 2;
+                                    film.y = -h * 2;
+                                    mx = 0;
+                                    my = (-h) - film.y;
+                                    break;
+                                case 3:
+                                    film.x = -w / 2;
+                                    film.y = h;
+                                    mx = 0;
+                                    my = (0) - film.y;
+                                    break;
+                            }
+                            film.tl.moveBy(mx * 0.9, my * 0.9, frame * 0.6, Easing.CUBIC_EASEOUT).moveBy(mx * 0.1, my * 0.1, frame * 0.4, Easing.CUBIC_EASEIN);
+                            films.push(film);
+                        }
+                        var group = new enchant.Group();
+                        group.addEventListener(Event.ENTER_FRAME, function () {
+                            group.x = target.x;
+                            group.y = target.y;
+                        });
+                        group.tl.delay(fadeFrame * 0.9).then(function () {
+                            _this.setBlack(true);
+                        }).delay(fadeFrame * 0.1).then(function () {
+                            _this.setBlack(true);
+                            group.parentNode.removeChild(group);
+                            for(var i = 0, iNum = films.length; i < iNum; ++i) {
+                                var film = films[i];
+                                film.parentNode.removeChild(film);
+                            }
+                            if(callback) {
+                                callback();
+                            }
+                        });
+                        for(var i = 0, iNum = films.length; i < iNum; ++i) {
+                            group.addChild(films[i]);
+                        }
+                        this.scene.addChild(group);
+                    };
                     return Fader;
                 })();
                 scenes.Fader = Fader;                
@@ -2114,14 +2180,14 @@ var jp;
                         scene.addChild(layer1);
                         ((function () {
                             var next = function () {
-                                kimiko.kimiko.core.replaceScene(kimiko.kimiko.core.gameScene);
+                                fader.fadeOut2(kimiko.kimiko.secToFrame(1.5), new osakana4242.utils.Vector2D(242, 156), function () {
+                                    kimiko.kimiko.core.replaceScene(kimiko.kimiko.core.gameScene);
+                                });
                             };
                             fader.setBlack(true);
                             scene.tl.then(function () {
                                 fader.fadeIn(kimiko.kimiko.secToFrame(0.5));
-                            }).delay(kimiko.kimiko.secToFrame(0.5)).delay(kimiko.kimiko.secToFrame(2.0)).then(function () {
-                                fader.fadeOut(kimiko.kimiko.secToFrame(0.5));
-                            }).delay(kimiko.kimiko.secToFrame(0.5)).then(next);
+                            }).delay(kimiko.kimiko.secToFrame(0.5)).delay(kimiko.kimiko.secToFrame(2.0)).then(next);
                             scene.addEventListener(Event.TOUCH_END, next);
                             scene.addEventListener(Event.A_BUTTON_UP, next);
                         })());
@@ -2305,8 +2371,6 @@ var jp;
                     initPlayerStatus: function () {
                         var scene = this;
                         var pd = kimiko.kimiko.playerData;
-                        pd.restTimeMax = kimiko.kimiko.secToFrame(180);
-                        pd.restTimeCounter = kimiko.kimiko.playerData.restTimeMax;
                         var player = this.player;
                         player.life.recover();
                         player.life.hpMax = pd.hpMax;
@@ -2411,8 +2475,30 @@ var jp;
                             this.state = this.stateGameStart;
                         } else {
                             ++pd.mapId;
+                            pd.restTimeCounter += pd.restTimeMax;
                             this.state = this.stateWait;
-                            this.fader.fadeOut(kimiko.kimiko.secToFrame(0.3), function () {
+                            var player = this.player;
+                            var camera = this.camera;
+                            var playerPos = ((function () {
+                                var o = {
+                                };
+                                Object.defineProperty(o, "x", {
+                                    get: function () {
+                                        return player.center.x - camera.x;
+                                    },
+                                    enumerable: true,
+                                    configurable: true
+                                });
+                                Object.defineProperty(o, "y", {
+                                    get: function () {
+                                        return player.center.y - camera.y;
+                                    },
+                                    enumerable: true,
+                                    configurable: true
+                                });
+                                return o;
+                            })());
+                            this.fader.fadeOut2(kimiko.kimiko.secToFrame(0.5), playerPos, function () {
                                 _this.state = _this.stateGameStart;
                             });
                         }

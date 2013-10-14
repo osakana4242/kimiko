@@ -678,6 +678,8 @@ module jp.osakana4242.kimiko {
 			this.score= 0;
 			this.restTimeCounter= 0;
 			this.restTimeMax= 0;
+			this.restTimeMax = kimiko.secToFrame(180);
+			this.restTimeCounter = this.restTimeMax;
 			this.mapId= DF.MAP_ID_MIN;
 		}
 	}
@@ -696,7 +698,6 @@ module jp.osakana4242.kimiko {
 				return;
 			}
 			Kimiko.instance = this;
-			this.playerData = new PlayerData();
 			this.config = config;
 			
 			var core: any = new enchant.Core(DF.SC_W, DF.SC_H);
@@ -752,6 +753,7 @@ module jp.osakana4242.kimiko {
 			//
 			core.onload = function () {
 				this.gameScene = new jp.osakana4242.kimiko.scenes.Act()
+				kimiko.playerData = new PlayerData();
 				if (true) {
 					var scene = new jp.osakana4242.kimiko.scenes.Title();
 					core.replaceScene(scene);
