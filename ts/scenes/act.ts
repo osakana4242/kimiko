@@ -214,39 +214,44 @@ module jp.osakana4242.kimiko.scenes {
 		/** キャラにスポット */
 		fadeOut2(fadeFrame: number, target: utils.IVector2D, callback: () => void = null): void {
 			var films = [];
-			var w = DF.SC_W;
-			var h = DF.SC_H;
+
+			var scLeft =   - DF.SC_W;
+			var scTop =    - DF.SC_H;
+			var scRight =    DF.SC_W;
+			var scBottom =   DF.SC_H;
+			var scCenterX = 0;
+			var scCenterY = 0;
 
 			var frame = fadeFrame * 0.9;
 			for (var i = 0, iNum = 4; i < iNum; ++i) {
-				var film = new enchant.Sprite(DF.SC_W, DF.SC_H);
+				var film = new enchant.Sprite(DF.SC_W * 2, DF.SC_H * 2);
 				film.backgroundColor = "rgb(0, 0, 0)";
 				var mx = 0;
 				var my = 0;
 				switch (i) {
 				case 0:
-					film.x = - w * 2;
-					film.y = - h / 2;
-					mx = (-w) - film.x;
+					film.x = scLeft - film.width;
+					film.y = scCenterY - film.height / 2;
+					mx = (scCenterX - film.width) - film.x;
 					my = 0;
 					break;
 				case 1:
-					film.x = w;
-					film.y = - h / 2;
-					mx = (0) - film.x;
+					film.x = scRight;
+					film.y = scCenterY - film.height / 2;
+					mx = scCenterX - film.x;
 					my = 0;
 					break;
 				case 2:
-					film.x = - w / 2;
-					film.y = - h * 2;
+					film.x = scCenterX - film.width / 2;
+					film.y = scTop - film.height;
 					mx = 0;
-					my = (-h) - film.y;
+					my = (scCenterY - film.height) - film.y;
 					break;
 				case 3:
-					film.x = - w / 2;
-					film.y = h;
+					film.x = scCenterX - film.width / 2;
+					film.y = scBottom;
 					mx = 0;
-					my = (0) - film.y;
+					my = scCenterY - film.y;
 					break;
 				}
 				film.tl.

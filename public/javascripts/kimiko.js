@@ -1950,38 +1950,42 @@ var jp;
                         if (typeof callback === "undefined") { callback = null; }
                         var _this = this;
                         var films = [];
-                        var w = kimiko.DF.SC_W;
-                        var h = kimiko.DF.SC_H;
+                        var scLeft = -kimiko.DF.SC_W;
+                        var scTop = -kimiko.DF.SC_H;
+                        var scRight = kimiko.DF.SC_W;
+                        var scBottom = kimiko.DF.SC_H;
+                        var scCenterX = 0;
+                        var scCenterY = 0;
                         var frame = fadeFrame * 0.9;
                         for(var i = 0, iNum = 4; i < iNum; ++i) {
-                            var film = new enchant.Sprite(kimiko.DF.SC_W, kimiko.DF.SC_H);
+                            var film = new enchant.Sprite(kimiko.DF.SC_W * 2, kimiko.DF.SC_H * 2);
                             film.backgroundColor = "rgb(0, 0, 0)";
                             var mx = 0;
                             var my = 0;
                             switch(i) {
                                 case 0:
-                                    film.x = -w * 2;
-                                    film.y = -h / 2;
-                                    mx = (-w) - film.x;
+                                    film.x = scLeft - film.width;
+                                    film.y = scCenterY - film.height / 2;
+                                    mx = (scCenterX - film.width) - film.x;
                                     my = 0;
                                     break;
                                 case 1:
-                                    film.x = w;
-                                    film.y = -h / 2;
-                                    mx = (0) - film.x;
+                                    film.x = scRight;
+                                    film.y = scCenterY - film.height / 2;
+                                    mx = scCenterX - film.x;
                                     my = 0;
                                     break;
                                 case 2:
-                                    film.x = -w / 2;
-                                    film.y = -h * 2;
+                                    film.x = scCenterX - film.width / 2;
+                                    film.y = scTop - film.height;
                                     mx = 0;
-                                    my = (-h) - film.y;
+                                    my = (scCenterY - film.height) - film.y;
                                     break;
                                 case 3:
-                                    film.x = -w / 2;
-                                    film.y = h;
+                                    film.x = scCenterX - film.width / 2;
+                                    film.y = scBottom;
                                     mx = 0;
-                                    my = (0) - film.y;
+                                    my = scCenterY - film.y;
                                     break;
                             }
                             film.tl.moveBy(mx * 0.9, my * 0.9, frame * 0.6, Easing.CUBIC_EASEOUT).moveBy(mx * 0.1, my * 0.1, frame * 0.4, Easing.CUBIC_EASEIN);
