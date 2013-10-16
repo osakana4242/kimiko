@@ -34,6 +34,27 @@ module jp.osakana4242.kimiko.scenes {
 			this.targetNode = this;
 		},
 
+		getTargetPosOnCamera: function (): utils.IVector2D {
+			var camera = this;
+			var pos = this.targetNode.center;
+			var o = <utils.IVector2D>{};
+			Object.defineProperty(o, "x", {
+					get: function () {
+							return pos.x - camera.x;
+					},
+					enumerable: true,
+					configurable: true
+			});
+			Object.defineProperty(o, "y", {
+					get: function () {
+							return pos.y - camera.y;
+					},
+					enumerable: true,
+					configurable: true
+			});
+			return o;
+		},
+
 		/** 目的地に瞬時にたどり着く。 */
 		moveToTarget: function() {
 			utils.Vector2D.copyFrom(this, this.calcTargetPos());

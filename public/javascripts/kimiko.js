@@ -785,6 +785,209 @@ var jp;
                 var Label = enchant.Label;
                 var Event = enchant.Event;
                 var Easing = enchant.Easing;
+                var Fader = (function () {
+                    function Fader(scene) {
+                        this.scene = scene;
+                        this.film = ((function () {
+                            var spr = new enchant.Sprite(kimiko.DF.SC_W, kimiko.DF.SC_H);
+                            spr.backgroundColor = "rgb(0, 0, 0)";
+                            return spr;
+                        })());
+                    }
+                    Fader.prototype.addFilm = function () {
+                        this.removeFilm();
+                        this.scene.addChild(this.film);
+                        return this.film;
+                    };
+                    Fader.prototype.removeFilm = function () {
+                        var film = this.film;
+                        if(film.parentNode) {
+                            film.parentNode.removeChild(film);
+                        }
+                        return film;
+                    };
+                    Fader.prototype.setBlack = function (isBlack) {
+                        if(isBlack) {
+                            var film = this.addFilm();
+                            film.opacity = 1.0;
+                        } else {
+                            var film = this.removeFilm();
+                            film.opacity = 0.0;
+                        }
+                    };
+                    Fader.prototype.fadeIn = function (fadeFrame, callback) {
+                        if (typeof callback === "undefined") { callback = null; }
+                        var film = this.addFilm();
+                        film.tl.clear().fadeTo(0.0, fadeFrame);
+                        if(callback) {
+                            film.tl.then(callback);
+                        }
+                        film.tl.removeFromScene();
+                    };
+                    Fader.prototype.fadeOut = function (fadeFrame, callback) {
+                        if (typeof callback === "undefined") { callback = null; }
+                        var film = this.addFilm();
+                        film.tl.clear().fadeTo(1.0, fadeFrame);
+                        if(callback) {
+                            film.tl.then(callback);
+                        }
+                    };
+                    Fader.prototype.fadeIn2 = function (fadeFrame, target, callback) {
+                        if (typeof callback === "undefined") { callback = null; }
+                        var _this = this;
+                        var films = [];
+                        var scLeft = -kimiko.DF.SC_W;
+                        var scTop = -kimiko.DF.SC_H;
+                        var scRight = kimiko.DF.SC_W;
+                        var scBottom = kimiko.DF.SC_H;
+                        var scCenterX = 0;
+                        var scCenterY = 0;
+                        var frame = fadeFrame * 0.9;
+                        for(var i = 0, iNum = 4; i < iNum; ++i) {
+                            var film = new enchant.Sprite(kimiko.DF.SC_W * 2, kimiko.DF.SC_H * 2);
+                            film.backgroundColor = "rgb(0, 0, 0)";
+                            var mx = 0;
+                            var my = 0;
+                            switch(i) {
+                                case 0:
+                                    film.x = scCenterX - film.width;
+                                    film.y = scCenterY - film.height / 2;
+                                    mx = (scLeft - film.width) - film.x;
+                                    my = 0;
+                                    break;
+                                case 1:
+                                    film.x = scCenterX;
+                                    film.y = scCenterY - film.height / 2;
+                                    mx = scRight - film.x;
+                                    my = 0;
+                                    break;
+                                case 2:
+                                    film.x = scCenterX - film.width / 2;
+                                    film.y = scCenterY - film.height;
+                                    mx = 0;
+                                    my = (scTop - film.height) - film.y;
+                                    break;
+                                case 3:
+                                    film.x = scCenterX - film.width / 2;
+                                    film.y = scCenterY;
+                                    mx = 0;
+                                    my = scBottom - film.y;
+                                    break;
+                            }
+                            film.tl.moveBy(mx * 0.1, my * 0.1, frame * 0.4, Easing.CUBIC_EASEOUT).moveBy(mx * 0.9, my * 0.9, frame * 0.6, Easing.CUBIC_EASEIN);
+                            films.push(film);
+                        }
+                        var group = new enchant.Group();
+                        group.addEventListener(Event.ENTER_FRAME, function () {
+                            group.x = target.x;
+                            group.y = target.y;
+                        });
+                        group.tl.then(function () {
+                            _this.setBlack(false);
+                        }).delay(fadeFrame * 0.9).delay(fadeFrame * 0.1).then(function () {
+                            group.parentNode.removeChild(group);
+                            for(var i = 0, iNum = films.length; i < iNum; ++i) {
+                                var film = films[i];
+                                film.parentNode.removeChild(film);
+                            }
+                            if(callback) {
+                                callback();
+                            }
+                        });
+                        for(var i = 0, iNum = films.length; i < iNum; ++i) {
+                            group.addChild(films[i]);
+                        }
+                        this.scene.addChild(group);
+                    };
+                    Fader.prototype.fadeOut2 = function (fadeFrame, target, callback) {
+                        if (typeof callback === "undefined") { callback = null; }
+                        var _this = this;
+                        var films = [];
+                        var scLeft = -kimiko.DF.SC_W;
+                        var scTop = -kimiko.DF.SC_H;
+                        var scRight = kimiko.DF.SC_W;
+                        var scBottom = kimiko.DF.SC_H;
+                        var scCenterX = 0;
+                        var scCenterY = 0;
+                        var frame = fadeFrame * 0.9;
+                        for(var i = 0, iNum = 4; i < iNum; ++i) {
+                            var film = new enchant.Sprite(kimiko.DF.SC_W * 2, kimiko.DF.SC_H * 2);
+                            film.backgroundColor = "rgb(0, 0, 0)";
+                            var mx = 0;
+                            var my = 0;
+                            switch(i) {
+                                case 0:
+                                    film.x = scLeft - film.width;
+                                    film.y = scCenterY - film.height / 2;
+                                    mx = (scCenterX - film.width) - film.x;
+                                    my = 0;
+                                    break;
+                                case 1:
+                                    film.x = scRight;
+                                    film.y = scCenterY - film.height / 2;
+                                    mx = scCenterX - film.x;
+                                    my = 0;
+                                    break;
+                                case 2:
+                                    film.x = scCenterX - film.width / 2;
+                                    film.y = scTop - film.height;
+                                    mx = 0;
+                                    my = (scCenterY - film.height) - film.y;
+                                    break;
+                                case 3:
+                                    film.x = scCenterX - film.width / 2;
+                                    film.y = scBottom;
+                                    mx = 0;
+                                    my = scCenterY - film.y;
+                                    break;
+                            }
+                            film.tl.moveBy(mx * 0.9, my * 0.9, frame * 0.6, Easing.CUBIC_EASEOUT).moveBy(mx * 0.1, my * 0.1, frame * 0.4, Easing.CUBIC_EASEIN);
+                            films.push(film);
+                        }
+                        var group = new enchant.Group();
+                        group.addEventListener(Event.ENTER_FRAME, function () {
+                            group.x = target.x;
+                            group.y = target.y;
+                        });
+                        group.tl.delay(fadeFrame * 0.9).then(function () {
+                            _this.setBlack(true);
+                        }).delay(fadeFrame * 0.1).then(function () {
+                            _this.setBlack(true);
+                            group.parentNode.removeChild(group);
+                            for(var i = 0, iNum = films.length; i < iNum; ++i) {
+                                var film = films[i];
+                                film.parentNode.removeChild(film);
+                            }
+                            if(callback) {
+                                callback();
+                            }
+                        });
+                        for(var i = 0, iNum = films.length; i < iNum; ++i) {
+                            group.addChild(films[i]);
+                        }
+                        this.scene.addChild(group);
+                    };
+                    return Fader;
+                })();
+                scenes.Fader = Fader;                
+            })(kimiko.scenes || (kimiko.scenes = {}));
+            var scenes = kimiko.scenes;
+        })(osakana4242.kimiko || (osakana4242.kimiko = {}));
+        var kimiko = osakana4242.kimiko;
+    })(jp.osakana4242 || (jp.osakana4242 = {}));
+    var osakana4242 = jp.osakana4242;
+})(jp || (jp = {}));
+var jp;
+(function (jp) {
+    (function (osakana4242) {
+        (function (kimiko) {
+            (function (scenes) {
+                var Class = enchant.Class;
+                var Core = enchant.Core;
+                var Scene = enchant.Scene;
+                var Label = enchant.Label;
+                var Event = enchant.Event;
+                var Easing = enchant.Easing;
                 var WeaponA = (function () {
                     function WeaponA(sprite) {
                         this.parent = sprite;
@@ -1710,6 +1913,27 @@ var jp;
                         this.targetGroup = null;
                         this.targetNode = this;
                     },
+                    getTargetPosOnCamera: function () {
+                        var camera = this;
+                        var pos = this.targetNode.center;
+                        var o = {
+                        };
+                        Object.defineProperty(o, "x", {
+                            get: function () {
+                                return pos.x - camera.x;
+                            },
+                            enumerable: true,
+                            configurable: true
+                        });
+                        Object.defineProperty(o, "y", {
+                            get: function () {
+                                return pos.y - camera.y;
+                            },
+                            enumerable: true,
+                            configurable: true
+                        });
+                        return o;
+                    },
                     moveToTarget: function () {
                         osakana4242.utils.Vector2D.copyFrom(this, this.calcTargetPos());
                     },
@@ -1899,191 +2123,6 @@ var jp;
                     return MapCharaManager;
                 })();
                 scenes.MapCharaManager = MapCharaManager;                
-                var Fader = (function () {
-                    function Fader(scene) {
-                        this.scene = scene;
-                        this.film = ((function () {
-                            var spr = new enchant.Sprite(kimiko.DF.SC_W, kimiko.DF.SC_H);
-                            spr.backgroundColor = "rgb(0, 0, 0)";
-                            return spr;
-                        })());
-                    }
-                    Fader.prototype.addFilm = function () {
-                        this.removeFilm();
-                        this.scene.addChild(this.film);
-                        return this.film;
-                    };
-                    Fader.prototype.removeFilm = function () {
-                        var film = this.film;
-                        if(film.parentNode) {
-                            film.parentNode.removeChild(film);
-                        }
-                        return film;
-                    };
-                    Fader.prototype.setBlack = function (isBlack) {
-                        if(isBlack) {
-                            var film = this.addFilm();
-                            film.opacity = 1.0;
-                        } else {
-                            var film = this.removeFilm();
-                            film.opacity = 0.0;
-                        }
-                    };
-                    Fader.prototype.fadeIn = function (fadeFrame, callback) {
-                        if (typeof callback === "undefined") { callback = null; }
-                        var film = this.addFilm();
-                        film.tl.clear().fadeTo(0.0, fadeFrame);
-                        if(callback) {
-                            film.tl.then(callback);
-                        }
-                        film.tl.removeFromScene();
-                    };
-                    Fader.prototype.fadeOut = function (fadeFrame, callback) {
-                        if (typeof callback === "undefined") { callback = null; }
-                        var film = this.addFilm();
-                        film.tl.clear().fadeTo(1.0, fadeFrame);
-                        if(callback) {
-                            film.tl.then(callback);
-                        }
-                    };
-                    Fader.prototype.fadeIn2 = function (fadeFrame, target, callback) {
-                        if (typeof callback === "undefined") { callback = null; }
-                        var _this = this;
-                        var films = [];
-                        var scLeft = -kimiko.DF.SC_W;
-                        var scTop = -kimiko.DF.SC_H;
-                        var scRight = kimiko.DF.SC_W;
-                        var scBottom = kimiko.DF.SC_H;
-                        var scCenterX = 0;
-                        var scCenterY = 0;
-                        var frame = fadeFrame * 0.9;
-                        for(var i = 0, iNum = 4; i < iNum; ++i) {
-                            var film = new enchant.Sprite(kimiko.DF.SC_W * 2, kimiko.DF.SC_H * 2);
-                            film.backgroundColor = "rgb(0, 0, 0)";
-                            var mx = 0;
-                            var my = 0;
-                            switch(i) {
-                                case 0:
-                                    film.x = scCenterX - film.width;
-                                    film.y = scCenterY - film.height / 2;
-                                    mx = (scLeft - film.width) - film.x;
-                                    my = 0;
-                                    break;
-                                case 1:
-                                    film.x = scCenterX;
-                                    film.y = scCenterY - film.height / 2;
-                                    mx = scRight - film.x;
-                                    my = 0;
-                                    break;
-                                case 2:
-                                    film.x = scCenterX - film.width / 2;
-                                    film.y = scCenterY - film.height;
-                                    mx = 0;
-                                    my = (scTop - film.height) - film.y;
-                                    break;
-                                case 3:
-                                    film.x = scCenterX - film.width / 2;
-                                    film.y = scCenterY;
-                                    mx = 0;
-                                    my = scBottom - film.y;
-                                    break;
-                            }
-                            film.tl.moveBy(mx * 0.1, my * 0.1, frame * 0.4, Easing.CUBIC_EASEOUT).moveBy(mx * 0.9, my * 0.9, frame * 0.6, Easing.CUBIC_EASEIN);
-                            films.push(film);
-                        }
-                        var group = new enchant.Group();
-                        group.addEventListener(Event.ENTER_FRAME, function () {
-                            group.x = target.x;
-                            group.y = target.y;
-                        });
-                        group.tl.then(function () {
-                            _this.setBlack(false);
-                        }).delay(fadeFrame * 0.9).delay(fadeFrame * 0.1).then(function () {
-                            group.parentNode.removeChild(group);
-                            for(var i = 0, iNum = films.length; i < iNum; ++i) {
-                                var film = films[i];
-                                film.parentNode.removeChild(film);
-                            }
-                            if(callback) {
-                                callback();
-                            }
-                        });
-                        for(var i = 0, iNum = films.length; i < iNum; ++i) {
-                            group.addChild(films[i]);
-                        }
-                        this.scene.addChild(group);
-                    };
-                    Fader.prototype.fadeOut2 = function (fadeFrame, target, callback) {
-                        if (typeof callback === "undefined") { callback = null; }
-                        var _this = this;
-                        var films = [];
-                        var scLeft = -kimiko.DF.SC_W;
-                        var scTop = -kimiko.DF.SC_H;
-                        var scRight = kimiko.DF.SC_W;
-                        var scBottom = kimiko.DF.SC_H;
-                        var scCenterX = 0;
-                        var scCenterY = 0;
-                        var frame = fadeFrame * 0.9;
-                        for(var i = 0, iNum = 4; i < iNum; ++i) {
-                            var film = new enchant.Sprite(kimiko.DF.SC_W * 2, kimiko.DF.SC_H * 2);
-                            film.backgroundColor = "rgb(0, 0, 0)";
-                            var mx = 0;
-                            var my = 0;
-                            switch(i) {
-                                case 0:
-                                    film.x = scLeft - film.width;
-                                    film.y = scCenterY - film.height / 2;
-                                    mx = (scCenterX - film.width) - film.x;
-                                    my = 0;
-                                    break;
-                                case 1:
-                                    film.x = scRight;
-                                    film.y = scCenterY - film.height / 2;
-                                    mx = scCenterX - film.x;
-                                    my = 0;
-                                    break;
-                                case 2:
-                                    film.x = scCenterX - film.width / 2;
-                                    film.y = scTop - film.height;
-                                    mx = 0;
-                                    my = (scCenterY - film.height) - film.y;
-                                    break;
-                                case 3:
-                                    film.x = scCenterX - film.width / 2;
-                                    film.y = scBottom;
-                                    mx = 0;
-                                    my = scCenterY - film.y;
-                                    break;
-                            }
-                            film.tl.moveBy(mx * 0.9, my * 0.9, frame * 0.6, Easing.CUBIC_EASEOUT).moveBy(mx * 0.1, my * 0.1, frame * 0.4, Easing.CUBIC_EASEIN);
-                            films.push(film);
-                        }
-                        var group = new enchant.Group();
-                        group.addEventListener(Event.ENTER_FRAME, function () {
-                            group.x = target.x;
-                            group.y = target.y;
-                        });
-                        group.tl.delay(fadeFrame * 0.9).then(function () {
-                            _this.setBlack(true);
-                        }).delay(fadeFrame * 0.1).then(function () {
-                            _this.setBlack(true);
-                            group.parentNode.removeChild(group);
-                            for(var i = 0, iNum = films.length; i < iNum; ++i) {
-                                var film = films[i];
-                                film.parentNode.removeChild(film);
-                            }
-                            if(callback) {
-                                callback();
-                            }
-                        });
-                        for(var i = 0, iNum = films.length; i < iNum; ++i) {
-                            group.addChild(films[i]);
-                        }
-                        this.scene.addChild(group);
-                    };
-                    return Fader;
-                })();
-                scenes.Fader = Fader;                
                 scenes.Title = Class.create(Scene, {
                     initialize: function () {
                         Scene.call(this);
@@ -2198,7 +2237,7 @@ var jp;
                         scene.addEventListener(Event.A_BUTTON_UP, gotoGameStart);
                         scene.addEventListener(Event.LEFT_BUTTON_UP, prevMap);
                         scene.addEventListener(Event.RIGHT_BUTTON_UP, nextMap);
-                        var fader = new Fader(this);
+                        var fader = new scenes.Fader(this);
                         fader.setBlack(true);
                         fader.fadeIn(kimiko.kimiko.secToFrame(0.3));
                         function nextMap() {
@@ -2243,7 +2282,7 @@ var jp;
                             label.y = ay;
                             label.tl.moveTo(ax + 0, ay + 8, kimiko.kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).moveTo(ax + 0, ay - 8, kimiko.kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).loop();
                         })(label1));
-                        var fader = new Fader(this);
+                        var fader = new scenes.Fader(this);
                         var layer1 = new enchant.Group();
                         layer1.addChild(bg1);
                         layer1.addChild(label1);
@@ -2435,7 +2474,7 @@ var jp;
                         });
                         this.mapCharaMgr = new MapCharaManager(this);
                         this.touch = new osakana4242.utils.Touch();
-                        this.fader = new Fader(this);
+                        this.fader = new scenes.Fader(this);
                         this.fader.setBlack(true);
                         this.fader.fadeOut(0);
                     },
@@ -2492,13 +2531,15 @@ var jp;
                     },
                     stateGameStart: function () {
                         var scene = this;
-                        scene.fader.setBlack(true);
-                        scene.fader.fadeIn(kimiko.kimiko.secToFrame(0.2));
-                        scene.state = scene.stateNormal;
                         this.clear();
                         this.initPlayerStatus();
                         this.world.addChild(this.player);
                         this.loadMapData(jp.osakana4242.kimiko["mapData" + kimiko.kimiko.playerData.mapId]);
+                        scene.fader.setBlack(true);
+                        var player = scene.player;
+                        var camera = scene.camera;
+                        scene.fader.fadeIn2(kimiko.kimiko.secToFrame(0.2), camera.getTargetPosOnCamera());
+                        scene.state = scene.stateNormal;
                         if(kimiko.kimiko.config.isSoundEnabled) {
                             var sound = kimiko.kimiko.core.assets[kimiko.Assets.SOUND_BGM];
                             var soundSec = 15.922 + 0.5;
@@ -2550,26 +2591,7 @@ var jp;
                             this.state = this.stateWait;
                             var player = this.player;
                             var camera = this.camera;
-                            var playerPos = ((function () {
-                                var o = {
-                                };
-                                Object.defineProperty(o, "x", {
-                                    get: function () {
-                                        return player.center.x - camera.x;
-                                    },
-                                    enumerable: true,
-                                    configurable: true
-                                });
-                                Object.defineProperty(o, "y", {
-                                    get: function () {
-                                        return player.center.y - camera.y;
-                                    },
-                                    enumerable: true,
-                                    configurable: true
-                                });
-                                return o;
-                            })());
-                            this.fader.fadeOut2(kimiko.kimiko.secToFrame(0.5), playerPos, function () {
+                            this.fader.fadeOut2(kimiko.kimiko.secToFrame(0.5), camera.getTargetPosOnCamera(), function () {
                                 _this.state = _this.stateGameStart;
                             });
                         }
