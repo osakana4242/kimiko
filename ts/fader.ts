@@ -122,27 +122,28 @@ module jp.osakana4242.kimiko.scenes {
 
 			var group = new enchant.Group();
 			group.addEventListener(Event.ENTER_FRAME, () => {
+				// ターゲットを追う.
 				group.x = target.x;
 				group.y = target.y;
 			});
 			
 			group.tl.
-				then(() => { this.setBlack(false); }).
-				delay(fadeFrame * 0.9).
 				delay(fadeFrame * 0.1).
 				then(() => {
-					group.parentNode.removeChild(group);
 					for (var i = 0, iNum = films.length; i < iNum; ++i) {
-						var film = films[i];
-						film.parentNode.removeChild(film);
+						group.addChild(films[i]);
 					}
+					this.setBlack(false);
+				}).
+				delay(fadeFrame * 0.9).
+				then(() => {
+					group.parentNode.removeChild(group);
 					if (callback) {
 						callback();
 					}
 				});
-			for (var i = 0, iNum = films.length; i < iNum; ++i) {
-				group.addChild(films[i]);
-			}
+
+			this.setBlack(true);
 			this.scene.addChild(group);
 		}	
 

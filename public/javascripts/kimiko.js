@@ -882,21 +882,18 @@ var jp;
                             group.x = target.x;
                             group.y = target.y;
                         });
-                        group.tl.then(function () {
-                            _this.setBlack(false);
-                        }).delay(fadeFrame * 0.9).delay(fadeFrame * 0.1).then(function () {
-                            group.parentNode.removeChild(group);
+                        group.tl.delay(fadeFrame * 0.1).then(function () {
                             for(var i = 0, iNum = films.length; i < iNum; ++i) {
-                                var film = films[i];
-                                film.parentNode.removeChild(film);
+                                group.addChild(films[i]);
                             }
+                            _this.setBlack(false);
+                        }).delay(fadeFrame * 0.9).then(function () {
+                            group.parentNode.removeChild(group);
                             if(callback) {
                                 callback();
                             }
                         });
-                        for(var i = 0, iNum = films.length; i < iNum; ++i) {
-                            group.addChild(films[i]);
-                        }
+                        this.setBlack(true);
                         this.scene.addChild(group);
                     };
                     Fader.prototype.fadeOut2 = function (fadeFrame, target, callback) {
@@ -2239,7 +2236,7 @@ var jp;
                         scene.addEventListener(Event.RIGHT_BUTTON_UP, nextMap);
                         var fader = new scenes.Fader(this);
                         fader.setBlack(true);
-                        fader.fadeIn(kimiko.kimiko.secToFrame(0.3));
+                        fader.fadeIn(kimiko.kimiko.secToFrame(0.5));
                         function nextMap() {
                             mapIdsIdx = (mapIdsIdx + mapIds.length + 1) % mapIds.length;
                             updateMapLabel();

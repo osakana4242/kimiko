@@ -285,7 +285,7 @@ module jp.osakana4242.kimiko.scenes {
 			//
 			var fader = new Fader(this);
 			fader.setBlack(true);
-			fader.fadeIn(kimiko.secToFrame(0.3));
+			fader.fadeIn(kimiko.secToFrame(0.5));
 	
 			function nextMap() {
 				mapIdsIdx = (mapIdsIdx + mapIds.length + 1) % mapIds.length;
