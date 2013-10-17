@@ -1,5 +1,5 @@
 // references
-/// <reference path="../kimiko.ts" />
+/// <reference path="kimiko.ts" />
 //
 
 declare var enchant: any;

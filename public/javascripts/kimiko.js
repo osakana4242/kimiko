@@ -722,8 +722,9 @@ var jp;
                     core.keybind("D".charCodeAt(0), "right");
                     core.keybind("W".charCodeAt(0), "up");
                     core.keybind("S".charCodeAt(0), "down");
-                    core.onload = function () {
-                        this.gameScene = new jp.osakana4242.kimiko.scenes.Act();
+                    core.onload = (function () {
+                        _this.gameScene = new jp.osakana4242.kimiko.scenes.Act();
+                        _this.pauseScene = new jp.osakana4242.kimiko.scenes.Pause();
                         kimiko.kimiko.playerData = new PlayerData();
                         if(true) {
                             var scene = new jp.osakana4242.kimiko.scenes.Title();
@@ -731,9 +732,9 @@ var jp;
                         } else {
                             kimiko.kimiko.playerData.reset();
                             kimiko.kimiko.playerData.mapId = DF.MAP_ID_MAX;
-                            core.replaceScene(this.gameScene);
+                            core.replaceScene(_this.gameScene);
                         }
-                    };
+                    });
                 }
                 Kimiko.instance = null;
                 Kimiko.prototype.registerAnimFrames = function (animId, seq) {
@@ -2288,7 +2289,7 @@ var jp;
                         ((function () {
                             var next = function () {
                                 fader.fadeOut2(kimiko.kimiko.secToFrame(1.5), new osakana4242.utils.Vector2D(242, 156), function () {
-                                    kimiko.kimiko.core.replaceScene(kimiko.kimiko.core.gameScene);
+                                    kimiko.kimiko.core.replaceScene(kimiko.kimiko.gameScene);
                                 });
                             };
                             fader.setBlack(true);
@@ -2298,6 +2299,65 @@ var jp;
                             scene.addEventListener(Event.TOUCH_END, next);
                             scene.addEventListener(Event.A_BUTTON_UP, next);
                         })());
+                    }
+                });
+                scenes.Pause = Class.create(Scene, {
+                    initialize: function () {
+                        Scene.call(this);
+                        var scene = this;
+                        var bg = ((function () {
+                            var spr = new enchant.Sprite(kimiko.DF.SC_W, kimiko.DF.SC_H);
+                            spr.backgroundColor = "#000";
+                            spr.opacity = 0.5;
+                            return spr;
+                        })());
+                        var label1 = ((function () {
+                            var label = new enchant.Label("PAUSE");
+                            label.font = kimiko.DF.FONT_M;
+                            label.width = kimiko.DF.SC_W;
+                            label.height = 12;
+                            label.color = "rgb(255, 255, 255)";
+                            label.textAlign = "center";
+                            label.x = 0;
+                            label.y = 60;
+                            label.tl.moveBy(0, -8, kimiko.kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).moveBy(0, 8, kimiko.kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).loop();
+                            return label;
+                        })());
+                        var label2 = ((function () {
+                            var label = new enchant.Label("GOTO TITLE");
+                            label.font = kimiko.DF.FONT_M;
+                            label.width = kimiko.DF.SC_W / 2;
+                            label.height = 48;
+                            label.backgroundColor = "#444";
+                            label.color = "#ff0";
+                            label.textAlign = "center";
+                            label.x = (kimiko.DF.SC_W - label.width) / 2;
+                            label.y = 90;
+                            label.addEventListener(Event.TOUCH_END, function () {
+                                kimiko.kimiko.gameScene.state = kimiko.kimiko.gameScene.stateGameStart;
+                                kimiko.kimiko.core.replaceScene(new kimiko.scenes.Title());
+                            });
+                            return label;
+                        })());
+                        var label3 = ((function () {
+                            var label = new enchant.Label("CONTINUE");
+                            label.font = kimiko.DF.FONT_M;
+                            label.width = kimiko.DF.SC_W / 2;
+                            label.height = 48;
+                            label.backgroundColor = "#444";
+                            label.color = "#ff0";
+                            label.textAlign = "center";
+                            label.x = (kimiko.DF.SC_W - label.width) / 2;
+                            label.y = 180;
+                            label.addEventListener(Event.TOUCH_END, function () {
+                                kimiko.kimiko.core.popScene();
+                            });
+                            return label;
+                        })());
+                        scene.addChild(bg);
+                        scene.addChild(label1);
+                        scene.addChild(label2);
+                        scene.addChild(label3);
                     }
                 });
                 scenes.GameOver = Class.create(Scene, {
@@ -2431,27 +2491,48 @@ var jp;
                         sprite.x = 0;
                         sprite.y = this.map.height - sprite.height;
                         ((function () {
-                            var group = new enchant.Group();
-                            _this.statusGroup = group;
-                            _this.addChild(group);
-                            group.x = kimiko.DF.SC2_X1;
-                            group.y = kimiko.DF.SC2_Y1;
-                            sprite = new enchant.Sprite(kimiko.DF.SC2_W, kimiko.DF.SC2_H);
-                            group.addChild(sprite);
-                            _this.controllArea = sprite;
-                            sprite.x = 0;
-                            sprite.y = 0;
-                            sprite.backgroundColor = "rgb(64, 64, 64)";
+                            var bg = ((function () {
+                                var spr = new enchant.Sprite(kimiko.DF.SC2_W, kimiko.DF.SC2_H);
+                                _this.controllArea = spr;
+                                spr.x = 0;
+                                spr.y = 0;
+                                spr.backgroundColor = "rgb(64, 64, 64)";
+                                return spr;
+                            })());
                             _this.labels = [];
                             var texts = _this.statusTexts;
                             for(var i = 0, iNum = texts.length; i < iNum; ++i) {
                                 sprite = new Label("");
-                                group.addChild(sprite);
                                 _this.labels.push(sprite);
                                 sprite.font = kimiko.DF.FONT_M;
                                 sprite.color = "#fff";
                                 sprite.y = 12 * i;
                             }
+                            var btnPause = ((function () {
+                                var spr = new enchant.Label("P");
+                                spr.font = kimiko.DF.FONT_M;
+                                spr.color = "#ff0";
+                                spr.backgroundColor = "#000";
+                                spr.width = 48;
+                                spr.height = 48;
+                                spr.textAlign = "center";
+                                spr.x = kimiko.DF.SC2_W - 56;
+                                spr.y = kimiko.DF.SC2_H - 56;
+                                spr.addEventListener(Event.TOUCH_END, function () {
+                                    kimiko.kimiko.core.pushScene(kimiko.kimiko.pauseScene);
+                                });
+                                return spr;
+                            })());
+                            var group = new enchant.Group();
+                            _this.statusGroup = group;
+                            group.x = kimiko.DF.SC2_X1;
+                            group.y = kimiko.DF.SC2_Y1;
+                            group.addChild(bg);
+                            for(var i = 0, iNum = _this.labels.length; i < iNum; ++i) {
+                                group.addChild(_this.labels[i]);
+                            }
+                            group.addChild(btnPause);
+                            _this.addChild(group);
                         })());
                         this.ownBulletPool = new osakana4242.utils.SpritePool(kimiko.DF.PLAYER_BULLET_NUM, function () {
                             var spr = new scenes.OwnBullet();

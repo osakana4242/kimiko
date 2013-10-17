@@ -351,7 +351,7 @@ module jp.osakana4242.kimiko.scenes {
 			(() => {
 				var next = () => {
 					fader.fadeOut2(kimiko.secToFrame(1.5), new utils.Vector2D(242, 156), () => {
-						kimiko.core.replaceScene(kimiko.core.gameScene);
+						kimiko.core.replaceScene(kimiko.gameScene);
 					});
 				};
 				fader.setBlack(true);
@@ -367,6 +367,75 @@ module jp.osakana4242.kimiko.scenes {
 
 	});
 	
+	export var Pause: any = Class.create(Scene, {
+		initialize: function () {
+			Scene.call(this);
+			
+			var scene = this;
+			//
+			var bg = (() => {
+				var spr = new enchant.Sprite(DF.SC_W, DF.SC_H);
+				spr.backgroundColor = "#000";
+				spr.opacity = 0.5;
+				return spr;
+			}());
+
+			var label1 = (() => {
+				var label = new enchant.Label("PAUSE");
+				label.font = DF.FONT_M;
+				label.width = DF.SC_W;
+				label.height = 12;
+				label.color = "rgb(255, 255, 255)";
+				label.textAlign = "center";
+				label.x = 0;
+				label.y = 60;
+				label.tl.
+					moveBy(0, -8, kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).
+					moveBy(0,  8, kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).
+					loop();
+				return label;
+			}());
+			//
+			var label2 = (() => {
+				var label = new enchant.Label("GOTO TITLE");
+				label.font = DF.FONT_M;
+				label.width = DF.SC_W / 2;
+				label.height = 48;
+				label.backgroundColor = "#444";
+				label.color = "#ff0";
+				label.textAlign = "center";
+				label.x = (DF.SC_W - label.width) / 2;
+				label.y = 90;
+				label.addEventListener(Event.TOUCH_END, () => {
+					kimiko.gameScene.state = kimiko.gameScene.stateGameStart;
+					kimiko.core.replaceScene(new scenes.Title());
+				});
+				return label;
+			}());
+
+			var label3 = (() => {
+				var label = new enchant.Label("CONTINUE");
+				label.font = DF.FONT_M;
+				label.width = DF.SC_W / 2;
+				label.height = 48;
+				label.backgroundColor = "#444";
+				label.color = "#ff0";
+				label.textAlign = "center";
+				label.x = (DF.SC_W - label.width) / 2;
+				label.y = 180;
+				label.addEventListener(Event.TOUCH_END, () => {
+					kimiko.core.popScene();
+				});
+				return label;
+			}());
+
+			scene.addChild(bg);
+			scene.addChild(label1); 
+			scene.addChild(label2); 
+			scene.addChild(label3);
+		}
+	});
+
 	export var GameOver: any = Class.create(Scene, {
 		initialize: function () {
 			Scene.call(this);
@@ -551,31 +620,55 @@ module jp.osakana4242.kimiko.scenes {
 			
 			(() => {
 				// 操作エリア.
-				var group = new enchant.Group();
-				this.statusGroup = group;
-				this.addChild(group);
-				group.x = DF.SC2_X1;
-				group.y = DF.SC2_Y1;
 
 				// 背景.
-				sprite = new enchant.Sprite(DF.SC2_W, DF.SC2_H);
-				group.addChild(sprite);
-				this.controllArea = sprite;
-				sprite.x = 0;
-				sprite.y = 0;
-				sprite.backgroundColor = "rgb(64, 64, 64)";
+				var bg = (() => {
+					var spr = new enchant.Sprite(DF.SC2_W, DF.SC2_H);
+					this.controllArea = spr;
+					spr.x = 0;
+					spr.y = 0;
+					spr.backgroundColor = "rgb(64, 64, 64)";
+					return spr;
+				}());
 
 				// labels
 				this.labels = [];
 				var texts: string[][] = this.statusTexts;
 				for (var i: number = 0, iNum: number = texts.length; i < iNum; ++i) {
 					sprite = new Label("");
-					group.addChild(sprite);
 					this.labels.push(sprite);
 					sprite.font = DF.FONT_M;
 					sprite.color = "#fff";
 					sprite.y = 12 * i;
 				}
+
+				var btnPause = (() => {
+					var spr = new enchant.Label("P");
+					spr.font = DF.FONT_M;
+					spr.color = "#ff0";
+					spr.backgroundColor = "#000";
+					spr.width = 48;
+					spr.height = 48;
+					spr.textAlign = "center";
+					spr.x = DF.SC2_W - 56;
+					spr.y = DF.SC2_H - 56;
+					spr.addEventListener(Event.TOUCH_END, () => {
+						kimiko.core.pushScene(kimiko.pauseScene);
+					});
+					return spr;
+				}());
+
+				var group = new enchant.Group();
+				this.statusGroup = group;
+				group.x = DF.SC2_X1;
+				group.y = DF.SC2_Y1;
+
+				group.addChild(bg);
+				for (var i: number = 0, iNum: number = this.labels.length; i < iNum; ++i) {
+					group.addChild(this.labels[i]);
+				}
+				group.addChild(btnPause);
+				this.addChild(group);
 
 			}());
 

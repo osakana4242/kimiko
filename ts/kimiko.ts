@@ -692,6 +692,7 @@ module jp.osakana4242.kimiko {
 		config: IConfig;
 		playerData: PlayerData;
 		gameScene: any;
+		pauseScene: any;
 		
 		constructor(config: IConfig) {
 			if (Kimiko.instance) {
@@ -751,8 +752,9 @@ module jp.osakana4242.kimiko {
 			core.keybind("S".charCodeAt(0), "down");	
 
 			//
-			core.onload = function () {
-				this.gameScene = new jp.osakana4242.kimiko.scenes.Act()
+			core.onload = (() => {
+				this.gameScene = new jp.osakana4242.kimiko.scenes.Act();
+				this.pauseScene = new jp.osakana4242.kimiko.scenes.Pause();
 				kimiko.playerData = new PlayerData();
 				if (true) {
 					var scene = new jp.osakana4242.kimiko.scenes.Title();
@@ -762,7 +764,7 @@ module jp.osakana4242.kimiko {
 					kimiko.playerData.mapId = DF.MAP_ID_MAX;
 					core.replaceScene(this.gameScene);
 				}
-			};
+			});
 		}
 
 		animFrames: { [index: number]: utils.AnimSequence; } = <any>{};
