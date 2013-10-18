@@ -233,7 +233,7 @@ module jp.osakana4242.kimiko.scenes {
 				spr.color = "rgb(255, 255, 0)";
 				spr.textAlign = "center";
 				spr.width = 56;
-				spr.height = 32;
+				spr.height = 48;
 				spr.x = DF.SC_W / 3 * 0 + (spr.width / 2);
 				spr.y = 80;
 				spr.addEventListener(Event.TOUCH_END, prevMap);
@@ -247,7 +247,7 @@ module jp.osakana4242.kimiko.scenes {
 				spr.color = "rgb(255, 255, 0)";
 				spr.textAlign = "center";
 				spr.width = 56;
-				spr.height = 32;
+				spr.height = 48;
 				spr.x = DF.SC_W / 3 * 2 + (spr.width / 2);
 				spr.y = 80;
 				spr.addEventListener(Event.TOUCH_END, nextMap);
@@ -260,10 +260,10 @@ module jp.osakana4242.kimiko.scenes {
 				spr.color = "rgb(255, 255, 0)";
 				spr.backgroundColor = "rgb(64, 64, 64)";
 				spr.width = DF.SC_W / 2;
-				spr.height = 32;
+				spr.height = 48;
 				spr.textAlign = "center";
 				spr.x = (DF.SC_W - spr.width) / 2;
-				spr.y = 120;
+				spr.y = 140;
 				spr.addEventListener(Event.TOUCH_END, gotoGameStart);
 				return spr;
 			}());
@@ -350,7 +350,7 @@ module jp.osakana4242.kimiko.scenes {
 			scene.addChild(layer1);
 			(() => {
 				var next = () => {
-					fader.fadeOut2(kimiko.secToFrame(1.5), new utils.Vector2D(242, 156), () => {
+					fader.fadeOut2(kimiko.secToFrame(1.0), new utils.Vector2D(242, 156), () => {
 						kimiko.core.replaceScene(kimiko.gameScene);
 					});
 				};

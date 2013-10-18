@@ -2192,7 +2192,7 @@ var jp;
                             spr.color = "rgb(255, 255, 0)";
                             spr.textAlign = "center";
                             spr.width = 56;
-                            spr.height = 32;
+                            spr.height = 48;
                             spr.x = kimiko.DF.SC_W / 3 * 0 + (spr.width / 2);
                             spr.y = 80;
                             spr.addEventListener(Event.TOUCH_END, prevMap);
@@ -2205,7 +2205,7 @@ var jp;
                             spr.color = "rgb(255, 255, 0)";
                             spr.textAlign = "center";
                             spr.width = 56;
-                            spr.height = 32;
+                            spr.height = 48;
                             spr.x = kimiko.DF.SC_W / 3 * 2 + (spr.width / 2);
                             spr.y = 80;
                             spr.addEventListener(Event.TOUCH_END, nextMap);
@@ -2217,10 +2217,10 @@ var jp;
                             spr.color = "rgb(255, 255, 0)";
                             spr.backgroundColor = "rgb(64, 64, 64)";
                             spr.width = kimiko.DF.SC_W / 2;
-                            spr.height = 32;
+                            spr.height = 48;
                             spr.textAlign = "center";
                             spr.x = (kimiko.DF.SC_W - spr.width) / 2;
-                            spr.y = 120;
+                            spr.y = 140;
                             spr.addEventListener(Event.TOUCH_END, gotoGameStart);
                             return spr;
                         })());
@@ -2288,7 +2288,7 @@ var jp;
                         scene.addChild(layer1);
                         ((function () {
                             var next = function () {
-                                fader.fadeOut2(kimiko.kimiko.secToFrame(1.5), new osakana4242.utils.Vector2D(242, 156), function () {
+                                fader.fadeOut2(kimiko.kimiko.secToFrame(1.0), new osakana4242.utils.Vector2D(242, 156), function () {
                                     kimiko.kimiko.core.replaceScene(kimiko.kimiko.gameScene);
                                 });
                             };
