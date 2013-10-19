@@ -2677,64 +2677,92 @@ var jp;
                     loadMapData: function (mapData) {
                         var _this = this;
                         var map = this.map;
-                        switch(kimiko.kimiko.playerData.mapId) {
-                            case 1:
-                            case 2:
-                                this.backgroundColor = "rgb(  8,   8,  16)";
-                                break;
-                            case 3:
-                                this.backgroundColor = "rgb( 32, 196, 255)";
-                                break;
-                            case 4:
-                                this.backgroundColor = "rgb(196,  32,  32)";
-                                break;
+                        var mapOptions = {
+                            1: {
+                                "backgroundColor": "rgb(196,196,196)"
+                            },
+                            2: {
+                                "backgroundColor": "rgb(8,8,16)"
+                            },
+                            3: {
+                                "backgroundColor": "rgb(32,196,255)"
+                            },
+                            4: {
+                                "backgroundColor": "rgb(196,32,32)"
+                            }
+                        };
+                        var mapOption = mapOptions[kimiko.kimiko.playerData.mapId];
+                        this.backgroundColor = mapOption.backgroundColor;
+                        var collisionTileMin = 0;
+                        var collisionTileMax = 15;
+                        var doorTile = 41;
+                        function cloneTiles(tiles) {
+                            var a = [];
+                            for(var y = 0, yNum = tiles.length; y < yNum; ++y) {
+                                a.push(tiles[y].slice(0));
+                            }
+                            return a;
+                        }
+                        function eachTiles(tiles, func) {
+                            for(var y = 0, yNum = tiles.length; y < yNum; ++y) {
+                                for(var x = 0, xNum = tiles[y].length; x < xNum; ++x) {
+                                    func(tiles[y][x], x, y, tiles);
+                                }
+                            }
                         }
                         ((function () {
-                            var layer = mapData.layers[0];
-                            map.loadData(layer.tiles);
+                            var mapWork = {
+                            };
+                            mapWork.groundTilesOrig = mapData.layers[0].tiles;
+                            mapWork.groundTiles = cloneTiles(mapWork.groundTilesOrig);
+                            _this.mapWork = mapWork;
+                            var tiles = mapWork.groundTiles;
+                            eachTiles(tiles, function (tile, x, y, tiles) {
+                                if(tile === doorTile) {
+                                    tiles[y][x] = -1;
+                                }
+                            });
                             var collisionData = [];
-                            for(var y = 0, yNum = layer.tiles.length; y < yNum; ++y) {
+                            for(var y = 0, yNum = tiles.length; y < yNum; ++y) {
                                 var line = [];
-                                for(var x = 0, xNum = layer.tiles[y].length; x < xNum; ++x) {
-                                    var tile = layer.tiles[y][x];
-                                    line.push(0x0 <= tile && tile <= 0xf);
+                                for(var x = 0, xNum = tiles[y].length; x < xNum; ++x) {
+                                    var tile = tiles[y][x];
+                                    line.push(collisionTileMin <= tile && tile <= collisionTileMax);
                                 }
                                 collisionData.push(line);
                             }
+                            map.loadData(tiles);
                             map.collisionData = collisionData;
                         })());
                         ((function () {
                             var mapCharaMgr = _this.mapCharaMgr;
                             var layer = mapData.layers[1];
-                            for(var y = 0, yNum = layer.tiles.length; y < yNum; ++y) {
-                                for(var x = 0, xNum = layer.tiles[y].length; x < xNum; ++x) {
-                                    var charaId = layer.tiles[y][x];
-                                    if(charaId === -1) {
-                                        continue;
-                                    }
-                                    var left = x * kimiko.DF.MAP_TILE_W;
-                                    var top = y * kimiko.DF.MAP_TILE_H;
-                                    if(charaId === 40) {
-                                        var player = _this.player;
-                                        player.x = left + (kimiko.DF.MAP_TILE_W - player.width) / 2;
-                                        player.y = top + (kimiko.DF.MAP_TILE_H - player.height);
-                                    } else if(48 <= charaId) {
-                                        var enemyId = charaId - 48;
-                                        var data = scenes.EnemyData[enemyId];
-                                        var enemy = new scenes.EnemyA();
-                                        enemy.enemyId = enemyId;
-                                        enemy.life.hpMax = data.hpMax;
-                                        enemy.life.hp = enemy.life.hpMax;
-                                        data.body(enemy);
-                                        var center = left + (enemy.width / 2);
-                                        var bottom = top + (kimiko.DF.MAP_TILE_H - enemy.height);
-                                        enemy.x = enemy.anchor.x = center;
-                                        enemy.y = enemy.anchor.y = bottom;
-                                        data.brain(enemy);
-                                        mapCharaMgr.addSleep(enemy);
-                                    }
+                            eachTiles(layer.tiles, function (charaId, x, y, tiles) {
+                                if(charaId === -1) {
+                                    return;
                                 }
-                            }
+                                var left = x * kimiko.DF.MAP_TILE_W;
+                                var top = y * kimiko.DF.MAP_TILE_H;
+                                if(charaId === 40) {
+                                    var player = _this.player;
+                                    player.x = left + (kimiko.DF.MAP_TILE_W - player.width) / 2;
+                                    player.y = top + (kimiko.DF.MAP_TILE_H - player.height);
+                                } else if(48 <= charaId) {
+                                    var enemyId = charaId - 48;
+                                    var data = scenes.EnemyData[enemyId];
+                                    var enemy = new scenes.EnemyA();
+                                    enemy.enemyId = enemyId;
+                                    enemy.life.hpMax = data.hpMax;
+                                    enemy.life.hp = enemy.life.hpMax;
+                                    data.body(enemy);
+                                    var center = left + (enemy.width / 2);
+                                    var bottom = top + (kimiko.DF.MAP_TILE_H - enemy.height);
+                                    enemy.x = enemy.anchor.x = center;
+                                    enemy.y = enemy.anchor.y = bottom;
+                                    data.brain(enemy);
+                                    mapCharaMgr.addSleep(enemy);
+                                }
+                            });
                         })());
                         var camera = this.camera;
                         camera.limitRect.x = 0;
@@ -2772,8 +2800,7 @@ var jp;
                     },
                     onAllEnemyDead: function () {
                         var scene = this;
-                        scene.clearFrameMax = kimiko.kimiko.secToFrame(3.0);
-                        scene.clearFrameCounter = 0;
+                        this.map.loadData(this.mapWork.groundTilesOrig);
                     },
                     getNearEnemy: function (sprite, searchRect) {
                         var mapCharaMgr = this.mapCharaMgr;
@@ -2848,7 +2875,7 @@ var jp;
                             this.labels[i].text = line;
                         }
                     },
-                    checkMapCollision: function (player, onTrim) {
+                    checkMapCollision: function (player, onTrim, onIntersect) {
                         var collider = player.collider;
                         var prect = collider.getRect();
                         var map = this.map;
@@ -2888,6 +2915,7 @@ var jp;
                                     if(!player.parentNode) {
                                         return;
                                     }
+                                    onIntersect(map.checkTile(x, y), x, y);
                                 }
                             }
                         }finally {
