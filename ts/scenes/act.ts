@@ -1173,7 +1173,9 @@ module jp.osakana4242.kimiko.scenes {
 							// 死んでたら帰る.
 							return;
 						}
-						onIntersect(map.checkTile(x, y), x, y);
+						if (onIntersect) {
+							onIntersect(map.checkTile(x, y), x, y);
+						}
 					}
 				}
 			} finally {

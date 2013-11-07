@@ -215,7 +215,7 @@ var jp;
                         }
                     }
                     if(limitRect.x + limitRect.width < ownRect.x + ownRect.width) {
-                        ownRect.x = limitRect.width - ownRect.width;
+                        ownRect.x = limitRect.x + limitRect.width - ownRect.width;
                         if(onTrim) {
                             onTrim.call(ownRect, 1, 0);
                         }
@@ -227,7 +227,7 @@ var jp;
                         }
                     }
                     if(limitRect.y + limitRect.height < ownRect.y + ownRect.height) {
-                        ownRect.y = limitRect.height - ownRect.height;
+                        ownRect.y = limitRect.y + limitRect.height - ownRect.height;
                         if(onTrim) {
                             onTrim.call(ownRect, 0, 1);
                         }
@@ -1944,9 +1944,9 @@ var jp;
                     },
                     onenterframe: function () {
                         var camera = this;
-                        var tv = this.calcTargetPos();
-                        var speed = kimiko.kimiko.dpsToDpf(8 * 60);
-                        var dv = osakana4242.utils.Vector2D.alloc(tv.x - camera.x, tv.y - camera.y);
+                        var tp = this.calcTargetPos();
+                        var speed = kimiko.kimiko.dpsToDpf(5 * 60);
+                        var dv = osakana4242.utils.Vector2D.alloc(tp.x - camera.x, tp.y - camera.y);
                         var mv = osakana4242.utils.Vector2D.alloc();
                         var distance = osakana4242.utils.Vector2D.magnitude(dv);
                         if(speed < distance) {
@@ -1958,10 +1958,15 @@ var jp;
                         }
                         camera.x = Math.floor(camera.x + mv.x);
                         camera.y = Math.floor(camera.y + mv.y);
+                        var marginX = camera.width * 0.9;
+                        var marginY = camera.height * 0.9;
+                        var limitRect = osakana4242.utils.Rect.alloc(Math.floor(tp.x - marginX / 2), Math.floor(tp.y - marginY / 2), Math.floor(camera.width + marginX), Math.floor(camera.height + marginY));
+                        osakana4242.utils.Rect.trimPos(camera, limitRect);
                         osakana4242.utils.Rect.trimPos(camera, camera.limitRect);
                         this.updateGroup();
                         osakana4242.utils.Vector2D.free(dv);
                         osakana4242.utils.Vector2D.free(mv);
+                        osakana4242.utils.Rect.free(limitRect);
                     },
                     updateGroup: function () {
                         var group = this.targetGroup;
@@ -2915,7 +2920,9 @@ var jp;
                                     if(!player.parentNode) {
                                         return;
                                     }
-                                    onIntersect(map.checkTile(x, y), x, y);
+                                    if(onIntersect) {
+                                        onIntersect(map.checkTile(x, y), x, y);
+                                    }
                                 }
                             }
                         }finally {

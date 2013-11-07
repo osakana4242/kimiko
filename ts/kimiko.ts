@@ -252,7 +252,7 @@ module jp.osakana4242.utils {
 			}
 			if (limitRect.x + limitRect.width < ownRect.x + ownRect.width) {
 				// >
-				ownRect.x = limitRect.width - ownRect.width;
+				ownRect.x = limitRect.x + limitRect.width - ownRect.width;
 				if (onTrim) { onTrim.call(ownRect, 1, 0); }
 			}
 			if (ownRect.y < limitRect.y) {
@@ -262,7 +262,7 @@ module jp.osakana4242.utils {
 			}
 			if (limitRect.y + limitRect.height < ownRect.y + ownRect.height) {
 				// v
-				ownRect.y = limitRect.height - ownRect.height;
+				ownRect.y = limitRect.y + limitRect.height - ownRect.height;
 				if (onTrim) { onTrim.call(ownRect, 0, 1); }
 			}
 		}
