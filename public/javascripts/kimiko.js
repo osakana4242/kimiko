@@ -536,7 +536,7 @@ var jp;
                         "backgroundColor": "rgb(196,196,196)"
                     },
                     2: {
-                        "backgroundColor": "rgb(8,8,16)"
+                        "backgroundColor": "rgb(16,16,32)"
                     },
                     3: {
                         "backgroundColor": "rgb(32,196,255)"

@@ -618,15 +618,20 @@ module jp.osakana4242.kimiko {
 			1: {
 				"backgroundColor": "rgb(196,196,196)",
 				//"backgroundColor": "rgb(8,8,16)",
+				// ドアあり.
 			},
 			2: {
-				"backgroundColor": "rgb(8,8,16)",
+				"backgroundColor": "rgb(16,16,32)",
+				// ドアなし.
 			},
 			3: {
 				"backgroundColor": "rgb(32,196,255)",
+				// ドアなし.
 			},
 			4: {
 				"backgroundColor": "rgb(196,32,32)",
+				// ドアなし
+				// ラスト.
 			},
 		};
 
