@@ -521,9 +521,30 @@ var jp;
                 DF.FONT_M = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
                 DF.FONT_L = '24px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
                 DF.GRAVITY = 0.25 * 60;
+                DF.PLAYER_TOUCH_ANCHOR_ENABLE = true;
+                DF.MAP_TILE_EMPTY = -1;
+                DF.MAP_TILE_COLLISION_MIN = 0;
+                DF.MAP_TILE_COLLISION_MAX = 15;
+                DF.MAP_TILE_PLAYER_POS = 40;
+                DF.MAP_TILE_DOOR_OPEN = 41;
+                DF.MAP_TILE_DOOR_CLOSE = -1;
+                DF.MAP_TILE_CHARA_MIN = 48;
                 DF.MAP_ID_MIN = 1;
                 DF.MAP_ID_MAX = 4;
-                DF.PLAYER_TOUCH_ANCHOR_ENABLE = true;
+                DF.MAP_OPTIONS = {
+                    1: {
+                        "backgroundColor": "rgb(196,196,196)"
+                    },
+                    2: {
+                        "backgroundColor": "rgb(8,8,16)"
+                    },
+                    3: {
+                        "backgroundColor": "rgb(32,196,255)"
+                    },
+                    4: {
+                        "backgroundColor": "rgb(196,32,32)"
+                    }
+                };
                 DF.BIT_L = 1 << 0;
                 DF.BIT_R = 1 << 1;
                 DF.BIT_U = 1 << 2;
@@ -1655,6 +1676,7 @@ var jp;
                             }
                         };
                         this.touchStartAnchor = new osakana4242.utils.Vector2D();
+                        this.isPause = false;
                         this.isSlowMove = false;
                         this.isOnMap = false;
                         this.targetEnemy = null;
@@ -1663,6 +1685,9 @@ var jp;
                         this.inputForce = new osakana4242.utils.Vector2D();
                         this.addEventListener(Event.ENTER_FRAME, function () {
                             var scene = _this.scene;
+                            if(_this.isPause) {
+                                return;
+                            }
                             var isAlive = !_this.life.isDead();
                             if(isAlive) {
                                 _this.checkInput();
@@ -1787,7 +1812,7 @@ var jp;
                                 this.y += totalMy;
                             }
                             osakana4242.utils.Rect.trimPos(this, this.limitRect, this.onTrim);
-                            scene.checkMapCollision(this, this.onTrim);
+                            scene.checkMapCollision(this, this.onTrim, this.onIntersect);
                             if(this.force.x === 0) {
                                 mx = 0;
                                 totalMx = 0;
@@ -1801,6 +1826,20 @@ var jp;
                             this.force.x = 0;
                             this.force.y = 0;
                         }
+                    },
+                    startMap: function () {
+                        this.isPause = false;
+                    },
+                    endMap: function () {
+                        this.isPause = true;
+                    },
+                    onIntersect: function (tile, x, y) {
+                        if(tile !== kimiko.DF.MAP_TILE_DOOR_OPEN) {
+                            return;
+                        }
+                        var scene = this.scene;
+                        scene.state = scene.stateGameClear;
+                        this.endMap();
                     },
                     onTrim: function (x, y) {
                         if(x !== 0) {
@@ -2682,25 +2721,8 @@ var jp;
                     loadMapData: function (mapData) {
                         var _this = this;
                         var map = this.map;
-                        var mapOptions = {
-                            1: {
-                                "backgroundColor": "rgb(196,196,196)"
-                            },
-                            2: {
-                                "backgroundColor": "rgb(8,8,16)"
-                            },
-                            3: {
-                                "backgroundColor": "rgb(32,196,255)"
-                            },
-                            4: {
-                                "backgroundColor": "rgb(196,32,32)"
-                            }
-                        };
-                        var mapOption = mapOptions[kimiko.kimiko.playerData.mapId];
+                        var mapOption = kimiko.DF.MAP_OPTIONS[kimiko.kimiko.playerData.mapId];
                         this.backgroundColor = mapOption.backgroundColor;
-                        var collisionTileMin = 0;
-                        var collisionTileMax = 15;
-                        var doorTile = 41;
                         function cloneTiles(tiles) {
                             var a = [];
                             for(var y = 0, yNum = tiles.length; y < yNum; ++y) {
@@ -2723,8 +2745,8 @@ var jp;
                             _this.mapWork = mapWork;
                             var tiles = mapWork.groundTiles;
                             eachTiles(tiles, function (tile, x, y, tiles) {
-                                if(tile === doorTile) {
-                                    tiles[y][x] = -1;
+                                if(tile === kimiko.DF.MAP_TILE_DOOR_OPEN) {
+                                    tiles[y][x] = kimiko.DF.MAP_TILE_DOOR_CLOSE;
                                 }
                             });
                             var collisionData = [];
@@ -2732,7 +2754,7 @@ var jp;
                                 var line = [];
                                 for(var x = 0, xNum = tiles[y].length; x < xNum; ++x) {
                                     var tile = tiles[y][x];
-                                    line.push(collisionTileMin <= tile && tile <= collisionTileMax);
+                                    line.push(kimiko.DF.MAP_TILE_COLLISION_MIN <= tile && tile <= kimiko.DF.MAP_TILE_COLLISION_MAX);
                                 }
                                 collisionData.push(line);
                             }
@@ -2748,12 +2770,12 @@ var jp;
                                 }
                                 var left = x * kimiko.DF.MAP_TILE_W;
                                 var top = y * kimiko.DF.MAP_TILE_H;
-                                if(charaId === 40) {
+                                if(charaId === kimiko.DF.MAP_TILE_PLAYER_POS) {
                                     var player = _this.player;
                                     player.x = left + (kimiko.DF.MAP_TILE_W - player.width) / 2;
                                     player.y = top + (kimiko.DF.MAP_TILE_H - player.height);
-                                } else if(48 <= charaId) {
-                                    var enemyId = charaId - 48;
+                                } else if(kimiko.DF.MAP_TILE_CHARA_MIN <= charaId) {
+                                    var enemyId = charaId - kimiko.DF.MAP_TILE_CHARA_MIN;
                                     var data = scenes.EnemyData[enemyId];
                                     var enemy = new scenes.EnemyA();
                                     enemy.enemyId = enemyId;
@@ -2776,6 +2798,7 @@ var jp;
                         camera.limitRect.height = map.height + (kimiko.DF.SC1_H / 2);
                         var player = this.player;
                         osakana4242.utils.Rect.copyFrom(player.limitRect, camera.limitRect);
+                        player.startMap();
                         camera.targetNode = player;
                         camera.moveToTarget();
                     },
@@ -2895,11 +2918,14 @@ var jp;
                         try  {
                             for(var y = yMin; y < yMax; y += yDiff) {
                                 for(var x = xMin; x < xMax; x += xDiff) {
-                                    if(!map.hitTest(x, y)) {
-                                        continue;
-                                    }
                                     rect.reset(Math.floor(x / map.tileWidth) * map.tileWidth, Math.floor(y / map.tileHeight) * map.tileHeight, map.tileWidth, map.tileHeight);
                                     if(!osakana4242.utils.Rect.intersect(prect, rect)) {
+                                        continue;
+                                    }
+                                    if(onIntersect) {
+                                        onIntersect.call(player, map.checkTile(x, y), x, y);
+                                    }
+                                    if(!map.hitTest(x, y)) {
                                         continue;
                                     }
                                     if(!map.hitTest(x, y - yDiff) && 0 <= player.force.y && prect.y <= rect.y + hoge) {
@@ -2919,9 +2945,6 @@ var jp;
                                     }
                                     if(!player.parentNode) {
                                         return;
-                                    }
-                                    if(onIntersect) {
-                                        onIntersect(map.checkTile(x, y), x, y);
                                     }
                                 }
                             }

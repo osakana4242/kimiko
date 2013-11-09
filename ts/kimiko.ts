@@ -600,11 +600,36 @@ module jp.osakana4242.kimiko {
 		export var FONT_L: string = '24px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
 	
 		export var GRAVITY: number = 0.25 * 60;
+		
+		export var PLAYER_TOUCH_ANCHOR_ENABLE = true;
+
+		export var MAP_TILE_EMPTY = -1;
+		export var MAP_TILE_COLLISION_MIN = 0;
+		export var MAP_TILE_COLLISION_MAX = 15;
+		export var MAP_TILE_PLAYER_POS = 40;
+		export var MAP_TILE_DOOR_OPEN = 41;
+		export var MAP_TILE_DOOR_CLOSE = -1;
+		export var MAP_TILE_CHARA_MIN = 48;
+		
 		export var MAP_ID_MIN = 1;
 		export var MAP_ID_MAX = 4;
 
-		export var PLAYER_TOUCH_ANCHOR_ENABLE = true;
-		
+		export var MAP_OPTIONS = {
+			1: {
+				"backgroundColor": "rgb(196,196,196)",
+				//"backgroundColor": "rgb(8,8,16)",
+			},
+			2: {
+				"backgroundColor": "rgb(8,8,16)",
+			},
+			3: {
+				"backgroundColor": "rgb(32,196,255)",
+			},
+			4: {
+				"backgroundColor": "rgb(196,32,32)",
+			},
+		};
+
 		export var BIT_L = 1 << 0;
 		export var BIT_R = 1 << 1;
 		export var BIT_U = 1 << 2;

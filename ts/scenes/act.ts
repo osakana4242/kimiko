@@ -857,28 +857,8 @@ module jp.osakana4242.kimiko.scenes {
 		
 		loadMapData: function (mapData: utils.IMapData) {
 			var map = this.map;
-
-			var mapOptions = {
-				1: {
-					"backgroundColor": "rgb(196,196,196)",
-					//"backgroundColor": "rgb(8,8,16)",
-				},
-				2: {
-					"backgroundColor": "rgb(8,8,16)",
-				},
-				3: {
-					"backgroundColor": "rgb(32,196,255)",
-				},
-				4: {
-					"backgroundColor": "rgb(196,32,32)",
-				},
-			};
-			var mapOption = mapOptions[kimiko.playerData.mapId];
+			var mapOption = DF.MAP_OPTIONS[kimiko.playerData.mapId];
 			this.backgroundColor = mapOption.backgroundColor;
-
-			var collisionTileMin = 0;
-			var collisionTileMax = 15;
-			var doorTile = 41;
 
 			function cloneTiles(tiles: number[][]) {
 				var a = [];
@@ -907,9 +887,9 @@ module jp.osakana4242.kimiko.scenes {
 			
 				var tiles = mapWork.groundTiles;
 				eachTiles(tiles, (tile, x, y, tiles) => {
-					if (tile === doorTile) {
+					if (tile === DF.MAP_TILE_DOOR_OPEN) {
 						// ドアを消す
-						tiles[y][x] = -1;
+						tiles[y][x] = DF.MAP_TILE_DOOR_CLOSE;
 					}
 				});
 
@@ -919,7 +899,7 @@ module jp.osakana4242.kimiko.scenes {
 					var line = [];
 					for (var x = 0, xNum = tiles[y].length; x < xNum; ++x) {
 						var tile = tiles[y][x];
-						line.push(collisionTileMin <= tile && tile <= collisionTileMax);
+						line.push(DF.MAP_TILE_COLLISION_MIN <= tile && tile <= DF.MAP_TILE_COLLISION_MAX);
 					}
 					collisionData.push(line);
 				}
@@ -939,12 +919,12 @@ module jp.osakana4242.kimiko.scenes {
 					var left = x * DF.MAP_TILE_W;
 					var top = y * DF.MAP_TILE_H;
 
-					if (charaId === 40) {
+					if (charaId === DF.MAP_TILE_PLAYER_POS) {
 						var player = this.player;
 						player.x = left + (DF.MAP_TILE_W - player.width) / 2;
 						player.y = top + (DF.MAP_TILE_H - player.height);
-					} else if (48 <= charaId) {
-						var enemyId = charaId - 48;
+					} else if (DF.MAP_TILE_CHARA_MIN <= charaId) {
+						var enemyId = charaId - DF.MAP_TILE_CHARA_MIN;
 						var data = EnemyData[enemyId]
 						var enemy = new EnemyA();
 						enemy.enemyId = enemyId;
@@ -971,6 +951,7 @@ module jp.osakana4242.kimiko.scenes {
 			
 			var player = this.player;
 			utils.Rect.copyFrom(player.limitRect, camera.limitRect);
+			player.startMap();
 
 			// カメラの追跡対象をプレイヤーにする.
 			camera.targetNode = player;
@@ -1136,9 +1117,6 @@ module jp.osakana4242.kimiko.scenes {
 			try {
 				for (var y = yMin; y < yMax; y += yDiff) {
 					for (var x = xMin; x < xMax; x += xDiff) {
-						if (!map.hitTest(x, y)) {
-							continue;
-						}
 						rect.reset(
 							Math.floor(x / map.tileWidth) * map.tileWidth,
 							Math.floor(y / map.tileHeight) * map.tileHeight,
@@ -1146,6 +1124,12 @@ module jp.osakana4242.kimiko.scenes {
 							map.tileHeight
 						);
 						if (!utils.Rect.intersect(prect, rect)) {
+							continue;
+						}
+						if (onIntersect) {
+							onIntersect.call(player, map.checkTile(x, y), x, y);
+						}
+						if (!map.hitTest(x, y)) {
 							continue;
 						}
 						// TODO: たま消しのときは無駄になってしまうので省略したい
@@ -1172,9 +1156,6 @@ module jp.osakana4242.kimiko.scenes {
 						if (!player.parentNode) {
 							// 死んでたら帰る.
 							return;
-						}
-						if (onIntersect) {
-							onIntersect(map.checkTile(x, y), x, y);
 						}
 					}
 				}
