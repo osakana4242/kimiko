@@ -596,6 +596,7 @@ module jp.osakana4242.kimiko.scenes {
 
 			var map = new enchant.Map(DF.MAP_TILE_W, DF.MAP_TILE_H);
 			this.map = map;
+			this.mapOption = {};
 			map.image = kimiko.core.assets[Assets.IMAGE_MAP];
 			map.x = 0;
 			map.y = 0;
@@ -857,27 +858,57 @@ module jp.osakana4242.kimiko.scenes {
 		
 		loadMapData: function (mapData: utils.IMapData) {
 			var map = this.map;
-			switch (kimiko.playerData.mapId) {
-			case 1:
-			case 2: this.backgroundColor = "rgb(  8,   8,  16)"; break;
-			case 3: this.backgroundColor = "rgb( 32, 196, 255)"; break;
-			case 4: this.backgroundColor = "rgb(196,  32,  32)"; break;
+			var mapOption: IMapOption = DF.MAP_OPTIONS[kimiko.playerData.mapId];
+			for (var key in mapOption) {
+				this.mapOption[key] = mapOption[key];
+			}
+			this.backgroundColor = mapOption.backgroundColor;
+
+			function cloneTiles(tiles: number[][]) {
+				var a = [];
+				for (var y = 0, yNum = tiles.length; y < yNum; ++y) {
+					a.push(tiles[y].slice(0));
+				}
+				return a;
+			}
+
+			function eachTiles(tiles: number[][], func: (value: number, x: number, y: number, tiles: number[][]) => void) {
+				for (var y = 0, yNum = tiles.length; y < yNum; ++y) {
+					for (var x = 0, xNum = tiles[y].length; x < xNum; ++x) {
+						func(tiles[y][x], x, y, tiles);
+					}
+				}
 			}
 
 			(() => {
-				var layer = mapData.layers[0];
-				map.loadData(layer.tiles);
+				// 1: レイヤーをクローンしてトビラを削除する.
+				// 2: 条件をみたしたらクローンしたレイヤーのトビラを復活させる.
+				
+				var mapWork: any = {};
+				mapWork.groundTilesOrig = mapData.layers[0].tiles;
+				mapWork.groundTiles = cloneTiles(mapWork.groundTilesOrig);
+				this.mapWork = mapWork;
+			
+				var tiles = mapWork.groundTiles;
+				eachTiles(tiles, (tile, x, y, tiles) => {
+					if (tile === DF.MAP_TILE_DOOR_OPEN) {
+						// ドアを消す
+						tiles[y][x] = DF.MAP_TILE_DOOR_CLOSE;
+					}
+				});
 
 				// コリジョン自動生成.
 				var collisionData = [];
-				for (var y = 0, yNum = layer.tiles.length; y < yNum; ++y) {
+				for (var y = 0, yNum = tiles.length; y < yNum; ++y) {
 					var line = [];
-					for (var x = 0, xNum = layer.tiles[y].length; x < xNum; ++x) {
-						var tile = layer.tiles[y][x];
-						line.push(0x0 <= tile && tile <= 0xf);
+					for (var x = 0, xNum = tiles[y].length; x < xNum; ++x) {
+						var tile = tiles[y][x];
+						line.push(DF.MAP_TILE_COLLISION_MIN <= tile && tile <= DF.MAP_TILE_COLLISION_MAX);
 					}
 					collisionData.push(line);
 				}
+				
+				map.loadData(tiles);
 				map.collisionData = collisionData;
 			}());
 
@@ -885,37 +916,36 @@ module jp.osakana4242.kimiko.scenes {
 			(() => {
 				var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
 				var layer = mapData.layers[1];
-				for (var y = 0, yNum = layer.tiles.length; y < yNum; ++y) {
-					for (var x = 0, xNum = layer.tiles[y].length; x < xNum; ++x) {
-						var charaId = layer.tiles[y][x];
-						if (charaId === -1) {
-							continue;
-						}
-						var left = x * DF.MAP_TILE_W;
-						var top = y * DF.MAP_TILE_H;
-
-						if (charaId === 40) {
-							var player = this.player;
-							player.x = left + (DF.MAP_TILE_W - player.width) / 2;
-							player.y = top + (DF.MAP_TILE_H - player.height);
-						} else if (48 <= charaId) {
-							var enemyId = charaId - 48;
-							var data = EnemyData[enemyId]
-							var enemy = new EnemyA();
-							enemy.enemyId = enemyId;
-							enemy.life.hpMax = data.hpMax;
-							enemy.life.hp = enemy.life.hpMax;
-							data.body(enemy);
-							
-							var center = left + (enemy.width / 2);
-							var bottom = top + (DF.MAP_TILE_H - enemy.height);
-							enemy.x = enemy.anchor.x = center;
-							enemy.y = enemy.anchor.y = bottom;
-							data.brain(enemy);
-							mapCharaMgr.addSleep(enemy);
-						}
+				eachTiles(layer.tiles, (charaId, x, y, tiles) => {
+					if (charaId === -1) {
+						return;
 					}
-				}
+					var left = x * DF.MAP_TILE_W;
+					var top = y * DF.MAP_TILE_H;
+
+					if (charaId === DF.MAP_TILE_PLAYER_POS) {
+						var player = this.player;
+						player.x = left + (DF.MAP_TILE_W - player.width) / 2;
+						player.y = top + (DF.MAP_TILE_H - player.height);
+					} else if (DF.MAP_TILE_CHARA_MIN <= charaId) {
+						var enemyId = charaId - DF.MAP_TILE_CHARA_MIN;
+						var data = EnemyData[enemyId]
+						var enemy = new EnemyA();
+						enemy.enemyId = enemyId;
+						enemy.life.hpMax = data.hpMax;
+						enemy.life.hp = enemy.life.hpMax;
+						data.body(enemy);
+						
+						var center = left + (enemy.width / 2);
+						var bottom = top + (DF.MAP_TILE_H - enemy.height);
+						enemy.x = enemy.anchor.x = center;
+						enemy.y = enemy.anchor.y = bottom;
+						data.brain(enemy);
+						mapCharaMgr.addSleep(enemy);
+					}
+
+				});
+
 			} ());
 			var camera = this.camera;
 			camera.limitRect.x = 0;
@@ -925,6 +955,7 @@ module jp.osakana4242.kimiko.scenes {
 			
 			var player = this.player;
 			utils.Rect.copyFrom(player.limitRect, camera.limitRect);
+			player.startMap();
 
 			// カメラの追跡対象をプレイヤーにする.
 			camera.targetNode = player;
@@ -974,9 +1005,20 @@ module jp.osakana4242.kimiko.scenes {
 
 		onAllEnemyDead: function () {
 			var scene = this;
-			// ゲームクリアカウント開始.
-			scene.clearFrameMax = kimiko.secToFrame(3.0);
-			scene.clearFrameCounter = 0;
+			var mapOption: IMapOption = scene.mapOption;
+			switch (mapOption.exitType) {
+			case "door":
+				scene.map.loadData(scene.mapWork.groundTilesOrig);
+				break;
+			case "enemy_zero":
+				// ゲームクリアカウント開始.
+				scene.clearFrameMax = kimiko.secToFrame(3.0);
+				scene.clearFrameCounter = 0;
+				break;
+			default:
+				console.log("unkown exitType:" + mapOption.exitType);
+				break;
+			}
 		},
 		
 		getNearEnemy: function (sprite, searchRect: utils.IRect) {
@@ -1072,7 +1114,7 @@ module jp.osakana4242.kimiko.scenes {
 			}
 		},
 
-		checkMapCollision: function (player, onTrim: (x: number, y: number) => void) {
+		checkMapCollision: function (player, onTrim: (x: number, y: number) => void, onIntersect: (tile: number, x: number, y: number) => void) {
 			// 地形とプレイヤーの衝突判定.
 			// 自分の周囲の地形を調べる.
 			var collider: utils.Collider = player.collider;
@@ -1089,9 +1131,6 @@ module jp.osakana4242.kimiko.scenes {
 			try {
 				for (var y = yMin; y < yMax; y += yDiff) {
 					for (var x = xMin; x < xMax; x += xDiff) {
-						if (!map.hitTest(x, y)) {
-							continue;
-						}
 						rect.reset(
 							Math.floor(x / map.tileWidth) * map.tileWidth,
 							Math.floor(y / map.tileHeight) * map.tileHeight,
@@ -1099,6 +1138,12 @@ module jp.osakana4242.kimiko.scenes {
 							map.tileHeight
 						);
 						if (!utils.Rect.intersect(prect, rect)) {
+							continue;
+						}
+						if (onIntersect) {
+							onIntersect.call(player, map.checkTile(x, y), x, y);
+						}
+						if (!map.hitTest(x, y)) {
 							continue;
 						}
 						// TODO: たま消しのときは無駄になってしまうので省略したい

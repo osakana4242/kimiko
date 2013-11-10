@@ -252,7 +252,7 @@ module jp.osakana4242.utils {
 			}
 			if (limitRect.x + limitRect.width < ownRect.x + ownRect.width) {
 				// >
-				ownRect.x = limitRect.width - ownRect.width;
+				ownRect.x = limitRect.x + limitRect.width - ownRect.width;
 				if (onTrim) { onTrim.call(ownRect, 1, 0); }
 			}
 			if (ownRect.y < limitRect.y) {
@@ -262,7 +262,7 @@ module jp.osakana4242.utils {
 			}
 			if (limitRect.y + limitRect.height < ownRect.y + ownRect.height) {
 				// v
-				ownRect.y = limitRect.height - ownRect.height;
+				ownRect.y = limitRect.y + limitRect.height - ownRect.height;
 				if (onTrim) { onTrim.call(ownRect, 0, 1); }
 			}
 		}
@@ -600,11 +600,53 @@ module jp.osakana4242.kimiko {
 		export var FONT_L: string = '24px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
 	
 		export var GRAVITY: number = 0.25 * 60;
+		
+		export var PLAYER_TOUCH_ANCHOR_ENABLE = true;
+
+		export var MAP_TILE_EMPTY = -1;
+		export var MAP_TILE_COLLISION_MIN = 0;
+		export var MAP_TILE_COLLISION_MAX = 15;
+		export var MAP_TILE_PLAYER_POS = 40;
+		export var MAP_TILE_DOOR_OPEN = 41;
+		export var MAP_TILE_DOOR_CLOSE = -1;
+		export var MAP_TILE_CHARA_MIN = 48;
+		
 		export var MAP_ID_MIN = 1;
 		export var MAP_ID_MAX = 4;
 
-		export var PLAYER_TOUCH_ANCHOR_ENABLE = true;
-		
+		export var MAP_OPTIONS = {
+			1: {
+				"title": "tutorial",
+				"backgroundColor": "rgb(196,196,196)",
+				//"backgroundColor": "rgb(8,8,16)",
+				// ドアあり.
+				"nextMapId": 2,
+				"exitType": "door",
+			},
+			2: {
+				"title": "hospital",
+				"backgroundColor": "rgb(16,16,32)",
+				// ドアなし.
+				"nextMapId": 3,
+				"exitType": "door",
+			},
+			3: {
+				"title": "station",
+				"backgroundColor": "rgb(32,196,255)",
+				// ドアなし.
+				"nextMapId": 4,
+				"exitType": "door",
+			},
+			4: {
+				"title": "boss",
+				"backgroundColor": "rgb(196,32,32)",
+				// ドアなし
+				// ラスト.
+				"nextMapId": 0,
+				"exitType": "enemy_zero",
+			},
+		};
+
 		export var BIT_L = 1 << 0;
 		export var BIT_R = 1 << 1;
 		export var BIT_U = 1 << 2;
@@ -657,6 +699,13 @@ module jp.osakana4242.kimiko {
 		isSoundEnabled: bool;
 		swipeToMoveRate: utils.IVector2D;
 		version: string;
+	}
+
+	export interface IMapOption {
+		title: string;
+		backgroundColor: string;
+		exitType: string;
+		nextMapId: number;
 	}
 
 	export class PlayerData {

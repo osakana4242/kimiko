@@ -215,7 +215,7 @@ var jp;
                         }
                     }
                     if(limitRect.x + limitRect.width < ownRect.x + ownRect.width) {
-                        ownRect.x = limitRect.width - ownRect.width;
+                        ownRect.x = limitRect.x + limitRect.width - ownRect.width;
                         if(onTrim) {
                             onTrim.call(ownRect, 1, 0);
                         }
@@ -227,7 +227,7 @@ var jp;
                         }
                     }
                     if(limitRect.y + limitRect.height < ownRect.y + ownRect.height) {
-                        ownRect.y = limitRect.height - ownRect.height;
+                        ownRect.y = limitRect.y + limitRect.height - ownRect.height;
                         if(onTrim) {
                             onTrim.call(ownRect, 0, 1);
                         }
@@ -521,9 +521,42 @@ var jp;
                 DF.FONT_M = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
                 DF.FONT_L = '24px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
                 DF.GRAVITY = 0.25 * 60;
+                DF.PLAYER_TOUCH_ANCHOR_ENABLE = true;
+                DF.MAP_TILE_EMPTY = -1;
+                DF.MAP_TILE_COLLISION_MIN = 0;
+                DF.MAP_TILE_COLLISION_MAX = 15;
+                DF.MAP_TILE_PLAYER_POS = 40;
+                DF.MAP_TILE_DOOR_OPEN = 41;
+                DF.MAP_TILE_DOOR_CLOSE = -1;
+                DF.MAP_TILE_CHARA_MIN = 48;
                 DF.MAP_ID_MIN = 1;
                 DF.MAP_ID_MAX = 4;
-                DF.PLAYER_TOUCH_ANCHOR_ENABLE = true;
+                DF.MAP_OPTIONS = {
+                    1: {
+                        "title": "tutorial",
+                        "backgroundColor": "rgb(196,196,196)",
+                        "nextMapId": 2,
+                        "exitType": "door"
+                    },
+                    2: {
+                        "title": "hospital",
+                        "backgroundColor": "rgb(16,16,32)",
+                        "nextMapId": 3,
+                        "exitType": "door"
+                    },
+                    3: {
+                        "title": "station",
+                        "backgroundColor": "rgb(32,196,255)",
+                        "nextMapId": 4,
+                        "exitType": "door"
+                    },
+                    4: {
+                        "title": "boss",
+                        "backgroundColor": "rgb(196,32,32)",
+                        "nextMapId": 0,
+                        "exitType": "enemy_zero"
+                    }
+                };
                 DF.BIT_L = 1 << 0;
                 DF.BIT_R = 1 << 1;
                 DF.BIT_U = 1 << 2;
@@ -1655,6 +1688,7 @@ var jp;
                             }
                         };
                         this.touchStartAnchor = new osakana4242.utils.Vector2D();
+                        this.isPause = false;
                         this.isSlowMove = false;
                         this.isOnMap = false;
                         this.targetEnemy = null;
@@ -1663,6 +1697,9 @@ var jp;
                         this.inputForce = new osakana4242.utils.Vector2D();
                         this.addEventListener(Event.ENTER_FRAME, function () {
                             var scene = _this.scene;
+                            if(_this.isPause) {
+                                return;
+                            }
                             var isAlive = !_this.life.isDead();
                             if(isAlive) {
                                 _this.checkInput();
@@ -1787,7 +1824,7 @@ var jp;
                                 this.y += totalMy;
                             }
                             osakana4242.utils.Rect.trimPos(this, this.limitRect, this.onTrim);
-                            scene.checkMapCollision(this, this.onTrim);
+                            scene.checkMapCollision(this, this.onTrim, this.onIntersect);
                             if(this.force.x === 0) {
                                 mx = 0;
                                 totalMx = 0;
@@ -1801,6 +1838,20 @@ var jp;
                             this.force.x = 0;
                             this.force.y = 0;
                         }
+                    },
+                    startMap: function () {
+                        this.isPause = false;
+                    },
+                    endMap: function () {
+                        this.isPause = true;
+                    },
+                    onIntersect: function (tile, x, y) {
+                        if(tile !== kimiko.DF.MAP_TILE_DOOR_OPEN) {
+                            return;
+                        }
+                        var scene = this.scene;
+                        scene.state = scene.stateGameClear;
+                        this.endMap();
                     },
                     onTrim: function (x, y) {
                         if(x !== 0) {
@@ -1944,9 +1995,9 @@ var jp;
                     },
                     onenterframe: function () {
                         var camera = this;
-                        var tv = this.calcTargetPos();
-                        var speed = kimiko.kimiko.dpsToDpf(8 * 60);
-                        var dv = osakana4242.utils.Vector2D.alloc(tv.x - camera.x, tv.y - camera.y);
+                        var tp = this.calcTargetPos();
+                        var speed = kimiko.kimiko.dpsToDpf(5 * 60);
+                        var dv = osakana4242.utils.Vector2D.alloc(tp.x - camera.x, tp.y - camera.y);
                         var mv = osakana4242.utils.Vector2D.alloc();
                         var distance = osakana4242.utils.Vector2D.magnitude(dv);
                         if(speed < distance) {
@@ -1958,10 +2009,15 @@ var jp;
                         }
                         camera.x = Math.floor(camera.x + mv.x);
                         camera.y = Math.floor(camera.y + mv.y);
+                        var marginX = camera.width * 0.9;
+                        var marginY = camera.height * 0.9;
+                        var limitRect = osakana4242.utils.Rect.alloc(Math.floor(tp.x - marginX / 2), Math.floor(tp.y - marginY / 2), Math.floor(camera.width + marginX), Math.floor(camera.height + marginY));
+                        osakana4242.utils.Rect.trimPos(camera, limitRect);
                         osakana4242.utils.Rect.trimPos(camera, camera.limitRect);
                         this.updateGroup();
                         osakana4242.utils.Vector2D.free(dv);
                         osakana4242.utils.Vector2D.free(mv);
+                        osakana4242.utils.Rect.free(limitRect);
                     },
                     updateGroup: function () {
                         var group = this.targetGroup;
@@ -2474,6 +2530,8 @@ var jp;
                         scene.addChild(world);
                         var map = new enchant.Map(kimiko.DF.MAP_TILE_W, kimiko.DF.MAP_TILE_H);
                         this.map = map;
+                        this.mapOption = {
+                        };
                         map.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_MAP];
                         map.x = 0;
                         map.y = 0;
@@ -2677,64 +2735,78 @@ var jp;
                     loadMapData: function (mapData) {
                         var _this = this;
                         var map = this.map;
-                        switch(kimiko.kimiko.playerData.mapId) {
-                            case 1:
-                            case 2:
-                                this.backgroundColor = "rgb(  8,   8,  16)";
-                                break;
-                            case 3:
-                                this.backgroundColor = "rgb( 32, 196, 255)";
-                                break;
-                            case 4:
-                                this.backgroundColor = "rgb(196,  32,  32)";
-                                break;
+                        var mapOption = kimiko.DF.MAP_OPTIONS[kimiko.kimiko.playerData.mapId];
+                        for(var key in mapOption) {
+                            this.mapOption[key] = mapOption[key];
+                        }
+                        this.backgroundColor = mapOption.backgroundColor;
+                        function cloneTiles(tiles) {
+                            var a = [];
+                            for(var y = 0, yNum = tiles.length; y < yNum; ++y) {
+                                a.push(tiles[y].slice(0));
+                            }
+                            return a;
+                        }
+                        function eachTiles(tiles, func) {
+                            for(var y = 0, yNum = tiles.length; y < yNum; ++y) {
+                                for(var x = 0, xNum = tiles[y].length; x < xNum; ++x) {
+                                    func(tiles[y][x], x, y, tiles);
+                                }
+                            }
                         }
                         ((function () {
-                            var layer = mapData.layers[0];
-                            map.loadData(layer.tiles);
+                            var mapWork = {
+                            };
+                            mapWork.groundTilesOrig = mapData.layers[0].tiles;
+                            mapWork.groundTiles = cloneTiles(mapWork.groundTilesOrig);
+                            _this.mapWork = mapWork;
+                            var tiles = mapWork.groundTiles;
+                            eachTiles(tiles, function (tile, x, y, tiles) {
+                                if(tile === kimiko.DF.MAP_TILE_DOOR_OPEN) {
+                                    tiles[y][x] = kimiko.DF.MAP_TILE_DOOR_CLOSE;
+                                }
+                            });
                             var collisionData = [];
-                            for(var y = 0, yNum = layer.tiles.length; y < yNum; ++y) {
+                            for(var y = 0, yNum = tiles.length; y < yNum; ++y) {
                                 var line = [];
-                                for(var x = 0, xNum = layer.tiles[y].length; x < xNum; ++x) {
-                                    var tile = layer.tiles[y][x];
-                                    line.push(0x0 <= tile && tile <= 0xf);
+                                for(var x = 0, xNum = tiles[y].length; x < xNum; ++x) {
+                                    var tile = tiles[y][x];
+                                    line.push(kimiko.DF.MAP_TILE_COLLISION_MIN <= tile && tile <= kimiko.DF.MAP_TILE_COLLISION_MAX);
                                 }
                                 collisionData.push(line);
                             }
+                            map.loadData(tiles);
                             map.collisionData = collisionData;
                         })());
                         ((function () {
                             var mapCharaMgr = _this.mapCharaMgr;
                             var layer = mapData.layers[1];
-                            for(var y = 0, yNum = layer.tiles.length; y < yNum; ++y) {
-                                for(var x = 0, xNum = layer.tiles[y].length; x < xNum; ++x) {
-                                    var charaId = layer.tiles[y][x];
-                                    if(charaId === -1) {
-                                        continue;
-                                    }
-                                    var left = x * kimiko.DF.MAP_TILE_W;
-                                    var top = y * kimiko.DF.MAP_TILE_H;
-                                    if(charaId === 40) {
-                                        var player = _this.player;
-                                        player.x = left + (kimiko.DF.MAP_TILE_W - player.width) / 2;
-                                        player.y = top + (kimiko.DF.MAP_TILE_H - player.height);
-                                    } else if(48 <= charaId) {
-                                        var enemyId = charaId - 48;
-                                        var data = scenes.EnemyData[enemyId];
-                                        var enemy = new scenes.EnemyA();
-                                        enemy.enemyId = enemyId;
-                                        enemy.life.hpMax = data.hpMax;
-                                        enemy.life.hp = enemy.life.hpMax;
-                                        data.body(enemy);
-                                        var center = left + (enemy.width / 2);
-                                        var bottom = top + (kimiko.DF.MAP_TILE_H - enemy.height);
-                                        enemy.x = enemy.anchor.x = center;
-                                        enemy.y = enemy.anchor.y = bottom;
-                                        data.brain(enemy);
-                                        mapCharaMgr.addSleep(enemy);
-                                    }
+                            eachTiles(layer.tiles, function (charaId, x, y, tiles) {
+                                if(charaId === -1) {
+                                    return;
                                 }
-                            }
+                                var left = x * kimiko.DF.MAP_TILE_W;
+                                var top = y * kimiko.DF.MAP_TILE_H;
+                                if(charaId === kimiko.DF.MAP_TILE_PLAYER_POS) {
+                                    var player = _this.player;
+                                    player.x = left + (kimiko.DF.MAP_TILE_W - player.width) / 2;
+                                    player.y = top + (kimiko.DF.MAP_TILE_H - player.height);
+                                } else if(kimiko.DF.MAP_TILE_CHARA_MIN <= charaId) {
+                                    var enemyId = charaId - kimiko.DF.MAP_TILE_CHARA_MIN;
+                                    var data = scenes.EnemyData[enemyId];
+                                    var enemy = new scenes.EnemyA();
+                                    enemy.enemyId = enemyId;
+                                    enemy.life.hpMax = data.hpMax;
+                                    enemy.life.hp = enemy.life.hpMax;
+                                    data.body(enemy);
+                                    var center = left + (enemy.width / 2);
+                                    var bottom = top + (kimiko.DF.MAP_TILE_H - enemy.height);
+                                    enemy.x = enemy.anchor.x = center;
+                                    enemy.y = enemy.anchor.y = bottom;
+                                    data.brain(enemy);
+                                    mapCharaMgr.addSleep(enemy);
+                                }
+                            });
                         })());
                         var camera = this.camera;
                         camera.limitRect.x = 0;
@@ -2743,6 +2815,7 @@ var jp;
                         camera.limitRect.height = map.height + (kimiko.DF.SC1_H / 2);
                         var player = this.player;
                         osakana4242.utils.Rect.copyFrom(player.limitRect, camera.limitRect);
+                        player.startMap();
                         camera.targetNode = player;
                         camera.moveToTarget();
                     },
@@ -2772,8 +2845,19 @@ var jp;
                     },
                     onAllEnemyDead: function () {
                         var scene = this;
-                        scene.clearFrameMax = kimiko.kimiko.secToFrame(3.0);
-                        scene.clearFrameCounter = 0;
+                        var mapOption = scene.mapOption;
+                        switch(mapOption.exitType) {
+                            case "door":
+                                scene.map.loadData(scene.mapWork.groundTilesOrig);
+                                break;
+                            case "enemy_zero":
+                                scene.clearFrameMax = kimiko.kimiko.secToFrame(3.0);
+                                scene.clearFrameCounter = 0;
+                                break;
+                            default:
+                                console.log("unkown exitType:" + mapOption.exitType);
+                                break;
+                        }
                     },
                     getNearEnemy: function (sprite, searchRect) {
                         var mapCharaMgr = this.mapCharaMgr;
@@ -2848,7 +2932,7 @@ var jp;
                             this.labels[i].text = line;
                         }
                     },
-                    checkMapCollision: function (player, onTrim) {
+                    checkMapCollision: function (player, onTrim, onIntersect) {
                         var collider = player.collider;
                         var prect = collider.getRect();
                         var map = this.map;
@@ -2863,11 +2947,14 @@ var jp;
                         try  {
                             for(var y = yMin; y < yMax; y += yDiff) {
                                 for(var x = xMin; x < xMax; x += xDiff) {
-                                    if(!map.hitTest(x, y)) {
-                                        continue;
-                                    }
                                     rect.reset(Math.floor(x / map.tileWidth) * map.tileWidth, Math.floor(y / map.tileHeight) * map.tileHeight, map.tileWidth, map.tileHeight);
                                     if(!osakana4242.utils.Rect.intersect(prect, rect)) {
+                                        continue;
+                                    }
+                                    if(onIntersect) {
+                                        onIntersect.call(player, map.checkTile(x, y), x, y);
+                                    }
+                                    if(!map.hitTest(x, y)) {
                                         continue;
                                     }
                                     if(!map.hitTest(x, y - yDiff) && 0 <= player.force.y && prect.y <= rect.y + hoge) {

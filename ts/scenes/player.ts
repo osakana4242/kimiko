@@ -68,6 +68,7 @@ module jp.osakana4242.kimiko.scenes {
 				};
 
 				this.touchStartAnchor = new utils.Vector2D();
+				this.isPause = false;
 				this.isSlowMove = false;
 				this.isOnMap = false;
 				this.targetEnemy = null;
@@ -79,6 +80,9 @@ module jp.osakana4242.kimiko.scenes {
 
 				this.addEventListener(Event.ENTER_FRAME, () => {
 					var scene = this.scene;
+					if (this.isPause) {
+						return;
+					}
 					var isAlive = !this.life.isDead();
 					if (isAlive) {
 						this.checkInput();
@@ -233,7 +237,7 @@ module jp.osakana4242.kimiko.scenes {
 						this.y += totalMy;
 					}
 					utils.Rect.trimPos(this, this.limitRect, this.onTrim);
-					scene.checkMapCollision(this, this.onTrim);
+					scene.checkMapCollision(this, this.onTrim, this.onIntersect);
 					if (this.force.x === 0) {
 						mx = 0;
 						totalMx = 0;
@@ -249,6 +253,24 @@ module jp.osakana4242.kimiko.scenes {
 					this.force.x = 0;
 					this.force.y = 0;
 				}
+			},
+			
+			startMap: function () {
+				this.isPause = false;
+			},
+			
+			endMap: function () {
+				this.isPause = true;
+			},
+
+			onIntersect: function (tile: number, x: number, y: number) {
+				if (tile !== DF.MAP_TILE_DOOR_OPEN) {
+					return;
+				}
+				// クリア.
+				var scene = this.scene;
+				scene.state = scene.stateGameClear;
+				this.endMap();
 			},
 				
 			onTrim: function (x: number, y: number) {

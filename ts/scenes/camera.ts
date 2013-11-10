@@ -74,11 +74,11 @@ module jp.osakana4242.kimiko.scenes {
 
 		onenterframe: function () {
 			var camera = this;
-			var tv = this.calcTargetPos();
-			var speed = kimiko.dpsToDpf(8 * 60);
+			var tp = this.calcTargetPos();
+			var speed = kimiko.dpsToDpf(5 * 60);
 			var dv = utils.Vector2D.alloc(
-				tv.x - camera.x,
-				tv.y - camera.y
+				tp.x - camera.x,
+				tp.y - camera.y
 			);
 			var mv = utils.Vector2D.alloc();
 			var distance = utils.Vector2D.magnitude(dv);
@@ -92,7 +92,29 @@ module jp.osakana4242.kimiko.scenes {
 			}
 			camera.x = Math.floor(camera.x + mv.x);
 			camera.y = Math.floor(camera.y + mv.y);
-
+			
+			var marginX = camera.width * 0.9;
+			var marginY = camera.height * 0.9;
+			var limitRect = utils.Rect.alloc(
+				Math.floor(tp.x - marginX / 2),
+				Math.floor(tp.y - marginY / 2),
+				Math.floor(camera.width + marginX),
+				Math.floor(camera.height + marginY)
+			);
+			
+			utils.Rect.trimPos(camera, limitRect);
+			
+//			console.log("" +
+//				"(" +
+//				limitRect.x + ", " +
+//				limitRect.y + ", " +
+//				limitRect.width + ", " +
+//				limitRect.height + ", " +
+//				")" +
+//				camera.x + ", " +
+//				camera.y + "" +
+//				"");
+				
 			utils.Rect.trimPos(camera, camera.limitRect);
 
 			//
@@ -100,6 +122,7 @@ module jp.osakana4242.kimiko.scenes {
 			//
 			utils.Vector2D.free(dv);
 			utils.Vector2D.free(mv);
+			utils.Rect.free(limitRect);
 		},
 
 		updateGroup: function() {
