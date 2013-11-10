@@ -533,16 +533,28 @@ var jp;
                 DF.MAP_ID_MAX = 4;
                 DF.MAP_OPTIONS = {
                     1: {
-                        "backgroundColor": "rgb(196,196,196)"
+                        "title": "tutorial",
+                        "backgroundColor": "rgb(196,196,196)",
+                        "nextMapId": 2,
+                        "exitType": "door"
                     },
                     2: {
-                        "backgroundColor": "rgb(16,16,32)"
+                        "title": "hospital",
+                        "backgroundColor": "rgb(16,16,32)",
+                        "nextMapId": 3,
+                        "exitType": "door"
                     },
                     3: {
-                        "backgroundColor": "rgb(32,196,255)"
+                        "title": "station",
+                        "backgroundColor": "rgb(32,196,255)",
+                        "nextMapId": 4,
+                        "exitType": "door"
                     },
                     4: {
-                        "backgroundColor": "rgb(196,32,32)"
+                        "title": "boss",
+                        "backgroundColor": "rgb(196,32,32)",
+                        "nextMapId": 0,
+                        "exitType": "enemy_zero"
                     }
                 };
                 DF.BIT_L = 1 << 0;
@@ -2518,6 +2530,8 @@ var jp;
                         scene.addChild(world);
                         var map = new enchant.Map(kimiko.DF.MAP_TILE_W, kimiko.DF.MAP_TILE_H);
                         this.map = map;
+                        this.mapOption = {
+                        };
                         map.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_MAP];
                         map.x = 0;
                         map.y = 0;
@@ -2722,6 +2736,9 @@ var jp;
                         var _this = this;
                         var map = this.map;
                         var mapOption = kimiko.DF.MAP_OPTIONS[kimiko.kimiko.playerData.mapId];
+                        for(var key in mapOption) {
+                            this.mapOption[key] = mapOption[key];
+                        }
                         this.backgroundColor = mapOption.backgroundColor;
                         function cloneTiles(tiles) {
                             var a = [];
@@ -2828,7 +2845,19 @@ var jp;
                     },
                     onAllEnemyDead: function () {
                         var scene = this;
-                        this.map.loadData(this.mapWork.groundTilesOrig);
+                        var mapOption = scene.mapOption;
+                        switch(mapOption.exitType) {
+                            case "door":
+                                scene.map.loadData(scene.mapWork.groundTilesOrig);
+                                break;
+                            case "enemy_zero":
+                                scene.clearFrameMax = kimiko.kimiko.secToFrame(3.0);
+                                scene.clearFrameCounter = 0;
+                                break;
+                            default:
+                                console.log("unkown exitType:" + mapOption.exitType);
+                                break;
+                        }
                     },
                     getNearEnemy: function (sprite, searchRect) {
                         var mapCharaMgr = this.mapCharaMgr;

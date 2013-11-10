@@ -596,6 +596,7 @@ module jp.osakana4242.kimiko.scenes {
 
 			var map = new enchant.Map(DF.MAP_TILE_W, DF.MAP_TILE_H);
 			this.map = map;
+			this.mapOption = {};
 			map.image = kimiko.core.assets[Assets.IMAGE_MAP];
 			map.x = 0;
 			map.y = 0;
@@ -857,7 +858,10 @@ module jp.osakana4242.kimiko.scenes {
 		
 		loadMapData: function (mapData: utils.IMapData) {
 			var map = this.map;
-			var mapOption = DF.MAP_OPTIONS[kimiko.playerData.mapId];
+			var mapOption: IMapOption = DF.MAP_OPTIONS[kimiko.playerData.mapId];
+			for (var key in mapOption) {
+				this.mapOption[key] = mapOption[key];
+			}
 			this.backgroundColor = mapOption.backgroundColor;
 
 			function cloneTiles(tiles: number[][]) {
@@ -1001,10 +1005,20 @@ module jp.osakana4242.kimiko.scenes {
 
 		onAllEnemyDead: function () {
 			var scene = this;
-			// ゲームクリアカウント開始.
-			//scene.clearFrameMax = kimiko.secToFrame(3.0);
-			//scene.clearFrameCounter = 0;
-			this.map.loadData(this.mapWork.groundTilesOrig);
+			var mapOption: IMapOption = scene.mapOption;
+			switch (mapOption.exitType) {
+			case "door":
+				scene.map.loadData(scene.mapWork.groundTilesOrig);
+				break;
+			case "enemy_zero":
+				// ゲームクリアカウント開始.
+				scene.clearFrameMax = kimiko.secToFrame(3.0);
+				scene.clearFrameCounter = 0;
+				break;
+			default:
+				console.log("unkown exitType:" + mapOption.exitType);
+				break;
+			}
 		},
 		
 		getNearEnemy: function (sprite, searchRect: utils.IRect) {

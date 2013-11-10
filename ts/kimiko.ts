@@ -616,22 +616,34 @@ module jp.osakana4242.kimiko {
 
 		export var MAP_OPTIONS = {
 			1: {
+				"title": "tutorial",
 				"backgroundColor": "rgb(196,196,196)",
 				//"backgroundColor": "rgb(8,8,16)",
 				// ドアあり.
+				"nextMapId": 2,
+				"exitType": "door",
 			},
 			2: {
+				"title": "hospital",
 				"backgroundColor": "rgb(16,16,32)",
 				// ドアなし.
+				"nextMapId": 3,
+				"exitType": "door",
 			},
 			3: {
+				"title": "station",
 				"backgroundColor": "rgb(32,196,255)",
 				// ドアなし.
+				"nextMapId": 4,
+				"exitType": "door",
 			},
 			4: {
+				"title": "boss",
 				"backgroundColor": "rgb(196,32,32)",
 				// ドアなし
 				// ラスト.
+				"nextMapId": 0,
+				"exitType": "enemy_zero",
 			},
 		};
 
@@ -687,6 +699,13 @@ module jp.osakana4242.kimiko {
 		isSoundEnabled: bool;
 		swipeToMoveRate: utils.IVector2D;
 		version: string;
+	}
+
+	export interface IMapOption {
+		title: string;
+		backgroundColor: string;
+		exitType: string;
+		nextMapId: number;
 	}
 
 	export class PlayerData {
