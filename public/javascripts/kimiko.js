@@ -2998,7 +2998,17 @@ var jp;
                                 bullet.free();
                             }
                         }
-                        for(var i = 0, iNum = enemys.length; i < iNum; ++i) {
+                        for(var i = enemys.length - 1; 0 <= i; --i) {
+                            var enemy = enemys[i];
+                            if(player.life.canAddDamage() && player.collider.intersect(enemy.collider)) {
+                                player.damage(enemy);
+                                if(player.life.isDead()) {
+                                    this.onPlayerDead();
+                                }
+                                this.addEffect(kimiko.DF.ANIM_ID_DAMAGE, player.center);
+                            }
+                        }
+                        for(var i = enemys.length - 1; 0 <= i; --i) {
                             var enemy = enemys[i];
                             var bullets = this.ownBulletPool.actives;
                             for(var j = bullets.length - 1; 0 <= j; --j) {

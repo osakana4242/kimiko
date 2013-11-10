@@ -1183,6 +1183,7 @@ module jp.osakana4242.kimiko.scenes {
 			var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
 			var player = this.player;
 			var enemys = mapCharaMgr.actives;
+
 			// プレイヤーと敵弾の衝突判定.
 			var bullets = this.enemyBulletPool.actives;
 			for (var i = bullets.length - 1; 0 <= i; --i) {
@@ -1199,8 +1200,22 @@ module jp.osakana4242.kimiko.scenes {
 					bullet.free();
 				}
 			}
+			// プレイヤーと敵の衝突判定.
+			// ダメージを受けるのはプレイヤーだけ.
+			for (var i = enemys.length - 1; 0 <= i; --i) {
+				var enemy = enemys[i];
+				if (player.life.canAddDamage() &&
+					player.collider.intersect(enemy.collider)) {
+					//
+					player.damage(enemy);
+					if (player.life.isDead()) {
+						this.onPlayerDead();
+					}
+					this.addEffect(DF.ANIM_ID_DAMAGE, player.center);
+				}
+			}
 			// 敵とプレイヤー弾の衝突判定.
-			for (var i = 0, iNum = enemys.length; i < iNum; ++i) {
+			for (var i = enemys.length - 1; 0 <= i; --i) {
 				var enemy = enemys[i];
 				var bullets = this.ownBulletPool.actives;
 				for (var j = bullets.length - 1; 0 <= j; --j) {
