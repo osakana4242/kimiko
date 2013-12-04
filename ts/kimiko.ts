@@ -645,6 +645,12 @@ module jp.osakana4242.kimiko {
 				"nextMapId": 0,
 				"exitType": "enemy_zero",
 			},
+			101: {
+				"title": "test",
+				"backgroundColor": "rgb(32,32,32)",
+				"nextMapId": 0,
+				"exitType": "enemy_zero",
+			},
 		};
 
 		export var BIT_L = 1 << 0;

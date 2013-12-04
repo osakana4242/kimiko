@@ -28,6 +28,15 @@ module jp.osakana4242.kimiko.scenes {
 			sprite.collider.centerMiddle(56, 56);
 			sprite.weaponNum = 3;
 		}
+
+		// 飛行キャラ:小
+		export function body3(sprite: any) {
+			sprite.width = 32;
+			sprite.height = 16;
+			//sprite.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
+			sprite.backgroundColor = "rgb(255,48,48)";
+			sprite.collider.centerMiddle(28, 12);
+		}
 	}
 
 	export module EnemyBrains {
@@ -156,6 +165,35 @@ module jp.osakana4242.kimiko.scenes {
 				.moveTo(sprite.anchor.x, sprite.anchor.y, kimiko.secToFrame(0.5), Easing.LINEAR)
 				.loop();
 		}
+
+		// 左右に行ったりきたり
+		export function brain4(sprite: any): void {
+			var anchor = sprite.anchor;
+			anchor.x -= 120;
+			anchor.y -= 16;
+			var range = 240;
+			sprite.y = anchor.y;
+			var totalFrame = kimiko.secToFrame(8.0);
+			function fireToPlayer() {
+				// プレイヤーの向きを求める.
+				var player = sprite.scene.player;
+				var wp: WeaponA = sprite.weapon;
+				wp.fireCount = 1;
+				wp.wayNum = 1;
+				wp.dir.x = player.center.x - sprite.center.x;
+				wp.dir.y = 0; // player.center.y - sprite.center.y;
+				wp.fireFunc = WeaponA.fireA;
+				utils.Vector2D.normalize(wp.dir);
+				wp.startFire();
+			}
+			sprite.tl.
+				then(fireToPlayer).
+				moveTo(anchor.x - range, anchor.y, totalFrame * 0.5, Easing.LINEAR).
+				then(fireToPlayer).
+				moveTo(anchor.x + range, anchor.y, totalFrame * 0.5, Easing.LINEAR).
+				loop();
+		}
+
 		// BOSS.
 		export function brainBoss(sprite: any): void {
 			var anchor = sprite.anchor;
@@ -316,12 +354,19 @@ module jp.osakana4242.kimiko.scenes {
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain2,
 			score: 100,
-	},
+		},
 
 		0x2: {
 			hpMax: 5,
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain3,
+			score: 100,
+		},
+
+		0x3: {
+			hpMax: 5,
+			body: EnemyBodys.body3,
+			brain: EnemyBrains.brain4,
 			score: 100,
 		},
 		// boss.

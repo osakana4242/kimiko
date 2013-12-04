@@ -159,9 +159,11 @@ module jp.osakana4242.kimiko.scenes {
 			Scene.call(this);
 			
 			var scene = this;
-			var mapIds = [
-				1, 2, 3, 4,
-			];
+			var mapIds = [];
+			for (var key in DF.MAP_OPTIONS) {
+				mapIds.push(parseInt(key));
+			}
+
 			var mapIdsIdx = 0;
 			
 			//
@@ -836,11 +838,12 @@ module jp.osakana4242.kimiko.scenes {
 		stateGameClear: function () {
 			var pd = kimiko.playerData;
 			pd.hp = this.player.life.hp;
-			if (pd.mapId === DF.MAP_ID_MAX) {
+			var mapOption: IMapOption = this.mapOption;
+			if (mapOption.nextMapId === 0) {
 				kimiko.core.pushScene(new GameClear());
 				this.state = this.stateGameStart;
 			} else {
-				++pd.mapId;
+				pd.mapId = mapOption.nextMapId;
 				//
 				pd.restTimeCounter += pd.restTimeMax;
 				this.state = this.stateWait;

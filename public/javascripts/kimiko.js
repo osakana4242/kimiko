@@ -555,6 +555,12 @@ var jp;
                         "backgroundColor": "rgb(196,32,32)",
                         "nextMapId": 0,
                         "exitType": "enemy_zero"
+                    },
+                    101: {
+                        "title": "test",
+                        "backgroundColor": "rgb(32,32,32)",
+                        "nextMapId": 0,
+                        "exitType": "enemy_zero"
                     }
                 };
                 DF.BIT_L = 1 << 0;
@@ -1417,6 +1423,13 @@ var jp;
                         sprite.weaponNum = 3;
                     }
                     EnemyBodys.body2 = body2;
+                    function body3(sprite) {
+                        sprite.width = 32;
+                        sprite.height = 16;
+                        sprite.backgroundColor = "rgb(255,48,48)";
+                        sprite.collider.centerMiddle(28, 12);
+                    }
+                    EnemyBodys.body3 = body3;
                 })(scenes.EnemyBodys || (scenes.EnemyBodys = {}));
                 var EnemyBodys = scenes.EnemyBodys;
                 (function (EnemyBrains) {
@@ -1502,6 +1515,27 @@ var jp;
                         sprite.tl.delay(kimiko.kimiko.secToFrame(0.5)).moveBy(0, -16, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, 16, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, -8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).moveBy(0, 8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire).then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire).then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire).delay(kimiko.kimiko.secToFrame(0.5)).moveTo(sprite.anchor.x, sprite.anchor.y, kimiko.kimiko.secToFrame(0.5), Easing.LINEAR).loop();
                     }
                     EnemyBrains.brain3 = brain3;
+                    function brain4(sprite) {
+                        var anchor = sprite.anchor;
+                        anchor.x -= 120;
+                        anchor.y -= 16;
+                        var range = 240;
+                        sprite.y = anchor.y;
+                        totalFrame = kimiko.kimiko.secToFrame(8.0);
+                        function fireToPlayer() {
+                            var player = sprite.scene.player;
+                            var wp = sprite.weapon;
+                            wp.fireCount = 1;
+                            wp.wayNum = 1;
+                            wp.dir.x = player.center.x - sprite.center.x;
+                            wp.dir.y = 0;
+                            wp.fireFunc = scenes.WeaponA.fireA;
+                            osakana4242.utils.Vector2D.normalize(wp.dir);
+                            wp.startFire();
+                        }
+                        sprite.tl.then(fireToPlayer).moveTo(anchor.x - range, anchor.y, totalFrame * 0.5, Easing.LINEAR).then(fireToPlayer).moveTo(anchor.x + range, anchor.y, totalFrame * 0.5, Easing.LINEAR).loop();
+                    }
+                    EnemyBrains.brain4 = brain4;
                     function brainBoss(sprite) {
                         var anchor = sprite.anchor;
                         var waitFire = function () {
@@ -1614,6 +1648,12 @@ var jp;
                         hpMax: 5,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain3,
+                        score: 100
+                    },
+                    3: {
+                        hpMax: 5,
+                        body: EnemyBodys.body3,
+                        brain: EnemyBrains.brain4,
                         score: 100
                     },
                     15: {
@@ -2181,13 +2221,10 @@ var jp;
                     initialize: function () {
                         Scene.call(this);
                         var scene = this;
-                        var mapIds = [
-                            1, 
-                            2, 
-                            3, 
-                            4, 
-                            
-                        ];
+                        var mapIds = [];
+                        for(var key in kimiko.DF.MAP_OPTIONS) {
+                            mapIds.push(parseInt(key));
+                        }
                         var mapIdsIdx = 0;
                         var title = ((function () {
                             var spr = new enchant.Label("KIMIKO'S NIGHTMARE");
@@ -2718,11 +2755,12 @@ var jp;
                         var _this = this;
                         var pd = kimiko.kimiko.playerData;
                         pd.hp = this.player.life.hp;
-                        if(pd.mapId === kimiko.DF.MAP_ID_MAX) {
+                        var mapOption = this.mapOption;
+                        if(mapOption.nextMapId === 0) {
                             kimiko.kimiko.core.pushScene(new scenes.GameClear());
                             this.state = this.stateGameStart;
                         } else {
-                            ++pd.mapId;
+                            pd.mapId = mapOption.nextMapId;
                             pd.restTimeCounter += pd.restTimeMax;
                             this.state = this.stateWait;
                             var player = this.player;
