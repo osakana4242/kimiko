@@ -36,23 +36,29 @@ module jp.osakana4242.kimiko.scenes {
 						c.centerBottom(12, 14);
 						return c;
 					}());
+					var muzzlePosUp = new utils.Vector2D( 32, 12 );
+					var muzzlePosDown = new utils.Vector2D( 32, 24 );
 
 					return {
 						"stand": {
 							"anim": animStand,
 							"collider": colliderA,
+							"muzzlePos": muzzlePosUp,
 						},
 						"walk": {
 							"anim": animWalk,
 							"collider": colliderA,
+							"muzzlePos": muzzlePosUp,
 						},
 						"squat": {
 							"anim": animSquat,
 							"collider": colliderB,
+							"muzzlePos": muzzlePosDown,
 						},
 						"dead": {
 							"anim": animDead,
 							"collider": colliderB,
+							"muzzlePos": muzzlePosUp,
 						},
 					};
 				}());
@@ -169,8 +175,8 @@ module jp.osakana4242.kimiko.scenes {
 				}
 				bullet.force.x = this.dirX * kimiko.dpsToDpf(6 * 60);
 				bullet.force.y = 0;
-				bullet.center.x = this.center.x;
-				bullet.center.y = this.center.y;
+				bullet.center.x = this.center.x + this.scaleX * (this.bodyStyle.muzzlePos.x - (this.width / 2));
+				bullet.center.y = this.y + this.bodyStyle.muzzlePos.y;
 			},
 			
 			updateBodyStyle: function () {

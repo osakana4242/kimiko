@@ -1521,7 +1521,7 @@ var jp;
                         anchor.y -= 16;
                         var range = 240;
                         sprite.y = anchor.y;
-                        totalFrame = kimiko.kimiko.secToFrame(8.0);
+                        var totalFrame = kimiko.kimiko.secToFrame(8.0);
                         function fireToPlayer() {
                             var player = sprite.scene.player;
                             var wp = sprite.weapon;
@@ -1700,22 +1700,28 @@ var jp;
                                 c.centerBottom(12, 14);
                                 return c;
                             })());
+                            var muzzlePosUp = new osakana4242.utils.Vector2D(32, 12);
+                            var muzzlePosDown = new osakana4242.utils.Vector2D(32, 24);
                             return {
                                 "stand": {
                                     "anim": animStand,
-                                    "collider": colliderA
+                                    "collider": colliderA,
+                                    "muzzlePos": muzzlePosUp
                                 },
                                 "walk": {
                                     "anim": animWalk,
-                                    "collider": colliderA
+                                    "collider": colliderA,
+                                    "muzzlePos": muzzlePosUp
                                 },
                                 "squat": {
                                     "anim": animSquat,
-                                    "collider": colliderB
+                                    "collider": colliderB,
+                                    "muzzlePos": muzzlePosDown
                                 },
                                 "dead": {
                                     "anim": animDead,
-                                    "collider": colliderB
+                                    "collider": colliderB,
+                                    "muzzlePos": muzzlePosUp
                                 }
                             };
                         })());
@@ -1815,8 +1821,8 @@ var jp;
                         }
                         bullet.force.x = this.dirX * kimiko.kimiko.dpsToDpf(6 * 60);
                         bullet.force.y = 0;
-                        bullet.center.x = this.center.x;
-                        bullet.center.y = this.center.y;
+                        bullet.center.x = this.center.x + this.scaleX * (this.bodyStyle.muzzlePos.x - (this.width / 2));
+                        bullet.center.y = this.y + this.bodyStyle.muzzlePos.y;
                     },
                     updateBodyStyle: function () {
                         var nextBodyStyle = this.bodyStyle;
