@@ -194,6 +194,34 @@ module jp.osakana4242.kimiko.scenes {
 				loop();
 		}
 
+		// 突進.
+		export function brain5(sprite: any): void {
+			var anchor = sprite.anchor;
+
+			sprite.tl.
+				delay(kimiko.secToFrame(1)).
+				then(function () {
+					var player = sprite.scene.player;
+					var dir = utils.Vector2D.alloc(
+						player.center.x - sprite.center.x,
+						player.center.y - sprite.center.y
+					);
+					var mag = utils.Vector2D.magnitude(dir);
+					var dist = 480;
+					var speed = kimiko.dpsToDpf(2 * DF.BASE_FPS);
+					dir.x = dir.x * dist / mag;
+					dir.y = dir.y * dist / mag;
+					var frame = Math.floor(dist / speed);
+					
+					this.tl.
+						moveBy(dir.x, dir.y, frame).
+						then(function () {
+						});
+
+					utils.Vector2D.free(dir);
+				});
+		}
+
 		// BOSS.
 		export function brainBoss(sprite: any): void {
 			var anchor = sprite.anchor;
@@ -367,6 +395,12 @@ module jp.osakana4242.kimiko.scenes {
 			hpMax: 5,
 			body: EnemyBodys.body3,
 			brain: EnemyBrains.brain4,
+			score: 100,
+		},
+		0x4: {
+			hpMax: 5,
+			body: EnemyBodys.body3,
+			brain: EnemyBrains.brain5,
 			score: 100,
 		},
 		// boss.

@@ -1100,10 +1100,10 @@ var jp;
                         var d = osakana4242.utils.Vector2D.alloc();
                         d.x = tpos.x - bullet.center.x;
                         d.y = tpos.y - bullet.center.y;
-                        var m = osakana4242.utils.Vector2D.magnitude(d);
+                        var mag = osakana4242.utils.Vector2D.magnitude(d);
                         var d2 = 480;
-                        d.x = d.x * d2 / m;
-                        d.y = d.y * d2 / m;
+                        d.x = d.x * d2 / mag;
+                        d.y = d.y * d2 / mag;
                         var frame = Math.floor(d2 / speed);
                         bullet.tl.moveBy(d.x, d.y, frame).then(function () {
                             this.miss();
@@ -1536,6 +1536,23 @@ var jp;
                         sprite.tl.then(fireToPlayer).moveTo(anchor.x - range, anchor.y, totalFrame * 0.5, Easing.LINEAR).then(fireToPlayer).moveTo(anchor.x + range, anchor.y, totalFrame * 0.5, Easing.LINEAR).loop();
                     }
                     EnemyBrains.brain4 = brain4;
+                    function brain5(sprite) {
+                        var anchor = sprite.anchor;
+                        sprite.tl.delay(kimiko.kimiko.secToFrame(1)).then(function () {
+                            var player = sprite.scene.player;
+                            var dir = osakana4242.utils.Vector2D.alloc(player.center.x - sprite.center.x, player.center.y - sprite.center.y);
+                            var mag = osakana4242.utils.Vector2D.magnitude(dir);
+                            var dist = 480;
+                            var speed = kimiko.kimiko.dpsToDpf(2 * kimiko.DF.BASE_FPS);
+                            dir.x = dir.x * dist / mag;
+                            dir.y = dir.y * dist / mag;
+                            var frame = Math.floor(dist / speed);
+                            this.tl.moveBy(dir.x, dir.y, frame).then(function () {
+                            });
+                            osakana4242.utils.Vector2D.free(dir);
+                        });
+                    }
+                    EnemyBrains.brain5 = brain5;
                     function brainBoss(sprite) {
                         var anchor = sprite.anchor;
                         var waitFire = function () {
@@ -1654,6 +1671,12 @@ var jp;
                         hpMax: 5,
                         body: EnemyBodys.body3,
                         brain: EnemyBrains.brain4,
+                        score: 100
+                    },
+                    4: {
+                        hpMax: 5,
+                        body: EnemyBodys.body3,
+                        brain: EnemyBrains.brain5,
                         score: 100
                     },
                     15: {

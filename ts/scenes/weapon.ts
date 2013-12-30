@@ -1,4 +1,4 @@
-/// <reference path="act.ts" />
+﻿/// <reference path="act.ts" />
 
 declare var enchant: any;
 
@@ -105,17 +105,17 @@ module jp.osakana4242.kimiko.scenes {
 			}
 		}
 
-		// $BD>?J(B.
+		// 直進.
 		public static fireA(bullet: any, tpos: utils.Vector2D, speed: number): void {
 			bullet.force.x = 0;
 			bullet.force.y = 0;
 			var d = utils.Vector2D.alloc();
 			d.x = tpos.x - bullet.center.x;
 			d.y = tpos.y - bullet.center.y;
-			var m = utils.Vector2D.magnitude(d);
+			var mag = utils.Vector2D.magnitude(d);
 			var d2 = 480;
-			d.x = d.x * d2 / m;
-			d.y = d.y * d2 / m;
+			d.x = d.x * d2 / mag;
+			d.y = d.y * d2 / mag;
 			var frame = Math.floor(d2 / speed);
 			
 			bullet.tl.
@@ -126,7 +126,7 @@ module jp.osakana4242.kimiko.scenes {
 			utils.Vector2D.free(d);
 		}
 
-		// $BD>?J(B. $B:G=iAa$$(B.
+		// 直進. 最初早い.
 		public static fireC(bullet: any, tpos: utils.Vector2D, speed: number): void {
 			bullet.force.x = 0;
 			bullet.force.y = 0;
@@ -141,9 +141,9 @@ module jp.osakana4242.kimiko.scenes {
 			var frame2 = Math.floor(d2 * 0.8 / kimiko.dpsToDpf(1 * 60));
 	
 			bullet.tl.
-				// $BAa$/0\F0(B.
+				// 早く移動.
 				moveBy(dx * 0.2, dy * 0.2, frame1).
-				// $BCY$/0\F0(B.
+				// 遅く移動.
 				moveBy(dx * 0.8, dy * 0.8, frame2).
 				then(function () {
 					this.miss();
@@ -152,7 +152,7 @@ module jp.osakana4242.kimiko.scenes {
 		}
 
 		
-		// $B$J$s$A$c$C$FJ|J*@~(B.
+		// なんちゃって放物線.
 		public static fireB(bullet: any, tpos: utils.Vector2D, speed: number): void {
 			bullet.force.x = 0;
 			bullet.force.y = 0;
