@@ -224,7 +224,9 @@ module jp.osakana4242.kimiko.scenes {
 				return this.weapons[0];
 		}, },
 		
-		getEnemyData: function () { return EnemyData[this.enemyId]; },
+		enemyData: { get: function () {
+			return EnemyData[this.enemyId];
+		}, },
 		isBoss: function () { return this.enemyId === DF.ENEMY_ID_BOSS; },
 
 	});

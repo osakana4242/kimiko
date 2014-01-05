@@ -934,6 +934,7 @@ module jp.osakana4242.kimiko.scenes {
 						var enemyId = charaId - DF.MAP_TILE_CHARA_MIN;
 						var data = EnemyData[enemyId]
 						var enemy = new EnemyA();
+						enemy.tl.unloop().clear();
 						enemy.enemyId = enemyId;
 						enemy.life.hpMax = data.hpMax;
 						enemy.life.hp = enemy.life.hpMax;
@@ -1229,7 +1230,7 @@ module jp.osakana4242.kimiko.scenes {
 						enemy.damage(bullet);
 						kimiko.playerData.score += 10;
 						if (enemy.life.isDead()) {
-							var ed: IEnemyData = enemy.getEnemyData();
+							var ed: IEnemyData = enemy.enemyData;
 							kimiko.playerData.score += ed.score;
 							if (mapCharaMgr.isAllDead()) {
 								scene.onAllEnemyDead();
@@ -1243,3 +1244,4 @@ module jp.osakana4242.kimiko.scenes {
 		},
 	});
 }
+

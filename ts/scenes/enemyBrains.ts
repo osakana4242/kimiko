@@ -37,9 +37,177 @@ module jp.osakana4242.kimiko.scenes {
 			sprite.backgroundColor = "rgb(255,48,48)";
 			sprite.collider.centerMiddle(28, 12);
 		}
+
+		// 中キャラ
+		export function body4(sprite: any) {
+			sprite.width = 48;
+			sprite.height = 48;
+			//sprite.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
+			sprite.backgroundColor = "rgb(255,48,48)";
+			sprite.collider.centerBottom(32, 40);
+		}
 	}
 
 	export module EnemyBrains {
+
+		// 突進.
+		export function brain1(sprite: any): void {
+			var anchor = sprite.anchor;
+
+			sprite.tl.
+				delay(kimiko.secToFrame(0.5)).
+				then(function () {
+					var player = sprite.scene.player;
+					var dir = utils.Vector2D.alloc(
+						player.center.x - sprite.center.x,
+						player.center.y - sprite.center.y
+					);
+					var mag = utils.Vector2D.magnitude(dir);
+					var dist = 480;
+					var speed = kimiko.dpsToDpf(2 * DF.BASE_FPS);
+					dir.x = dir.x * dist / mag;
+					dir.y = dir.y * dist / mag;
+					var frame = Math.floor(dist / speed);
+					
+					sprite.tl.
+						moveBy(dir.x, dir.y, frame).
+						then(function () {
+							sprite.dead();
+						});
+
+					utils.Vector2D.free(dir);
+				});
+		}
+
+		// 追跡.
+		export function brain2(sprite: any): void {
+			var anchor = sprite.anchor;
+
+			function f1() {
+				var player = sprite.scene.player;
+				var dir = utils.Vector2D.alloc(
+					player.center.x - sprite.center.x,
+					player.center.y - sprite.center.y
+				);
+				var mag = utils.Vector2D.magnitude(dir);
+				var dist = 120;
+				var speed = kimiko.dpsToDpf(2 * DF.BASE_FPS);
+				dir.x = dir.x * dist / mag;
+				dir.y = dir.y * dist / mag;
+				var frame = Math.floor(dist / speed);
+				
+				sprite.tl.
+					moveBy(dir.x, dir.y, frame).
+					delay(kimiko.secToFrame(0.5)).
+					then(f1);
+
+				utils.Vector2D.free(dir);
+			}
+
+			sprite.tl.
+				delay(kimiko.secToFrame(0.5)).
+				then(f1);
+		}
+
+		// 地上ジャンプ.
+		export function brain3(sprite: any): void {
+			var anchor = sprite.anchor;
+			sprite.weapon.fireFunc = WeaponA.fireA;
+
+			sprite.tl.
+				moveBy( -32 * 4 * 0.5, -32 * 3, kimiko.secToFrame( 0.5 ) ).
+				moveBy( -32 * 4 * 0.5,  32 * 3, kimiko.secToFrame( 0.5 ) ).
+				delay( kimiko.secToFrame( 0.25 ) ).
+				then(() => {
+					if (1 <= sprite.enemyData.level) {
+						sprite.weapon.lookAtPlayer();
+						sprite.weapon.startFire();
+					}
+				}).
+				moveBy(  32 * 4 * 0.5, -32 * 3, kimiko.secToFrame( 0.5 ) ).
+				moveBy(  32 * 4 * 0.5,  32 * 3, kimiko.secToFrame( 0.5 ) ).
+				delay( kimiko.secToFrame( 0.25 ) ).
+				loop();
+	}
+
+		// 天井ジャンプ.
+		export function brain4(sprite: any): void {
+			var anchor = sprite.anchor;
+			sprite.tl.
+				moveBy( -32 * 4 * 0.5,  32 * 3, kimiko.secToFrame( 0.5 ) ).
+				moveBy( -32 * 4 * 0.5, -32 * 3, kimiko.secToFrame( 0.5 ) ).
+				delay( kimiko.secToFrame( 0.25 ) ).
+				moveBy(  32 * 4 * 0.5,  32 * 3, kimiko.secToFrame( 0.5 ) ).
+				moveBy(  32 * 4 * 0.5, -32 * 3, kimiko.secToFrame( 0.5 ) ).
+				delay( kimiko.secToFrame( 0.25 ) ).
+				loop();
+		}
+
+		// うろつき.
+		export function brain5(sprite: any): void {
+			var anchor = sprite.anchor;
+			var totalFrame = kimiko.secToFrame(8.0);
+			sprite.tl.
+				moveTo(anchor.x - 32 * 3, anchor.y, totalFrame * 0.5, Easing.LINEAR).
+				moveTo(anchor.x + 0,      anchor.y, totalFrame * 0.5, Easing.LINEAR).
+				loop();
+		}
+
+		// ブンブン.
+		export function brain6(sprite: any): void {
+			var anchor = sprite.anchor;
+			sprite.tl.
+				moveTo( anchor.x + 32 * -0.5, anchor.y + 32 * -0.5, kimiko.secToFrame( 0.5 ) ).
+				moveTo( anchor.x + 32 *  0.5, anchor.y + 32 * -0.5, kimiko.secToFrame( 0.5 ) ).
+				moveTo( anchor.x + 32 * -0.5, anchor.y + 32 *  0.5, kimiko.secToFrame( 0.5 ) ).
+				moveTo( anchor.x + 32 *  0.0, anchor.y + 32 *  0.0, kimiko.secToFrame( 0.5 ) ).
+				moveTo( anchor.x + 32 *  0.5, anchor.y + 32 *  0.5, kimiko.secToFrame( 0.5 ) ).
+				loop();
+		}
+
+		// ホバリング.
+		export function brain7(sprite: any): void {
+			var anchor = sprite.anchor;
+			var totalFrame = kimiko.secToFrame(4.0);
+			sprite.tl.
+				moveTo(anchor.x, anchor.y + 32 *  1, totalFrame * 0.5, Easing.LINEAR).
+				moveTo(anchor.x, anchor.y + 32 * -1, totalFrame * 0.5, Easing.LINEAR).
+				loop();
+		}
+
+		// 水平突進.
+		export function brain8(sprite: any): void {
+			var anchor = sprite.anchor;
+
+			sprite.tl.
+				delay(kimiko.secToFrame(0.5)).
+				then(function () {
+					var player = sprite.scene.player;
+					var dir = utils.Vector2D.alloc(
+						player.center.x - sprite.center.x,
+						player.center.y - sprite.center.y
+					);
+					var mag = utils.Vector2D.magnitude(dir);
+					var dist = 480;
+					var speed = kimiko.dpsToDpf(2 * DF.BASE_FPS);
+					dir.x = dir.x * dist / mag;
+					dir.y = 0;
+					var frame = Math.floor(dist / speed);
+					
+					sprite.tl.
+						moveBy(dir.x, dir.y, frame).
+						then(function () {
+							sprite.dead();
+						});
+
+					utils.Vector2D.free(dir);
+				});
+		}
+
+		// 水平追跡.
+		export function brain9(sprite: any): void {
+			var anchor = sprite.anchor;
+		}
 
 		// 左右に行ったりきたり
 		export function brainX(sprite: any): void {
@@ -53,7 +221,7 @@ module jp.osakana4242.kimiko.scenes {
 		}
 
 		// 上下にふわふわ.
-		export function brain1(sprite: any): void {
+		export function brainX1(sprite: any): void {
 			var anchor = sprite.anchor;
 			var range = 48;
 			var fire = () => {
@@ -81,7 +249,7 @@ module jp.osakana4242.kimiko.scenes {
 		}
 
 		// 三角形
-		export function brain2(sprite: any): void {
+		export function brainX2(sprite: any): void {
 			var anchor = sprite.anchor;
 			var range = 16;
 			var waitFire = () => { return !sprite.weapon.isStateFire(); };
@@ -126,7 +294,7 @@ module jp.osakana4242.kimiko.scenes {
 		}
 
 		// 連射マン.
-		export function brain3(sprite: any): void {
+		export function brainX3(sprite: any): void {
 			var anchor = sprite.anchor;
 			var range = 16;
 
@@ -167,7 +335,7 @@ module jp.osakana4242.kimiko.scenes {
 		}
 
 		// 左右に行ったりきたり
-		export function brain4(sprite: any): void {
+		export function brainX4(sprite: any): void {
 			var anchor = sprite.anchor;
 			anchor.x -= 120;
 			anchor.y -= 16;
@@ -192,34 +360,6 @@ module jp.osakana4242.kimiko.scenes {
 				then(fireToPlayer).
 				moveTo(anchor.x + range, anchor.y, totalFrame * 0.5, Easing.LINEAR).
 				loop();
-		}
-
-		// 突進.
-		export function brain5(sprite: any): void {
-			var anchor = sprite.anchor;
-
-			sprite.tl.
-				delay(kimiko.secToFrame(1)).
-				then(function () {
-					var player = sprite.scene.player;
-					var dir = utils.Vector2D.alloc(
-						player.center.x - sprite.center.x,
-						player.center.y - sprite.center.y
-					);
-					var mag = utils.Vector2D.magnitude(dir);
-					var dist = 480;
-					var speed = kimiko.dpsToDpf(2 * DF.BASE_FPS);
-					dir.x = dir.x * dist / mag;
-					dir.y = dir.y * dist / mag;
-					var frame = Math.floor(dist / speed);
-					
-					this.tl.
-						moveBy(dir.x, dir.y, frame).
-						then(function () {
-						});
-
-					utils.Vector2D.free(dir);
-				});
 		}
 
 		// BOSS.
@@ -371,7 +511,8 @@ module jp.osakana4242.kimiko.scenes {
 	}
 	export var EnemyData: { [index: number]: IEnemyData; } = <any>{
 		0x0: {
-			hpMax: 5,
+			hpMax: 1,
+			level: 1,
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain1,
 			score: 100,
@@ -379,33 +520,74 @@ module jp.osakana4242.kimiko.scenes {
 
 		0x1: {
 			hpMax: 5,
+			level: 1,
 			body: EnemyBodys.body1,
-			brain: EnemyBrains.brain2,
+			brain: EnemyBrains.brain1,
 			score: 100,
 		},
 
 		0x2: {
 			hpMax: 5,
+			level: 1,
 			body: EnemyBodys.body1,
-			brain: EnemyBrains.brain3,
+			brain: EnemyBrains.brain2,
 			score: 100,
 		},
 
 		0x3: {
 			hpMax: 5,
-			body: EnemyBodys.body3,
+			level: 1,
+			body: EnemyBodys.body1,
+			brain: EnemyBrains.brain3,
+			score: 100,
+		},
+
+		0x4: {
+			hpMax: 5,
+			level: 1,
+			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain4,
 			score: 100,
 		},
-		0x4: {
-			hpMax: 5,
-			body: EnemyBodys.body3,
+		0x5: {
+			hpMax: 20,
+			level: 1,
+			body: EnemyBodys.body4,
 			brain: EnemyBrains.brain5,
 			score: 100,
 		},
-		// boss.
+		0x6: {
+			hpMax: 5,
+			level: 1,
+			body: EnemyBodys.body1,
+			brain: EnemyBrains.brain6,
+			score: 100,
+		},
+		0x7: {
+			hpMax: 5,
+			level: 1,
+			body: EnemyBodys.body1,
+			brain: EnemyBrains.brain7,
+			score: 100,
+		},
+		0x8: {
+			hpMax: 5,
+			level: 1,
+			body: EnemyBodys.body1,
+			brain: EnemyBrains.brain8,
+			score: 100,
+		},
+		0x9: {
+			hpMax: 5,
+			level: 1,
+			body: EnemyBodys.body1,
+			brain: EnemyBrains.brain9,
+			score: 100,
+		},
+			// boss.
 		0xf: {
 			hpMax: 100,
+			level: 1,
 			body: EnemyBodys.body2,
 			brain: EnemyBrains.brainBoss,
 			score: 1000,
