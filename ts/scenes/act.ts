@@ -893,12 +893,15 @@ module jp.osakana4242.kimiko.scenes {
 				this.mapWork = mapWork;
 			
 				var tiles = mapWork.groundTiles;
-				eachTiles(tiles, (tile, x, y, tiles) => {
-					if (tile === DF.MAP_TILE_DOOR_OPEN) {
-						// ドアを消す
-						tiles[y][x] = DF.MAP_TILE_DOOR_CLOSE;
-					}
-				});
+				
+				if (DF.IS_HIDDEN_DOOR) {
+					eachTiles(tiles, (tile, x, y, tiles) => {
+						if (tile === DF.MAP_TILE_DOOR_OPEN) {
+							// ドアを消す
+							tiles[y][x] = DF.MAP_TILE_DOOR_CLOSE;
+						}
+					});
+				}
 
 				// コリジョン自動生成.
 				var collisionData = [];
@@ -1012,7 +1015,9 @@ module jp.osakana4242.kimiko.scenes {
 			var mapOption: IMapOption = scene.mapOption;
 			switch (mapOption.exitType) {
 			case "door":
-				scene.map.loadData(scene.mapWork.groundTilesOrig);
+				if (DF.IS_HIDDEN_DOOR) {
+					scene.map.loadData(scene.mapWork.groundTilesOrig);
+				}
 				break;
 			case "enemy_zero":
 				// ゲームクリアカウント開始.

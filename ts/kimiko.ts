@@ -546,6 +546,10 @@ module jp.osakana4242.kimiko {
 	}
 
 	export module DF {
+
+		/** ドアを隠すか. */
+		export var IS_HIDDEN_DOOR: bool = false;
+
 		export var BASE_FPS: number = 60;
 		export var SC_W: number = 320;
 		export var SC_H: number = 320;

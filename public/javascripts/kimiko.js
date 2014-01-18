@@ -478,6 +478,7 @@ var jp;
             })(kimiko.Assets || (kimiko.Assets = {}));
             var Assets = kimiko.Assets;
             (function (DF) {
+                DF.IS_HIDDEN_DOOR = false;
                 DF.BASE_FPS = 60;
                 DF.SC_W = 320;
                 DF.SC_H = 320;
@@ -2951,11 +2952,13 @@ var jp;
                             mapWork.groundTiles = cloneTiles(mapWork.groundTilesOrig);
                             _this.mapWork = mapWork;
                             var tiles = mapWork.groundTiles;
-                            eachTiles(tiles, function (tile, x, y, tiles) {
-                                if(tile === kimiko.DF.MAP_TILE_DOOR_OPEN) {
-                                    tiles[y][x] = kimiko.DF.MAP_TILE_DOOR_CLOSE;
-                                }
-                            });
+                            if(kimiko.DF.IS_HIDDEN_DOOR) {
+                                eachTiles(tiles, function (tile, x, y, tiles) {
+                                    if(tile === kimiko.DF.MAP_TILE_DOOR_OPEN) {
+                                        tiles[y][x] = kimiko.DF.MAP_TILE_DOOR_CLOSE;
+                                    }
+                                });
+                            }
                             var collisionData = [];
                             for(var y = 0, yNum = tiles.length; y < yNum; ++y) {
                                 var line = [];
@@ -3039,7 +3042,9 @@ var jp;
                         var mapOption = scene.mapOption;
                         switch(mapOption.exitType) {
                             case "door":
-                                scene.map.loadData(scene.mapWork.groundTilesOrig);
+                                if(kimiko.DF.IS_HIDDEN_DOOR) {
+                                    scene.map.loadData(scene.mapWork.groundTilesOrig);
+                                }
                                 break;
                             case "enemy_zero":
                                 scene.clearFrameMax = kimiko.kimiko.secToFrame(3.0);
