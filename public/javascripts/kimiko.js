@@ -533,35 +533,41 @@ var jp;
                 DF.MAP_ID_MIN = 1;
                 DF.MAP_ID_MAX = 4;
                 DF.MAP_OPTIONS = {
-                    1: {
+                    101: {
                         "title": "tutorial",
                         "backgroundColor": "rgb(196,196,196)",
                         "nextMapId": 2,
                         "exitType": "door"
                     },
-                    2: {
+                    102: {
                         "title": "hospital",
                         "backgroundColor": "rgb(16,16,32)",
                         "nextMapId": 3,
                         "exitType": "door"
                     },
-                    3: {
+                    103: {
                         "title": "station",
                         "backgroundColor": "rgb(32,196,255)",
                         "nextMapId": 4,
                         "exitType": "door"
                     },
-                    4: {
+                    104: {
                         "title": "boss",
                         "backgroundColor": "rgb(196,32,32)",
                         "nextMapId": 0,
                         "exitType": "enemy_zero"
                     },
-                    101: {
+                    209: {
+                        "title": "horizontal search",
+                        "backgroundColor": "rgb(32,32,32)",
+                        "nextMapId": 0,
+                        "exitType": "door"
+                    },
+                    301: {
                         "title": "test",
                         "backgroundColor": "rgb(32,32,32)",
                         "nextMapId": 0,
-                        "exitType": "enemy_zero"
+                        "exitType": "door"
                     }
                 };
                 DF.BIT_L = 1 << 0;

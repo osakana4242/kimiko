@@ -619,7 +619,7 @@ module jp.osakana4242.kimiko {
 		export var MAP_ID_MAX = 4;
 
 		export var MAP_OPTIONS = {
-			1: {
+			101: {
 				"title": "tutorial",
 				"backgroundColor": "rgb(196,196,196)",
 				//"backgroundColor": "rgb(8,8,16)",
@@ -627,21 +627,21 @@ module jp.osakana4242.kimiko {
 				"nextMapId": 2,
 				"exitType": "door",
 			},
-			2: {
+			102: {
 				"title": "hospital",
 				"backgroundColor": "rgb(16,16,32)",
 				// ドアなし.
 				"nextMapId": 3,
 				"exitType": "door",
 			},
-			3: {
+			103: {
 				"title": "station",
 				"backgroundColor": "rgb(32,196,255)",
 				// ドアなし.
 				"nextMapId": 4,
 				"exitType": "door",
 			},
-			4: {
+			104: {
 				"title": "boss",
 				"backgroundColor": "rgb(196,32,32)",
 				// ドアなし
@@ -649,11 +649,17 @@ module jp.osakana4242.kimiko {
 				"nextMapId": 0,
 				"exitType": "enemy_zero",
 			},
-			101: {
+			209: {
+				"title": "horizontal search",
+				"backgroundColor": "rgb(32,32,32)",
+				"nextMapId": 0,
+				"exitType": "door",
+			},
+			301: {
 				"title": "test",
 				"backgroundColor": "rgb(32,32,32)",
 				"nextMapId": 0,
-				"exitType": "enemy_zero",
+				"exitType": "door",
 			},
 		};
 
