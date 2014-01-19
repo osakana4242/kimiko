@@ -536,19 +536,19 @@ var jp;
                     101: {
                         "title": "tutorial",
                         "backgroundColor": "rgb(196,196,196)",
-                        "nextMapId": 2,
+                        "nextMapId": 102,
                         "exitType": "door"
                     },
                     102: {
                         "title": "hospital",
                         "backgroundColor": "rgb(16,16,32)",
-                        "nextMapId": 3,
+                        "nextMapId": 103,
                         "exitType": "door"
                     },
                     103: {
                         "title": "station",
                         "backgroundColor": "rgb(32,196,255)",
-                        "nextMapId": 4,
+                        "nextMapId": 104,
                         "exitType": "door"
                     },
                     104: {
@@ -557,8 +557,20 @@ var jp;
                         "nextMapId": 0,
                         "exitType": "enemy_zero"
                     },
+                    202: {
+                        "title": "trace",
+                        "backgroundColor": "rgb(32,32,32)",
+                        "nextMapId": 0,
+                        "exitType": "door"
+                    },
+                    208: {
+                        "title": "horizontal move",
+                        "backgroundColor": "rgb(32,32,32)",
+                        "nextMapId": 0,
+                        "exitType": "door"
+                    },
                     209: {
-                        "title": "horizontal search",
+                        "title": "horizontal trace",
                         "backgroundColor": "rgb(32,32,32)",
                         "nextMapId": 0,
                         "exitType": "door"
@@ -1469,19 +1481,40 @@ var jp;
                     EnemyBrains.brain1 = brain1;
                     function brain2(sprite) {
                         var anchor = sprite.anchor;
-                        function f1() {
+                        sprite.weapon.fireFunc = scenes.WeaponA.fireA;
+                        var xMin = anchor.x + (32 * -8);
+                        var xMax = anchor.x + (32 * 8);
+                        var yMin = anchor.y + (32 * -2);
+                        var yMax = anchor.y + (32 * 2);
+                        var cnt = 0;
+                        function f1(e) {
+                            if(e) {
+                                return false;
+                            }
+                            var isNext = false;
                             var player = sprite.scene.player;
-                            var dir = osakana4242.utils.Vector2D.alloc(player.center.x - sprite.center.x, player.center.y - sprite.center.y);
+                            var dir = osakana4242.utils.Vector2D.alloc(kimiko.kimiko.numberUtil.trim(player.center.x, xMin, xMax) - sprite.center.x, kimiko.kimiko.numberUtil.trim(player.center.y, yMin, yMax) - sprite.center.y);
                             var mag = osakana4242.utils.Vector2D.magnitude(dir);
-                            var dist = 120;
-                            var speed = kimiko.kimiko.dpsToDpf(2 * kimiko.DF.BASE_FPS);
-                            dir.x = dir.x * dist / mag;
-                            dir.y = dir.y * dist / mag;
-                            var frame = Math.floor(dist / speed);
-                            sprite.tl.moveBy(dir.x, dir.y, frame).delay(kimiko.kimiko.secToFrame(0.5)).then(f1);
+                            if(mag < 4) {
+                                isNext = false;
+                            } else {
+                                var dist = mag;
+                                var speed = kimiko.kimiko.dpsToDpf(2 * kimiko.DF.BASE_FPS);
+                                dir.x = dir.x * dist / mag;
+                                dir.y = dir.y * dist / mag;
+                                var frame = Math.floor(dist / speed);
+                                sprite.tl.moveTo(sprite.x + dir.x, sprite.y + dir.y, frame).then(function () {
+                                    if(2 <= sprite.enemyData.level) {
+                                        sprite.weapon.lookAtPlayer();
+                                        sprite.weapon.startFire();
+                                    }
+                                }).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(f1);
+                                isNext = true;
+                            }
                             osakana4242.utils.Vector2D.free(dir);
+                            return isNext;
                         }
-                        sprite.tl.delay(kimiko.kimiko.secToFrame(0.5)).then(f1);
+                        sprite.tl.waitUntil(f1);
                     }
                     EnemyBrains.brain2 = brain2;
                     function brain3(sprite) {
@@ -1497,7 +1530,13 @@ var jp;
                     EnemyBrains.brain3 = brain3;
                     function brain4(sprite) {
                         var anchor = sprite.anchor;
-                        sprite.tl.moveBy(-32 * 4 * 0.5, 32 * 3, kimiko.kimiko.secToFrame(0.5)).moveBy(-32 * 4 * 0.5, -32 * 3, kimiko.kimiko.secToFrame(0.5)).delay(kimiko.kimiko.secToFrame(0.25)).moveBy(32 * 4 * 0.5, 32 * 3, kimiko.kimiko.secToFrame(0.5)).moveBy(32 * 4 * 0.5, -32 * 3, kimiko.kimiko.secToFrame(0.5)).delay(kimiko.kimiko.secToFrame(0.25)).loop();
+                        sprite.weapon.fireFunc = scenes.WeaponA.fireA;
+                        sprite.tl.moveBy(-32 * 4 * 0.5, 32 * 3, kimiko.kimiko.secToFrame(0.5)).moveBy(-32 * 4 * 0.5, -32 * 3, kimiko.kimiko.secToFrame(0.5)).delay(kimiko.kimiko.secToFrame(0.25)).then(function () {
+                            if(1 <= sprite.enemyData.level) {
+                                sprite.weapon.lookAtPlayer();
+                                sprite.weapon.startFire();
+                            }
+                        }).moveBy(32 * 4 * 0.5, 32 * 3, kimiko.kimiko.secToFrame(0.5)).moveBy(32 * 4 * 0.5, -32 * 3, kimiko.kimiko.secToFrame(0.5)).delay(kimiko.kimiko.secToFrame(0.25)).loop();
                     }
                     EnemyBrains.brain4 = brain4;
                     function brain5(sprite) {
@@ -1537,6 +1576,32 @@ var jp;
                     EnemyBrains.brain8 = brain8;
                     function brain9(sprite) {
                         var anchor = sprite.anchor;
+                        var xMin = anchor.x + (32 * -2);
+                        var xMax = anchor.x + (32 * 2);
+                        var cnt = 0;
+                        function f1(e) {
+                            if(e) {
+                                return false;
+                            }
+                            var isNext = false;
+                            var player = sprite.scene.player;
+                            var dir = osakana4242.utils.Vector2D.alloc(kimiko.kimiko.numberUtil.trim(player.center.x, xMin, xMax) - sprite.center.x, 0);
+                            var mag = osakana4242.utils.Vector2D.magnitude(dir);
+                            if(mag < 4) {
+                                isNext = false;
+                            } else {
+                                var dist = mag;
+                                var speed = kimiko.kimiko.dpsToDpf(2 * kimiko.DF.BASE_FPS);
+                                dir.x = dir.x * dist / mag;
+                                dir.y = dir.y * dist / mag;
+                                var frame = Math.floor(dist / speed);
+                                sprite.tl.moveTo(sprite.x + dir.x, sprite.y + dir.y, frame).delay(kimiko.kimiko.secToFrame(0.2)).waitUntil(f1);
+                                isNext = true;
+                            }
+                            osakana4242.utils.Vector2D.free(dir);
+                            return isNext;
+                        }
+                        sprite.tl.waitUntil(f1);
                     }
                     EnemyBrains.brain9 = brain9;
                     function brainX(sprite) {
@@ -1746,14 +1811,14 @@ var jp;
                         score: 100
                     },
                     1: {
-                        hpMax: 5,
+                        hpMax: 2,
                         level: 1,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain1,
                         score: 100
                     },
                     2: {
-                        hpMax: 5,
+                        hpMax: 2,
                         level: 1,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain2,

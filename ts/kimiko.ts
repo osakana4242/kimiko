@@ -624,21 +624,21 @@ module jp.osakana4242.kimiko {
 				"backgroundColor": "rgb(196,196,196)",
 				//"backgroundColor": "rgb(8,8,16)",
 				// ドアあり.
-				"nextMapId": 2,
+				"nextMapId": 102,
 				"exitType": "door",
 			},
 			102: {
 				"title": "hospital",
 				"backgroundColor": "rgb(16,16,32)",
 				// ドアなし.
-				"nextMapId": 3,
+				"nextMapId": 103,
 				"exitType": "door",
 			},
 			103: {
 				"title": "station",
 				"backgroundColor": "rgb(32,196,255)",
 				// ドアなし.
-				"nextMapId": 4,
+				"nextMapId": 104,
 				"exitType": "door",
 			},
 			104: {
@@ -649,8 +649,20 @@ module jp.osakana4242.kimiko {
 				"nextMapId": 0,
 				"exitType": "enemy_zero",
 			},
+			202: {
+				"title": "trace",
+				"backgroundColor": "rgb(32,32,32)",
+				"nextMapId": 0,
+				"exitType": "door",
+			},
+			208: {
+				"title": "horizontal move",
+				"backgroundColor": "rgb(32,32,32)",
+				"nextMapId": 0,
+				"exitType": "door",
+			},
 			209: {
-				"title": "horizontal search",
+				"title": "horizontal trace",
 				"backgroundColor": "rgb(32,32,32)",
 				"nextMapId": 0,
 				"exitType": "door",

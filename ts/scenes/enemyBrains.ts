@@ -1,4 +1,4 @@
-/// <reference path="act.ts" />
+﻿/// <reference path="act.ts" />
 
 declare var enchant: any;
 
@@ -82,31 +82,51 @@ module jp.osakana4242.kimiko.scenes {
 		// 追跡.
 		export function brain2(sprite: any): void {
 			var anchor = sprite.anchor;
+			sprite.weapon.fireFunc = WeaponA.fireA;
 
-			function f1() {
+			var xMin = anchor.x + (32 * -8);
+			var xMax = anchor.x + (32 *  8);
+			var yMin = anchor.y + (32 * -2);
+			var yMax = anchor.y + (32 *  2);
+			var cnt = 0;
+			function f1(e) {
+				if (e) {
+					return false;
+				}
+				var isNext = false;
 				var player = sprite.scene.player;
 				var dir = utils.Vector2D.alloc(
-					player.center.x - sprite.center.x,
-					player.center.y - sprite.center.y
+					kimiko.numberUtil.trim(player.center.x, xMin, xMax) - sprite.center.x,
+					kimiko.numberUtil.trim(player.center.y, yMin, yMax) - sprite.center.y
 				);
 				var mag = utils.Vector2D.magnitude(dir);
-				var dist = 120;
-				var speed = kimiko.dpsToDpf(2 * DF.BASE_FPS);
-				dir.x = dir.x * dist / mag;
-				dir.y = dir.y * dist / mag;
-				var frame = Math.floor(dist / speed);
-				
-				sprite.tl.
-					moveBy(dir.x, dir.y, frame).
-					delay(kimiko.secToFrame(0.5)).
-					then(f1);
-
+				if (mag < 4) {
+					// 移動の必要ナシ.
+					isNext = false;
+				} else {
+					var dist = mag;
+					var speed = kimiko.dpsToDpf(2 * DF.BASE_FPS);
+					dir.x = dir.x * dist / mag;
+					dir.y = dir.y * dist / mag;
+					var frame = Math.floor(dist / speed);
+					
+					sprite.tl.
+						moveTo(sprite.x + dir.x, sprite.y + dir.y, frame).
+						then(() => {
+							if (2 <= sprite.enemyData.level) {
+								sprite.weapon.lookAtPlayer();
+								sprite.weapon.startFire();
+							}
+						}).
+						delay(kimiko.secToFrame(0.5)).
+						waitUntil(f1);
+					isNext = true;
+				}
 				utils.Vector2D.free(dir);
+				return isNext;
 			}
-
 			sprite.tl.
-				delay(kimiko.secToFrame(0.5)).
-				then(f1);
+				waitUntil(f1);
 		}
 
 		// 地上ジャンプ.
@@ -133,10 +153,18 @@ module jp.osakana4242.kimiko.scenes {
 		// 天井ジャンプ.
 		export function brain4(sprite: any): void {
 			var anchor = sprite.anchor;
+			sprite.weapon.fireFunc = WeaponA.fireA;
+
 			sprite.tl.
 				moveBy( -32 * 4 * 0.5,  32 * 3, kimiko.secToFrame( 0.5 ) ).
 				moveBy( -32 * 4 * 0.5, -32 * 3, kimiko.secToFrame( 0.5 ) ).
 				delay( kimiko.secToFrame( 0.25 ) ).
+				then(() => {
+					if (1 <= sprite.enemyData.level) {
+						sprite.weapon.lookAtPlayer();
+						sprite.weapon.startFire();
+					}
+				}).
 				moveBy(  32 * 4 * 0.5,  32 * 3, kimiko.secToFrame( 0.5 ) ).
 				moveBy(  32 * 4 * 0.5, -32 * 3, kimiko.secToFrame( 0.5 ) ).
 				delay( kimiko.secToFrame( 0.25 ) ).
@@ -207,6 +235,41 @@ module jp.osakana4242.kimiko.scenes {
 		// 水平追跡.
 		export function brain9(sprite: any): void {
 			var anchor = sprite.anchor;
+			var xMin = anchor.x + (32 * -2);
+			var xMax = anchor.x + (32 *  2);
+			var cnt = 0;
+			function f1(e) {
+				if (e) {
+					return false;
+				}
+				var isNext = false;
+				var player = sprite.scene.player;
+				var dir = utils.Vector2D.alloc(
+					kimiko.numberUtil.trim(player.center.x, xMin, xMax) - sprite.center.x,
+					0
+				);
+				var mag = utils.Vector2D.magnitude(dir);
+				if (mag < 4) {
+					// 移動の必要ナシ.
+					isNext = false;
+				} else {
+					var dist = mag;
+					var speed = kimiko.dpsToDpf(2 * DF.BASE_FPS);
+					dir.x = dir.x * dist / mag;
+					dir.y = dir.y * dist / mag;
+					var frame = Math.floor(dist / speed);
+					
+					sprite.tl.
+						moveTo(sprite.x + dir.x, sprite.y + dir.y, frame).
+						delay(kimiko.secToFrame(0.2)).
+						waitUntil(f1);
+					isNext = true;
+				}
+				utils.Vector2D.free(dir);
+				return isNext;
+			}
+			sprite.tl.
+				waitUntil(f1);
 		}
 
 		// 左右に行ったりきたり
@@ -519,7 +582,7 @@ module jp.osakana4242.kimiko.scenes {
 		},
 
 		0x1: {
-			hpMax: 5,
+			hpMax: 2,
 			level: 1,
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain1,
@@ -527,7 +590,7 @@ module jp.osakana4242.kimiko.scenes {
 		},
 
 		0x2: {
-			hpMax: 5,
+			hpMax: 2,
 			level: 1,
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain2,
