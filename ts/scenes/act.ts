@@ -219,12 +219,26 @@ module jp.osakana4242.kimiko.scenes {
 				spr.height = 24;
 				spr.textAlign = "center";
 				spr.x = 0;
-				spr.y = 80;
+				spr.y = 70;
 				return spr;
 			}());
 			
+			var mapLabel2 = (() => {
+				var spr = new enchant.Label();
+				spr.font = DF.FONT_L;
+				spr.color = "rgb(255, 255, 255)";
+				spr.width = DF.SC_W;
+				spr.height = 24;
+				spr.textAlign = "center";
+				spr.x = 0;
+				spr.y = 94;
+				return spr;
+			}());
+
 			function updateMapLabel() {
-				mapLabel.text = "MAP" + mapIds[mapIdsIdx];
+				var mapId = mapIds[mapIdsIdx];
+				mapLabel.text = "MAP " + mapId;
+				mapLabel2.text = DF.MAP_OPTIONS[mapId].title;
 			}
 			updateMapLabel();
 
@@ -276,6 +290,7 @@ module jp.osakana4242.kimiko.scenes {
 			scene.addChild(title);
 			scene.addChild(author);
 			scene.addChild(mapLabel);
+			scene.addChild(mapLabel2);
 			scene.addChild(leftBtn);
 			scene.addChild(rightBtn);
 			scene.addChild(startBtn);
