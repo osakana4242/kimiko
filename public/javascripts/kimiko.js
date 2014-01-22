@@ -530,8 +530,8 @@ var jp;
                 DF.MAP_TILE_DOOR_OPEN = 41;
                 DF.MAP_TILE_DOOR_CLOSE = -1;
                 DF.MAP_TILE_CHARA_MIN = 48;
-                DF.MAP_ID_MIN = 1;
-                DF.MAP_ID_MAX = 4;
+                DF.MAP_ID_MIN = 101;
+                DF.MAP_ID_MAX = 104;
                 DF.MAP_OPTIONS = {
                     101: {
                         "title": "tutorial",
@@ -559,6 +559,18 @@ var jp;
                     },
                     202: {
                         "title": "trace",
+                        "backgroundColor": "rgb(32,32,32)",
+                        "nextMapId": 0,
+                        "exitType": "door"
+                    },
+                    206: {
+                        "title": "bunbun",
+                        "backgroundColor": "rgb(32,32,32)",
+                        "nextMapId": 0,
+                        "exitType": "door"
+                    },
+                    207: {
+                        "title": "hovering",
                         "backgroundColor": "rgb(32,32,32)",
                         "nextMapId": 0,
                         "exitType": "door"
@@ -1484,8 +1496,8 @@ var jp;
                         sprite.weapon.fireFunc = scenes.WeaponA.fireA;
                         var xMin = anchor.x + (32 * -8);
                         var xMax = anchor.x + (32 * 8);
-                        var yMin = anchor.y + (32 * -2);
-                        var yMax = anchor.y + (32 * 2);
+                        var yMin = anchor.y + (32 * -8);
+                        var yMax = anchor.y + (32 * 8);
                         var cnt = 0;
                         function f1(e) {
                             if(e) {
@@ -1547,13 +1559,27 @@ var jp;
                     EnemyBrains.brain5 = brain5;
                     function brain6(sprite) {
                         var anchor = sprite.anchor;
-                        sprite.tl.moveTo(anchor.x + 32 * -0.5, anchor.y + 32 * -0.5, kimiko.kimiko.secToFrame(0.5)).moveTo(anchor.x + 32 * 0.5, anchor.y + 32 * -0.5, kimiko.kimiko.secToFrame(0.5)).moveTo(anchor.x + 32 * -0.5, anchor.y + 32 * 0.5, kimiko.kimiko.secToFrame(0.5)).moveTo(anchor.x + 32 * 0.0, anchor.y + 32 * 0.0, kimiko.kimiko.secToFrame(0.5)).moveTo(anchor.x + 32 * 0.5, anchor.y + 32 * 0.5, kimiko.kimiko.secToFrame(0.5)).loop();
+                        sprite.weapon.fireFunc = scenes.WeaponA.fireA;
+                        var fire = function () {
+                            if(2 <= sprite.enemyData.level) {
+                                sprite.weapon.lookAtPlayer();
+                                sprite.weapon.startFire();
+                            }
+                        };
+                        sprite.tl.moveTo(anchor.x + 32 * -0.5, anchor.y + 32 * -0.5, kimiko.kimiko.secToFrame(0.5)).moveTo(anchor.x + 32 * 0.5, anchor.y + 32 * -0.5, kimiko.kimiko.secToFrame(0.5)).moveTo(anchor.x + 32 * -0.5, anchor.y + 32 * 0.5, kimiko.kimiko.secToFrame(0.5)).moveTo(anchor.x + 32 * 0.0, anchor.y + 32 * 0.0, kimiko.kimiko.secToFrame(0.5)).then(fire).moveTo(anchor.x + 32 * 0.5, anchor.y + 32 * 0.5, kimiko.kimiko.secToFrame(0.5)).loop();
                     }
                     EnemyBrains.brain6 = brain6;
                     function brain7(sprite) {
                         var anchor = sprite.anchor;
-                        var totalFrame = kimiko.kimiko.secToFrame(4.0);
-                        sprite.tl.moveTo(anchor.x, anchor.y + 32 * 1, totalFrame * 0.5, Easing.LINEAR).moveTo(anchor.x, anchor.y + 32 * -1, totalFrame * 0.5, Easing.LINEAR).loop();
+                        sprite.weapon.fireFunc = scenes.WeaponA.fireA;
+                        var fire = function () {
+                            if(2 <= sprite.enemyData.level) {
+                                sprite.weapon.lookAtPlayer();
+                                sprite.weapon.startFire();
+                            }
+                        };
+                        var totalFrame = kimiko.kimiko.secToFrame(2.0);
+                        sprite.tl.moveTo(anchor.x, anchor.y + 32 * 1, totalFrame * 0.5, Easing.LINEAR).then(fire).moveTo(anchor.x, anchor.y + 32 * -1, totalFrame * 0.5, Easing.LINEAR).then(fire).loop();
                     }
                     EnemyBrains.brain7 = brain7;
                     function brain8(sprite) {
@@ -1804,7 +1830,7 @@ var jp;
                 var EnemyBrains = scenes.EnemyBrains;
                 scenes.EnemyData = {
                     0: {
-                        hpMax: 1,
+                        hpMax: 2,
                         level: 1,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain1,
@@ -1825,52 +1851,66 @@ var jp;
                         score: 100
                     },
                     3: {
-                        hpMax: 5,
+                        hpMax: 2,
                         level: 1,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain3,
                         score: 100
                     },
                     4: {
-                        hpMax: 5,
+                        hpMax: 2,
                         level: 1,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain4,
                         score: 100
                     },
                     5: {
-                        hpMax: 20,
+                        hpMax: 16,
                         level: 1,
                         body: EnemyBodys.body4,
                         brain: EnemyBrains.brain5,
                         score: 100
                     },
                     6: {
-                        hpMax: 5,
+                        hpMax: 2,
                         level: 1,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain6,
                         score: 100
                     },
                     7: {
-                        hpMax: 5,
+                        hpMax: 2,
                         level: 1,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain7,
                         score: 100
                     },
                     8: {
-                        hpMax: 5,
+                        hpMax: 2,
                         level: 1,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain8,
                         score: 100
                     },
                     9: {
-                        hpMax: 5,
+                        hpMax: 2,
                         level: 1,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain9,
+                        score: 100
+                    },
+                    10: {
+                        hpMax: 2,
+                        level: 2,
+                        body: EnemyBodys.body1,
+                        brain: EnemyBrains.brain6,
+                        score: 100
+                    },
+                    11: {
+                        hpMax: 2,
+                        level: 2,
+                        body: EnemyBodys.body1,
+                        brain: EnemyBrains.brain7,
                         score: 100
                     },
                     15: {
@@ -2495,11 +2535,24 @@ var jp;
                             spr.height = 24;
                             spr.textAlign = "center";
                             spr.x = 0;
-                            spr.y = 80;
+                            spr.y = 70;
+                            return spr;
+                        })());
+                        var mapLabel2 = ((function () {
+                            var spr = new enchant.Label();
+                            spr.font = kimiko.DF.FONT_L;
+                            spr.color = "rgb(255, 255, 255)";
+                            spr.width = kimiko.DF.SC_W;
+                            spr.height = 24;
+                            spr.textAlign = "center";
+                            spr.x = 0;
+                            spr.y = 94;
                             return spr;
                         })());
                         function updateMapLabel() {
-                            mapLabel.text = "MAP" + mapIds[mapIdsIdx];
+                            var mapId = mapIds[mapIdsIdx];
+                            mapLabel.text = "MAP " + mapId;
+                            mapLabel2.text = kimiko.DF.MAP_OPTIONS[mapId].title;
                         }
                         updateMapLabel();
                         var leftBtn = ((function () {
@@ -2546,6 +2599,7 @@ var jp;
                         scene.addChild(title);
                         scene.addChild(author);
                         scene.addChild(mapLabel);
+                        scene.addChild(mapLabel2);
                         scene.addChild(leftBtn);
                         scene.addChild(rightBtn);
                         scene.addChild(startBtn);

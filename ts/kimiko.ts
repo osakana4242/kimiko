@@ -615,8 +615,8 @@ module jp.osakana4242.kimiko {
 		export var MAP_TILE_DOOR_CLOSE = -1;
 		export var MAP_TILE_CHARA_MIN = 48;
 		
-		export var MAP_ID_MIN = 1;
-		export var MAP_ID_MAX = 4;
+		export var MAP_ID_MIN = 101;
+		export var MAP_ID_MAX = 104;
 
 		export var MAP_OPTIONS = {
 			101: {
@@ -651,6 +651,18 @@ module jp.osakana4242.kimiko {
 			},
 			202: {
 				"title": "trace",
+				"backgroundColor": "rgb(32,32,32)",
+				"nextMapId": 0,
+				"exitType": "door",
+			},
+			206: {
+				"title": "bunbun",
+				"backgroundColor": "rgb(32,32,32)",
+				"nextMapId": 0,
+				"exitType": "door",
+			},
+			207: {
+				"title": "hovering",
 				"backgroundColor": "rgb(32,32,32)",
 				"nextMapId": 0,
 				"exitType": "door",
