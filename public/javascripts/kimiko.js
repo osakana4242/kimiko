@@ -540,18 +540,36 @@ var jp;
                         "exitType": "door"
                     },
                     102: {
-                        "title": "hospital",
+                        "title": "tutorial",
                         "backgroundColor": "rgb(16,16,32)",
                         "nextMapId": 103,
                         "exitType": "door"
                     },
                     103: {
-                        "title": "station",
+                        "title": "tutorial",
                         "backgroundColor": "rgb(32,196,255)",
                         "nextMapId": 104,
                         "exitType": "door"
                     },
                     104: {
+                        "title": "station",
+                        "backgroundColor": "rgb(32,196,255)",
+                        "nextMapId": 105,
+                        "exitType": "door"
+                    },
+                    105: {
+                        "title": "station",
+                        "backgroundColor": "rgb(32,196,255)",
+                        "nextMapId": 106,
+                        "exitType": "door"
+                    },
+                    106: {
+                        "title": "station",
+                        "backgroundColor": "rgb(32,196,255)",
+                        "nextMapId": 107,
+                        "exitType": "door"
+                    },
+                    107: {
                         "title": "boss",
                         "backgroundColor": "rgb(196,32,32)",
                         "nextMapId": 0,
@@ -1260,7 +1278,7 @@ var jp;
                         this.collider = ((function () {
                             var c = new osakana4242.utils.Collider();
                             c.parent = _this;
-                            c.centerMiddle(8, 8);
+                            c.centerMiddle(12, 8);
                             return c;
                         })());
                     },
@@ -1837,14 +1855,14 @@ var jp;
                         score: 100
                     },
                     1: {
-                        hpMax: 2,
+                        hpMax: 1,
                         level: 1,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain1,
                         score: 100
                     },
                     2: {
-                        hpMax: 2,
+                        hpMax: 1,
                         level: 1,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain2,
@@ -2294,7 +2312,7 @@ var jp;
                         var node = this.targetNode;
                         var camera = this;
                         this._targetPos.x = node.center.x - (camera.width / 2) + (node.dirX * 16);
-                        this._targetPos.y = node.center.y - (camera.height / 2) + 32;
+                        this._targetPos.y = node.center.y - (camera.height / 2) + 24;
                         return this._targetPos;
                     },
                     onenterframe: function () {

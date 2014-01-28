@@ -72,7 +72,7 @@ module jp.osakana4242.kimiko.scenes {
 			this.collider = (() => {
 				var c = new utils.Collider();
 				c.parent = this;
-				c.centerMiddle(8, 8);
+				c.centerMiddle(12, 8);
 				return c;
 			}());
 		},

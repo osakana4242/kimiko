@@ -628,20 +628,41 @@ module jp.osakana4242.kimiko {
 				"exitType": "door",
 			},
 			102: {
-				"title": "hospital",
+				"title": "tutorial",
 				"backgroundColor": "rgb(16,16,32)",
 				// ドアなし.
 				"nextMapId": 103,
 				"exitType": "door",
 			},
 			103: {
-				"title": "station",
+				"title": "tutorial",
 				"backgroundColor": "rgb(32,196,255)",
 				// ドアなし.
 				"nextMapId": 104,
 				"exitType": "door",
 			},
 			104: {
+				"title": "station",
+				"backgroundColor": "rgb(32,196,255)",
+				// ドアなし.
+				"nextMapId": 105,
+				"exitType": "door",
+			},
+			105: {
+				"title": "station",
+				"backgroundColor": "rgb(32,196,255)",
+				// ドアなし.
+				"nextMapId": 106,
+				"exitType": "door",
+			},
+			106: {
+				"title": "station",
+				"backgroundColor": "rgb(32,196,255)",
+				// ドアなし.
+				"nextMapId": 107,
+				"exitType": "door",
+			},
+			107: {
 				"title": "boss",
 				"backgroundColor": "rgb(196,32,32)",
 				// ドアなし

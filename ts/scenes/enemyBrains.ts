@@ -603,7 +603,7 @@ module jp.osakana4242.kimiko.scenes {
 		},
 
 		0x1: {
-			hpMax: 2,
+			hpMax: 1,
 			level: 1,
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain1,
@@ -611,7 +611,7 @@ module jp.osakana4242.kimiko.scenes {
 		},
 
 		0x2: {
-			hpMax: 2,
+			hpMax: 1,
 			level: 1,
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain2,

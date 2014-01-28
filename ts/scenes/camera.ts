@@ -68,7 +68,7 @@ module jp.osakana4242.kimiko.scenes {
 			// 前方は後方より少しだけ先が見えるようにする。
 			this._targetPos.x = node.center.x - (camera.width / 2) + (node.dirX * 16);
 			// 指で操作する関係で下方向に余裕を持たせる.
-			this._targetPos.y = node.center.y - (camera.height / 2) + 32;
+			this._targetPos.y = node.center.y - (camera.height / 2) + 24;
 			return this._targetPos;
 		},
 
