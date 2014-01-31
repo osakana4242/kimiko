@@ -695,17 +695,19 @@ module jp.osakana4242.kimiko.scenes {
 
 			}());
 
-			this.ownBulletPool = new utils.SpritePool(DF.PLAYER_BULLET_NUM, () => {
+			this.ownBulletPool = new utils.SpritePool(DF.PLAYER_BULLET_NUM, (idx: number) => {
 				var spr = new OwnBullet();
+				spr.name = "OwnBullet" + idx;
 				return spr;
 			});
 			
-			this.enemyBulletPool = new utils.SpritePool(32, () => {
+			this.enemyBulletPool = new utils.SpritePool(32, (idx: number) => {
 				var spr = new EnemyBullet();
+				spr.name = "EnemyBullet" + idx;
 				return spr;
 			});
 	
-			this.effectPool = new utils.SpritePool(64, (idx: number) => {
+			this.effectPool = new utils.SpritePool(16, (idx: number) => {
 				var spr = new enchant.Sprite(16, 16);
 				spr.name = "effect" + idx;
 				spr.ageMax = 0;
@@ -1264,7 +1266,9 @@ module jp.osakana4242.kimiko.scenes {
 								scene.onAllEnemyDead();
 							}
 						}
-						this.addEffect(DF.ANIM_ID_DAMAGE, bullet.center);
+						if (!enemy.life.isDead()) {
+							this.addEffect(DF.ANIM_ID_DAMAGE, bullet.center);
+						}
 						bullet.free();
 					}
 				}

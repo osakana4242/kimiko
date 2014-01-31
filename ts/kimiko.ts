@@ -475,24 +475,24 @@ module jp.osakana4242.utils {
 		actives: any[];
 		sleeps: any[];
 
-		constructor(capacity: number, makeSprite: (idx: number) => any) {
+		constructor(capacity: number, newSprite: (idx: number) => any) {
 			this.sleeps = [];
 			this.actives = [];
 
 			for (var i = 0, iNum = capacity; i < iNum; ++i) {
-				var spr = makeSprite(i);
+				var spr = newSprite(i);
 				this.sleeps.push(spr);
 			}
 		}
 
-		// シーンに追加する必要あり.
-		// 取得出来ない場合は null を返す.
-
+		/** シーンに自前で追加する必要あり. 取得出来ない場合は null を返す.  */
 		alloc() {
 			var spr = this.sleeps.shift();
 			if (spr) {
 				spr.tl.clear();
 				spr.age = 0;
+				spr.scaleX = spr.scaleY = 1.0;
+				spr.backgroundColor = null;
 				spr.visible = true;
 				this.actives.push(spr);
 				return spr;
@@ -501,15 +501,14 @@ module jp.osakana4242.utils {
 			}
 		}
 
-		// 勝手にシーンから取り除く.
+		/** 未使用状態にする. シーンから取り除く. */
 		free(spr: any) {
 			if (spr.parentNode) {
 				spr.parentNode.removeChild(spr);
 			} else {
 				var a = 0;
 			}
-			spr.x = 0x7fffffff;
-			spr.y = 0x7fffffff;
+			spr.x = spr.y = 0x7fffffff;
 			spr.visible = false;
 			//
 			var index = this.actives.indexOf(spr);
@@ -597,6 +596,7 @@ module jp.osakana4242.kimiko {
 
 		export var ANIM_ID_DAMAGE = 400;
 		export var ANIM_ID_MISS = 401;
+		export var ANIM_ID_DEAD = 402;
 	
 
 		// スワイプで1フレームにキャラが移動できる最大距離.
@@ -859,6 +859,7 @@ module jp.osakana4242.kimiko {
 
 				r(DF.ANIM_ID_DAMAGE,         Assets.IMAGE_EFFECT,   16, 16, 0.1, [8, 9, 10, 11]);
 				r(DF.ANIM_ID_MISS,           Assets.IMAGE_EFFECT,   16, 16, 0.1, [12, 13, 14, 15]);
+				r(DF.ANIM_ID_DEAD,           Assets.IMAGE_EFFECT,   16, 16, 0.1, [8, 9, 10, 11]);
 			}());
 
 			// key bind

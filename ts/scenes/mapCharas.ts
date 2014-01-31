@@ -174,16 +174,26 @@ module jp.osakana4242.kimiko.scenes {
 				this.dead();
 			}
 		},
+
+		makeDeadEffect: function (spr: any, delay: number) {
+			var effect = this.scene.effectPool.alloc();
+			effect.width = spr.width;
+			effect.height = spr.height;
+			effect.backgroundColor = "rgb(196,64,64)";
+			var effectTime: number = kimiko.secToFrame(0.3);
+			effect.visible = false;
+
+
+			return effect;
+		},
+		
 		dead: function () {
 			this.visible = false;
 			this.state = this.stateDead;
 			// 死亡エフェクト追加.
-			for (var i = 0, iNum = 3; i < iNum; ++i) {
-				var effect = new DeadEffect(this, i * kimiko.core.fps * 0.1);
-				effect.x += Math.random() * 32 - 16;
-				effect.y += Math.random() * 32 - 16;
-				this.scene.world.addChild(effect);
-			}
+			var effect = this.scene.addEffect(DF.ANIM_ID_DEAD, this.center);
+			effect.scaleX = 2.0;
+			effect.scaleY = 2.0;
 		},
 
 		isDead: function () {
@@ -247,14 +257,15 @@ module jp.osakana4242.kimiko.scenes {
 			this.height = attacker.height;
 			this.center.x = attacker.center.x;
 			this.center.y = attacker.center.y;
-			this.backgroundColor = "rgb(255,64,64)";
+			this.backgroundColor = "rgb(196,64,64)";
 			var effectTime: number = kimiko.secToFrame(0.3);
 			this.visible = false;
+			this.scaleX = this.scaleY = 0.1;
 			this.tl.
 				delay(delay).
 				then(() => { this.visible = true; }).
-				scaleTo(2.0, effectTime, enchant.Easing.SIN_EASEOUT).
-				and().fadeOut(effectTime, enchant.Easing.SIN_EASEOUT).
+				scaleTo(1.0, effectTime * 0.3, enchant.Easing.SIN_EASEOUT).
+				scaleTo(0.0, effectTime * 0.7, enchant.Easing.SIN_EASEOUT).
 				removeFromParentNode();
 		},
 	});

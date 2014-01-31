@@ -413,11 +413,11 @@ var jp;
                 };
             })());
             var SpritePool = (function () {
-                function SpritePool(capacity, makeSprite) {
+                function SpritePool(capacity, newSprite) {
                     this.sleeps = [];
                     this.actives = [];
                     for(var i = 0, iNum = capacity; i < iNum; ++i) {
-                        var spr = makeSprite(i);
+                        var spr = newSprite(i);
                         this.sleeps.push(spr);
                     }
                 }
@@ -426,6 +426,8 @@ var jp;
                     if(spr) {
                         spr.tl.clear();
                         spr.age = 0;
+                        spr.scaleX = spr.scaleY = 1.0;
+                        spr.backgroundColor = null;
                         spr.visible = true;
                         this.actives.push(spr);
                         return spr;
@@ -439,8 +441,7 @@ var jp;
                     } else {
                         var a = 0;
                     }
-                    spr.x = 0x7fffffff;
-                    spr.y = 0x7fffffff;
+                    spr.x = spr.y = 0x7fffffff;
                     spr.visible = false;
                     var index = this.actives.indexOf(spr);
                     if(index !== -1) {
@@ -522,6 +523,7 @@ var jp;
                 DF.ANIM_ID_BULLET002 = 301;
                 DF.ANIM_ID_DAMAGE = 400;
                 DF.ANIM_ID_MISS = 401;
+                DF.ANIM_ID_DEAD = 402;
                 DF.TOUCH_TO_CHARA_MOVE_LIMIT = 320;
                 DF.PLAYER_MOVE_RESOLUTION = 8;
                 DF.PLAYER_HP = 3;
@@ -810,6 +812,12 @@ var jp;
                             13, 
                             14, 
                             15
+                        ]);
+                        r(DF.ANIM_ID_DEAD, Assets.IMAGE_EFFECT, 16, 16, 0.1, [
+                            8, 
+                            9, 
+                            10, 
+                            11
                         ]);
                     })());
                     core.keybind(" ".charCodeAt(0), "a");
@@ -1372,15 +1380,21 @@ var jp;
                             this.dead();
                         }
                     },
+                    makeDeadEffect: function (spr, delay) {
+                        var effect = this.scene.effectPool.alloc();
+                        effect.width = spr.width;
+                        effect.height = spr.height;
+                        effect.backgroundColor = "rgb(196,64,64)";
+                        var effectTime = kimiko.kimiko.secToFrame(0.3);
+                        effect.visible = false;
+                        return effect;
+                    },
                     dead: function () {
                         this.visible = false;
                         this.state = this.stateDead;
-                        for(var i = 0, iNum = 3; i < iNum; ++i) {
-                            var effect = new scenes.DeadEffect(this, i * kimiko.kimiko.core.fps * 0.1);
-                            effect.x += Math.random() * 32 - 16;
-                            effect.y += Math.random() * 32 - 16;
-                            this.scene.world.addChild(effect);
-                        }
+                        var effect = this.scene.addEffect(kimiko.DF.ANIM_ID_DEAD, this.center);
+                        effect.scaleX = 2.0;
+                        effect.scaleY = 2.0;
                     },
                     isDead: function () {
                         return this.state === this.stateDead;
@@ -1438,12 +1452,13 @@ var jp;
                         this.height = attacker.height;
                         this.center.x = attacker.center.x;
                         this.center.y = attacker.center.y;
-                        this.backgroundColor = "rgb(255,64,64)";
+                        this.backgroundColor = "rgb(196,64,64)";
                         var effectTime = kimiko.kimiko.secToFrame(0.3);
                         this.visible = false;
+                        this.scaleX = this.scaleY = 0.1;
                         this.tl.delay(delay).then(function () {
                             _this.visible = true;
-                        }).scaleTo(2.0, effectTime, enchant.Easing.SIN_EASEOUT).and().fadeOut(effectTime, enchant.Easing.SIN_EASEOUT).removeFromParentNode();
+                        }).scaleTo(1.0, effectTime * 0.3, enchant.Easing.SIN_EASEOUT).scaleTo(0.0, effectTime * 0.7, enchant.Easing.SIN_EASEOUT).removeFromParentNode();
                     }
                 });
             })(kimiko.scenes || (kimiko.scenes = {}));
@@ -2935,15 +2950,17 @@ var jp;
                             group.addChild(btnPause);
                             _this.addChild(group);
                         })());
-                        this.ownBulletPool = new osakana4242.utils.SpritePool(kimiko.DF.PLAYER_BULLET_NUM, function () {
+                        this.ownBulletPool = new osakana4242.utils.SpritePool(kimiko.DF.PLAYER_BULLET_NUM, function (idx) {
                             var spr = new scenes.OwnBullet();
+                            spr.name = "OwnBullet" + idx;
                             return spr;
                         });
-                        this.enemyBulletPool = new osakana4242.utils.SpritePool(32, function () {
+                        this.enemyBulletPool = new osakana4242.utils.SpritePool(32, function (idx) {
                             var spr = new scenes.EnemyBullet();
+                            spr.name = "EnemyBullet" + idx;
                             return spr;
                         });
-                        this.effectPool = new osakana4242.utils.SpritePool(64, function (idx) {
+                        this.effectPool = new osakana4242.utils.SpritePool(16, function (idx) {
                             var spr = new enchant.Sprite(16, 16);
                             spr.name = "effect" + idx;
                             spr.ageMax = 0;
@@ -3376,7 +3393,9 @@ var jp;
                                             scene.onAllEnemyDead();
                                         }
                                     }
-                                    this.addEffect(kimiko.DF.ANIM_ID_DAMAGE, bullet.center);
+                                    if(!enemy.life.isDead()) {
+                                        this.addEffect(kimiko.DF.ANIM_ID_DAMAGE, bullet.center);
+                                    }
                                     bullet.free();
                                 }
                             }
