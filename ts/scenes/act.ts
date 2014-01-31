@@ -125,6 +125,7 @@ module jp.osakana4242.kimiko.scenes {
 				}
 				arr.splice(i, 1);
 				this.actives.push(chara);
+
 				scene.world.addChild(chara);
 			}
 		}
@@ -607,6 +608,7 @@ module jp.osakana4242.kimiko.scenes {
 			var sprite;
 
 			var world = new enchant.Group();
+			world.name = "world";
 			this.world = world;
 			scene.addChild(world);
 
@@ -614,6 +616,7 @@ module jp.osakana4242.kimiko.scenes {
 			var map = new enchant.Map(DF.MAP_TILE_W, DF.MAP_TILE_H);
 			this.map = map;
 			this.mapOption = {};
+			map.name = "map";
 			map.image = kimiko.core.assets[Assets.IMAGE_MAP];
 			map.x = 0;
 			map.y = 0;
@@ -627,11 +630,13 @@ module jp.osakana4242.kimiko.scenes {
 			// 1カメ.
 			var camera = new Camera();
 			this.camera = camera;
+			camera.name = "camera";
 			camera.targetGroup = world;
 			world.addChild(camera);
 
 			sprite = new Player();
 			this.player = sprite;
+			sprite.name = "player";
 			world.addChild(sprite);
 			sprite.x = 0;
 			sprite.y = this.map.height - sprite.height;
@@ -700,8 +705,9 @@ module jp.osakana4242.kimiko.scenes {
 				return spr;
 			});
 	
-			this.effectPool = new utils.SpritePool(64, () => {
+			this.effectPool = new utils.SpritePool(64, (idx: number) => {
 				var spr = new enchant.Sprite(16, 16);
+				spr.name = "effect" + idx;
 				spr.ageMax = 0;
 				spr.anim.loopListener = () => {
 					this.effectPool.free(spr);
@@ -937,6 +943,7 @@ module jp.osakana4242.kimiko.scenes {
 			(() => {
 				var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
 				var layer = mapData.layers[1];
+				var enemyIdx = 0;
 				eachTiles(layer.tiles, (charaId, x, y, tiles) => {
 					if (charaId === -1) {
 						return;
@@ -963,6 +970,7 @@ module jp.osakana4242.kimiko.scenes {
 						enemy.x = enemy.anchor.x = center;
 						enemy.y = enemy.anchor.y = bottom;
 						data.brain(enemy);
+						enemy.name = "enemy" + (++enemyIdx);
 						mapCharaMgr.addSleep(enemy);
 					}
 
@@ -1118,7 +1126,6 @@ module jp.osakana4242.kimiko.scenes {
 			var player = this.player;
 			var pd = kimiko.playerData;
 			var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
-			//" fps:" + Math.round(kimiko.core.actualFps)
 			var texts: string[][] = this.statusTexts;
 			var lifeText = utils.StringUtil.mul("o", player.life.hp) + utils.StringUtil.mul("_", player.life.hpMax - player.life.hp);
 			texts[0][0] = "SC " + kimiko.playerData.score + " " +
@@ -1128,8 +1135,9 @@ module jp.osakana4242.kimiko.scenes {
 				(player.targetEnemy ? "LOCK" : "    ") + " " +
 				"";
 
+			texts[2][0] = "nodes " + scene.world.childNodes.length;
 			//texts[1][0] = player.stateToString()
-			//texts[2][0] = "actives:" + mapCharaMgr.actives.length + " " +
+			//texts[2][1] = "actives:" + mapCharaMgr.actives.length + " " +
 			//	"sleeps:" + mapCharaMgr.sleeps.length;
 			//
 			for (var i = 0, iNum = texts.length; i < iNum; ++i) {

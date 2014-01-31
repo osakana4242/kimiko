@@ -130,7 +130,7 @@ module jp.osakana4242.kimiko.scenes {
 			this.rectCollider_ = new utils.Rect();
 			this.workRect_ = new utils.Rect();
 
-			this.addEventListener(Event.ENTER_FRAME, () => {
+			function onEnterFrame() {
 				this.state();
 				this.life.step();
 
@@ -139,7 +139,9 @@ module jp.osakana4242.kimiko.scenes {
 					visible = (this.life.ghostFrameCounter & 0x1) === 0;
 				}
 				this.visible = visible;
-			});
+			}
+
+			this.addEventListener(Event.ENTER_FRAME, onEnterFrame);
 		},
 		
 		stateToString: function () {
@@ -177,10 +179,10 @@ module jp.osakana4242.kimiko.scenes {
 			this.state = this.stateDead;
 			// 死亡エフェクト追加.
 			for (var i = 0, iNum = 3; i < iNum; ++i) {
-				var effect = new DeadEffect(this, i * kimiko.core.fps * 0.2);
+				var effect = new DeadEffect(this, i * kimiko.core.fps * 0.1);
 				effect.x += Math.random() * 32 - 16;
 				effect.y += Math.random() * 32 - 16;
-				this.parentNode.addChild(effect);
+				this.scene.world.addChild(effect);
 			}
 		},
 
@@ -213,11 +215,15 @@ module jp.osakana4242.kimiko.scenes {
 			this.collider = new utils.Collider();
 			this.collider.parent = this;
 			this.life.setGhostFrameMax(kimiko.secToFrame(0.2));
-			this.addEventListener(Event.ENTER_FRAME, () => {
+
+
+			function stepWeapons() {
 				for (var i = 0, iNum = this.weaponNum; i < iNum; ++i) {
 					this.weapons[i].step();
 				}
-			});
+			}
+
+			this.addEventListener(Event.ENTER_FRAME, stepWeapons);
 		},
 		
 		weapon: { get: function () {
@@ -235,19 +241,21 @@ module jp.osakana4242.kimiko.scenes {
 	export var DeadEffect: any = Class.create(enchant.Sprite, {
 		initialize: function (attacker, delay: number) {
 			enchant.Sprite.call(this);
+
+			this.name = "deadEffect";
 			this.width = attacker.width;
 			this.height = attacker.height;
 			this.center.x = attacker.center.x;
 			this.center.y = attacker.center.y;
-			this.backgroundColor = attacker.backgroundColor;
-			var effectTime: number = kimiko.secToFrame(0.5);
+			this.backgroundColor = "rgb(255,64,64)";
+			var effectTime: number = kimiko.secToFrame(0.3);
 			this.visible = false;
-			this.tl
-			.delay(delay)
-			.then(() => this.visible = true)
-			.scaleTo(2.0, effectTime, enchant.Easing.SIN_EASEOUT)
-			.and().fadeOut(effectTime, enchant.Easing.SIN_EASEOUT)
-			.then(() => this.tl.removeFromScene());
+			this.tl.
+				delay(delay).
+				then(() => { this.visible = true; }).
+				scaleTo(2.0, effectTime, enchant.Easing.SIN_EASEOUT).
+				and().fadeOut(effectTime, enchant.Easing.SIN_EASEOUT).
+				removeFromParentNode();
 		},
 	});
 	

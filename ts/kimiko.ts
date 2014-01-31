@@ -452,9 +452,16 @@ module jp.osakana4242.utils {
 		}
 	}
 	
-	/**
-	 * enchant.Sprite拡張.
-	 */
+	/** enchant.tl.Timeline拡張. */
+	(function() {
+		enchant.tl.Timeline.prototype.removeFromParentNode = function() {
+			return this.then(function() {
+					this.parentNode.removeChild(this);
+			});
+		};
+	}());
+
+	/** enchant.Sprite拡張. */
 	(function() {
 		var orig = enchant.Sprite.prototype.initialize;
 		enchant.Sprite.prototype.initialize = function() {
@@ -468,12 +475,12 @@ module jp.osakana4242.utils {
 		actives: any[];
 		sleeps: any[];
 
-		constructor(capacity: number, makeSprite: () => any) {
+		constructor(capacity: number, makeSprite: (idx: number) => any) {
 			this.sleeps = [];
 			this.actives = [];
 
 			for (var i = 0, iNum = capacity; i < iNum; ++i) {
-				var spr = makeSprite();
+				var spr = makeSprite(i);
 				this.sleeps.push(spr);
 			}
 		}

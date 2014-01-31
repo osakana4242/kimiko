@@ -58,7 +58,7 @@ module jp.osakana4242.kimiko.scenes {
 			if (callback) {
 				film.tl.then(callback);
 			}
-			film.tl.removeFromScene();
+			film.tl.removeFromParentNode();
 		}
 
 		fadeOut(fadeFrame: number, callback: () => void = null): void {

@@ -398,6 +398,13 @@ var jp;
             })();
             utils.AnimSequencer = AnimSequencer;            
             ((function () {
+                enchant.tl.Timeline.prototype.removeFromParentNode = function () {
+                    return this.then(function () {
+                        this.parentNode.removeChild(this);
+                    });
+                };
+            })());
+            ((function () {
                 var orig = enchant.Sprite.prototype.initialize;
                 enchant.Sprite.prototype.initialize = function () {
                     orig.apply(this, arguments);
@@ -410,7 +417,7 @@ var jp;
                     this.sleeps = [];
                     this.actives = [];
                     for(var i = 0, iNum = capacity; i < iNum; ++i) {
-                        var spr = makeSprite();
+                        var spr = makeSprite(i);
                         this.sleeps.push(spr);
                     }
                 }
@@ -911,7 +918,7 @@ var jp;
                         if(callback) {
                             film.tl.then(callback);
                         }
-                        film.tl.removeFromScene();
+                        film.tl.removeFromParentNode();
                     };
                     Fader.prototype.fadeOut = function (fadeFrame, callback) {
                         if (typeof callback === "undefined") { callback = null; }
@@ -1311,7 +1318,6 @@ var jp;
                 });
                 scenes.Attacker = Class.create(enchant.Sprite, {
                     initialize: function () {
-                        var _this = this;
                         enchant.Sprite.call(this);
                         this.dirX = 1;
                         this.force = new osakana4242.utils.Vector2D();
@@ -1324,15 +1330,16 @@ var jp;
                         this.state = this.stateNeutral;
                         this.rectCollider_ = new osakana4242.utils.Rect();
                         this.workRect_ = new osakana4242.utils.Rect();
-                        this.addEventListener(Event.ENTER_FRAME, function () {
-                            _this.state();
-                            _this.life.step();
+                        function onEnterFrame() {
+                            this.state();
+                            this.life.step();
                             var visible = true;
-                            if(_this.life.isGhostTime()) {
-                                visible = (_this.life.ghostFrameCounter & 0x1) === 0;
+                            if(this.life.isGhostTime()) {
+                                visible = (this.life.ghostFrameCounter & 0x1) === 0;
                             }
-                            _this.visible = visible;
-                        });
+                            this.visible = visible;
+                        }
+                        this.addEventListener(Event.ENTER_FRAME, onEnterFrame);
                     },
                     stateToString: function () {
                         var dir = 0 <= this.dirX ? '>' : '<';
@@ -1369,10 +1376,10 @@ var jp;
                         this.visible = false;
                         this.state = this.stateDead;
                         for(var i = 0, iNum = 3; i < iNum; ++i) {
-                            var effect = new scenes.DeadEffect(this, i * kimiko.kimiko.core.fps * 0.2);
+                            var effect = new scenes.DeadEffect(this, i * kimiko.kimiko.core.fps * 0.1);
                             effect.x += Math.random() * 32 - 16;
                             effect.y += Math.random() * 32 - 16;
-                            this.parentNode.addChild(effect);
+                            this.scene.world.addChild(effect);
                         }
                     },
                     isDead: function () {
@@ -1390,7 +1397,6 @@ var jp;
                 });
                 scenes.EnemyA = Class.create(scenes.Attacker, {
                     initialize: function () {
-                        var _this = this;
                         scenes.Attacker.call(this);
                         this.enemyId = -1;
                         this.weapons = [];
@@ -1402,11 +1408,12 @@ var jp;
                         this.collider = new osakana4242.utils.Collider();
                         this.collider.parent = this;
                         this.life.setGhostFrameMax(kimiko.kimiko.secToFrame(0.2));
-                        this.addEventListener(Event.ENTER_FRAME, function () {
-                            for(var i = 0, iNum = _this.weaponNum; i < iNum; ++i) {
-                                _this.weapons[i].step();
+                        function stepWeapons() {
+                            for(var i = 0, iNum = this.weaponNum; i < iNum; ++i) {
+                                this.weapons[i].step();
                             }
-                        });
+                        }
+                        this.addEventListener(Event.ENTER_FRAME, stepWeapons);
                     },
                     weapon: {
                         get: function () {
@@ -1426,18 +1433,17 @@ var jp;
                     initialize: function (attacker, delay) {
                         var _this = this;
                         enchant.Sprite.call(this);
+                        this.name = "deadEffect";
                         this.width = attacker.width;
                         this.height = attacker.height;
                         this.center.x = attacker.center.x;
                         this.center.y = attacker.center.y;
-                        this.backgroundColor = attacker.backgroundColor;
-                        var effectTime = kimiko.kimiko.secToFrame(0.5);
+                        this.backgroundColor = "rgb(255,64,64)";
+                        var effectTime = kimiko.kimiko.secToFrame(0.3);
                         this.visible = false;
                         this.tl.delay(delay).then(function () {
-                            return _this.visible = true;
-                        }).scaleTo(2.0, effectTime, enchant.Easing.SIN_EASEOUT).and().fadeOut(effectTime, enchant.Easing.SIN_EASEOUT).then(function () {
-                            return _this.tl.removeFromScene();
-                        });
+                            _this.visible = true;
+                        }).scaleTo(2.0, effectTime, enchant.Easing.SIN_EASEOUT).and().fadeOut(effectTime, enchant.Easing.SIN_EASEOUT).removeFromParentNode();
                     }
                 });
             })(kimiko.scenes || (kimiko.scenes = {}));
@@ -2859,12 +2865,14 @@ var jp;
                         this.backgroundColor = "rgb(32, 32, 64)";
                         var sprite;
                         var world = new enchant.Group();
+                        world.name = "world";
                         this.world = world;
                         scene.addChild(world);
                         var map = new enchant.Map(kimiko.DF.MAP_TILE_W, kimiko.DF.MAP_TILE_H);
                         this.map = map;
                         this.mapOption = {
                         };
+                        map.name = "map";
                         map.image = kimiko.kimiko.core.assets[kimiko.Assets.IMAGE_MAP];
                         map.x = 0;
                         map.y = 0;
@@ -2874,10 +2882,12 @@ var jp;
                         world.addChild(map);
                         var camera = new scenes.Camera();
                         this.camera = camera;
+                        camera.name = "camera";
                         camera.targetGroup = world;
                         world.addChild(camera);
                         sprite = new scenes.Player();
                         this.player = sprite;
+                        sprite.name = "player";
                         world.addChild(sprite);
                         sprite.x = 0;
                         sprite.y = this.map.height - sprite.height;
@@ -2933,8 +2943,9 @@ var jp;
                             var spr = new scenes.EnemyBullet();
                             return spr;
                         });
-                        this.effectPool = new osakana4242.utils.SpritePool(64, function () {
+                        this.effectPool = new osakana4242.utils.SpritePool(64, function (idx) {
                             var spr = new enchant.Sprite(16, 16);
+                            spr.name = "effect" + idx;
                             spr.ageMax = 0;
                             spr.anim.loopListener = function () {
                                 _this.effectPool.free(spr);
@@ -3117,6 +3128,7 @@ var jp;
                         ((function () {
                             var mapCharaMgr = _this.mapCharaMgr;
                             var layer = mapData.layers[1];
+                            var enemyIdx = 0;
                             eachTiles(layer.tiles, function (charaId, x, y, tiles) {
                                 if(charaId === -1) {
                                     return;
@@ -3141,6 +3153,7 @@ var jp;
                                     enemy.x = enemy.anchor.x = center;
                                     enemy.y = enemy.anchor.y = bottom;
                                     data.brain(enemy);
+                                    enemy.name = "enemy" + (++enemyIdx);
                                     mapCharaMgr.addSleep(enemy);
                                 }
                             });
@@ -3266,6 +3279,7 @@ var jp;
                         var lifeText = osakana4242.utils.StringUtil.mul("o", player.life.hp) + osakana4242.utils.StringUtil.mul("_", player.life.hpMax - player.life.hp);
                         texts[0][0] = "SC " + kimiko.kimiko.playerData.score + " " + "TIME " + Math.floor(kimiko.kimiko.frameToSec(pd.restTimeCounter));
                         texts[1][0] = "LIFE " + lifeText + " " + "WALL " + player.wallPushDir.x + "," + player.wallPushDir.y + " " + (player.targetEnemy ? "LOCK" : "    ") + " " + "";
+                        texts[2][0] = "nodes " + scene.world.childNodes.length;
                         for(var i = 0, iNum = texts.length; i < iNum; ++i) {
                             var line = texts[i].join(" ");
                             this.labels[i].text = line;
