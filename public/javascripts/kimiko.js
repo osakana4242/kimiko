@@ -1656,10 +1656,10 @@ var jp;
                                 isNext = false;
                             } else {
                                 var dist = mag;
-                                var speed = kimiko.kimiko.dpsToDpf(2 * kimiko.DF.BASE_FPS);
+                                var speed = kimiko.kimiko.dpsToDpf(1 * kimiko.DF.BASE_FPS);
                                 dir.x = dir.x * dist / mag;
                                 dir.y = dir.y * dist / mag;
-                                var frame = Math.floor(dist / speed);
+                                var frame = (speed === 0) ? 1 : Math.max(Math.floor(dist / speed), 1);
                                 sprite.tl.moveTo(sprite.x + dir.x, sprite.y + dir.y, frame).delay(kimiko.kimiko.secToFrame(0.2)).waitUntil(f1);
                                 isNext = true;
                             }
