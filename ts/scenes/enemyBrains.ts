@@ -139,7 +139,7 @@ module jp.osakana4242.kimiko.scenes {
 				moveBy( -32 * 4 * 0.5,  32 * 3, kimiko.secToFrame( 0.5 ) ).
 				delay( kimiko.secToFrame( 0.25 ) ).
 				then(() => {
-					if (1 <= sprite.enemyData.level) {
+					if (2 <= sprite.enemyData.level) {
 						sprite.weapon.lookAtPlayer();
 						sprite.weapon.startFire();
 					}

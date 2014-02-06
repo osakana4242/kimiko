@@ -1572,7 +1572,7 @@ var jp;
                         var anchor = sprite.anchor;
                         sprite.weapon.fireFunc = scenes.WeaponA.fireA;
                         sprite.tl.moveBy(-32 * 4 * 0.5, -32 * 3, kimiko.kimiko.secToFrame(0.5)).moveBy(-32 * 4 * 0.5, 32 * 3, kimiko.kimiko.secToFrame(0.5)).delay(kimiko.kimiko.secToFrame(0.25)).then(function () {
-                            if(1 <= sprite.enemyData.level) {
+                            if(2 <= sprite.enemyData.level) {
                                 sprite.weapon.lookAtPlayer();
                                 sprite.weapon.startFire();
                             }
