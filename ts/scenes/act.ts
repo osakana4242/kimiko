@@ -967,7 +967,7 @@ module jp.osakana4242.kimiko.scenes {
 						enemy.life.hp = enemy.life.hpMax;
 						data.body(enemy);
 						
-						var center = left + (enemy.width / 2);
+						var center = left + (DF.MAP_TILE_W - enemy.width) / 2;
 						var bottom = top + (DF.MAP_TILE_H - enemy.height);
 						enemy.x = enemy.anchor.x = center;
 						enemy.y = enemy.anchor.y = bottom;
