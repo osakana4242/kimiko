@@ -504,7 +504,7 @@ var jp;
                 DF.SC2_Y2 = DF.SC2_Y1 + DF.SC2_H;
                 DF.MAP_TILE_W = 32;
                 DF.MAP_TILE_H = 32;
-                DF.ENEMY_SPAWN_RECT_MARGIN = 64;
+                DF.ENEMY_SPAWN_RECT_MARGIN = 8;
                 DF.ENEMY_SLEEP_RECT_MARGIN = 128;
                 DF.PLAYER_COLOR = "rgb(240, 240, 240)";
                 DF.PLAYER_DAMAGE_COLOR = "rgb(240, 240, 120)";
@@ -1583,7 +1583,7 @@ var jp;
                         var anchor = sprite.anchor;
                         sprite.weapon.fireFunc = scenes.WeaponA.fireA;
                         sprite.tl.moveBy(-32 * 4 * 0.5, 32 * 3, kimiko.kimiko.secToFrame(0.5)).moveBy(-32 * 4 * 0.5, -32 * 3, kimiko.kimiko.secToFrame(0.5)).delay(kimiko.kimiko.secToFrame(0.25)).then(function () {
-                            if(1 <= sprite.enemyData.level) {
+                            if(2 <= sprite.enemyData.level) {
                                 sprite.weapon.lookAtPlayer();
                                 sprite.weapon.startFire();
                             }
@@ -1669,109 +1669,6 @@ var jp;
                         sprite.tl.waitUntil(f1);
                     }
                     EnemyBrains.brain9 = brain9;
-                    function brainX(sprite) {
-                        var anchor = sprite.anchor;
-                        var range = 48;
-                        var waitFire = function () {
-                            return !sprite.weapon.isStateFire();
-                        };
-                        sprite.tl.moveTo(anchor.x + range, anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).moveTo(anchor.x, anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).loop();
-                    }
-                    EnemyBrains.brainX = brainX;
-                    function brainX1(sprite) {
-                        var anchor = sprite.anchor;
-                        var range = 48;
-                        var fire = function () {
-                            var player = sprite.scene.player;
-                            var wp = sprite.weapon;
-                            wp.wayNum = 1;
-                            wp.speed = kimiko.kimiko.dpsToDpf(1.5 * kimiko.DF.BASE_FPS);
-                            wp.dir.x = player.x - sprite.x;
-                            wp.dir.y = 0;
-                            wp.fireFunc = scenes.WeaponA.fireA;
-                            wp.lookAtPlayer();
-                            osakana4242.utils.Vector2D.normalize(wp.dir);
-                            wp.startFire();
-                        };
-                        var waitFire = function () {
-                            return !sprite.weapon.isStateFire();
-                        };
-                        sprite.tl.moveTo(anchor.x, anchor.y - range, kimiko.kimiko.secToFrame(2.0), Easing.SIN_EASEINOUT).then(fire).waitUntil(waitFire).moveTo(anchor.x, anchor.y, kimiko.kimiko.secToFrame(2.0), Easing.SIN_EASEINOUT).then(fire).waitUntil(waitFire).loop();
-                    }
-                    EnemyBrains.brainX1 = brainX1;
-                    function brainX2(sprite) {
-                        var anchor = sprite.anchor;
-                        var range = 16;
-                        var waitFire = function () {
-                            return !sprite.weapon.isStateFire();
-                        };
-                        sprite.weapon.fireFunc = scenes.WeaponA.fireA;
-                        sprite.tl.moveTo(sprite.anchor.x + range, sprite.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).then(function () {
-                            var wp = sprite.weapon;
-                            wp.dir.x = 1;
-                            wp.dir.y = 0;
-                            wp.startFire();
-                        }).waitUntil(waitFire).moveTo(sprite.anchor.x - range, sprite.anchor.y, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).then(function () {
-                            var wp = sprite.weapon;
-                            wp.dir.x = -1;
-                            wp.dir.y = 0;
-                            wp.startFire();
-                        }).waitUntil(waitFire).then(function () {
-                            var player = sprite.scene.player;
-                            var wp = sprite.weapon;
-                            wp.dir.x = player.center.x - sprite.center.x;
-                            wp.dir.y = player.center.y - sprite.center.y;
-                            osakana4242.utils.Vector2D.normalize(wp.dir);
-                            wp.startFire();
-                        }).waitUntil(waitFire).moveTo(sprite.anchor.x, sprite.anchor.y - 32, kimiko.kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN).then(function () {
-                            var wp = sprite.weapon;
-                            wp.dir.x = -1;
-                            wp.dir.y = 0;
-                            wp.startFire();
-                        }).waitUntil(waitFire).loop();
-                    }
-                    EnemyBrains.brainX2 = brainX2;
-                    function brainX3(sprite) {
-                        var anchor = sprite.anchor;
-                        var range = 16;
-                        var waitFire = function () {
-                            return !sprite.weapon.isStateFire();
-                        };
-                        function fireToPlayer() {
-                            var player = sprite.scene.player;
-                            var wp = sprite.weapon;
-                            wp.fireCount = 1;
-                            wp.wayNum = 1;
-                            wp.dir.x = player.center.x - sprite.center.x;
-                            wp.dir.y = player.center.y - sprite.center.y;
-                            wp.fireFunc = scenes.WeaponA.fireA;
-                            osakana4242.utils.Vector2D.normalize(wp.dir);
-                            wp.startFire();
-                        }
-                        sprite.tl.delay(kimiko.kimiko.secToFrame(0.5)).moveBy(0, -16, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, 16, kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, -8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).moveBy(0, 8, kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire).then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire).then(fireToPlayer).moveBy(8, 0, kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire).delay(kimiko.kimiko.secToFrame(0.5)).moveTo(sprite.anchor.x, sprite.anchor.y, kimiko.kimiko.secToFrame(0.5), Easing.LINEAR).loop();
-                    }
-                    EnemyBrains.brainX3 = brainX3;
-                    function brainX4(sprite) {
-                        var anchor = sprite.anchor;
-                        anchor.x -= 120;
-                        anchor.y -= 16;
-                        var range = 240;
-                        sprite.y = anchor.y;
-                        var totalFrame = kimiko.kimiko.secToFrame(8.0);
-                        function fireToPlayer() {
-                            var player = sprite.scene.player;
-                            var wp = sprite.weapon;
-                            wp.fireCount = 1;
-                            wp.wayNum = 1;
-                            wp.dir.x = player.center.x - sprite.center.x;
-                            wp.dir.y = 0;
-                            wp.fireFunc = scenes.WeaponA.fireA;
-                            osakana4242.utils.Vector2D.normalize(wp.dir);
-                            wp.startFire();
-                        }
-                        sprite.tl.then(fireToPlayer).moveTo(anchor.x - range, anchor.y, totalFrame * 0.5, Easing.LINEAR).then(fireToPlayer).moveTo(anchor.x + range, anchor.y, totalFrame * 0.5, Easing.LINEAR).loop();
-                    }
-                    EnemyBrains.brainX4 = brainX4;
                     function brainBoss(sprite) {
                         var anchor = sprite.anchor;
                         var waitFire = function () {
@@ -1876,14 +1773,14 @@ var jp;
                         score: 100
                     },
                     1: {
-                        hpMax: 1,
+                        hpMax: 2,
                         level: 1,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain1,
                         score: 100
                     },
                     2: {
-                        hpMax: 1,
+                        hpMax: 2,
                         level: 1,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain2,

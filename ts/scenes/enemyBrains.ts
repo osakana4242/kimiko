@@ -160,7 +160,7 @@ module jp.osakana4242.kimiko.scenes {
 				moveBy( -32 * 4 * 0.5, -32 * 3, kimiko.secToFrame( 0.5 ) ).
 				delay( kimiko.secToFrame( 0.25 ) ).
 				then(() => {
-					if (1 <= sprite.enemyData.level) {
+					if (2 <= sprite.enemyData.level) {
 						sprite.weapon.lookAtPlayer();
 						sprite.weapon.startFire();
 					}
@@ -290,159 +290,6 @@ module jp.osakana4242.kimiko.scenes {
 			}
 			sprite.tl.
 				waitUntil(f1);
-		}
-
-		// 左右に行ったりきたり
-		export function brainX(sprite: any): void {
-			var anchor = sprite.anchor;
-			var range = 48;
-			var waitFire = () => { return !sprite.weapon.isStateFire(); };
-			sprite.tl
-				.moveTo(anchor.x + range, anchor.y, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN)
-				.moveTo(anchor.x, anchor.y, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN)
-				.loop();
-		}
-
-		// 上下にふわふわ.
-		export function brainX1(sprite: any): void {
-			var anchor = sprite.anchor;
-			var range = 48;
-			var fire = () => {
-					// X方向だけプレイヤーに合わせて発泡する.
-				var player = sprite.scene.player;
-				var wp: WeaponA = sprite.weapon;
-				wp.wayNum = 1;
-				wp.speed = kimiko.dpsToDpf(1.5 * DF.BASE_FPS);
-				wp.dir.x = player.x - sprite.x;
-				wp.dir.y = 0;
-				wp.fireFunc = WeaponA.fireA;
-				wp.lookAtPlayer();
-				utils.Vector2D.normalize(wp.dir);
-				wp.startFire();
-				
-			};
-			var waitFire = () => { return !sprite.weapon.isStateFire(); };
-			
-			sprite.tl.
-				moveTo(anchor.x, anchor.y - range, kimiko.secToFrame(2.0), Easing.SIN_EASEINOUT).
-				then(fire).waitUntil(waitFire).
-				moveTo(anchor.x, anchor.y, kimiko.secToFrame(2.0), Easing.SIN_EASEINOUT).
-				then(fire).waitUntil(waitFire).
-				loop();
-		}
-
-		// 三角形
-		export function brainX2(sprite: any): void {
-			var anchor = sprite.anchor;
-			var range = 16;
-			var waitFire = () => { return !sprite.weapon.isStateFire(); };
-			sprite.weapon.fireFunc = WeaponA.fireA;
-	
-			sprite.tl
-				.moveTo(sprite.anchor.x + range, sprite.anchor.y, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN)
-				.then(() => {
-					var wp: WeaponA = sprite.weapon;
-					wp.dir.x = 1;
-					wp.dir.y = 0;
-					wp.startFire();
-				})
-				.waitUntil(waitFire)
-				.moveTo(sprite.anchor.x - range, sprite.anchor.y, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN)
-				.then(() => {
-					var wp: WeaponA = sprite.weapon;
-					wp.dir.x = -1;
-					wp.dir.y = 0;
-					wp.startFire();
-				})
-				.waitUntil(waitFire)
-				.then(() => {
-					// プレイヤーの向きを求める.
-					var player = sprite.scene.player;
-					var wp: WeaponA = sprite.weapon;
-					wp.dir.x = player.center.x - sprite.center.x;
-					wp.dir.y = player.center.y - sprite.center.y;
-					utils.Vector2D.normalize(wp.dir);
-					wp.startFire();
-				})
-				.waitUntil(waitFire)
-				.moveTo(sprite.anchor.x, sprite.anchor.y - 32, kimiko.secToFrame(1.0), Easing.CUBIC_EASEIN)
-				.then(() => {
-					var wp: WeaponA = sprite.weapon;
-					wp.dir.x = -1;
-					wp.dir.y = 0;
-					wp.startFire();
-				})
-				.waitUntil(waitFire)
-				.loop();
-		}
-
-		// 連射マン.
-		export function brainX3(sprite: any): void {
-			var anchor = sprite.anchor;
-			var range = 16;
-
-			var waitFire = () => { return !sprite.weapon.isStateFire(); };
-			function fireToPlayer() {
-				// プレイヤーの向きを求める.
-				var player = sprite.scene.player;
-				var wp: WeaponA = sprite.weapon;
-				wp.fireCount = 1;
-				wp.wayNum = 1;
-				wp.dir.x = player.center.x - sprite.center.x;
-				wp.dir.y = player.center.y - sprite.center.y;
-				wp.fireFunc = WeaponA.fireA;
-				utils.Vector2D.normalize(wp.dir);
-				wp.startFire();
-			}
-			sprite.tl
-				.delay(kimiko.secToFrame(0.5))
-				.moveBy(0, -16, kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT)
-				.moveBy(0,  16, kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT)
-				.moveBy(0, -8, kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT)
-				.moveBy(0, 8, kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT)
-				.then(fireToPlayer)
-				.moveBy(8, 0, kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT)
-				.delay(kimiko.secToFrame(0.5))
-				.waitUntil(waitFire)
-				.then(fireToPlayer)
-				.moveBy(8, 0, kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT)
-				.delay(kimiko.secToFrame(0.5))
-				.waitUntil(waitFire)
-				.then(fireToPlayer)
-				.moveBy(8, 0, kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT)
-				.delay(kimiko.secToFrame(0.5))
-				.waitUntil(waitFire)
-				.delay(kimiko.secToFrame(0.5))
-				.moveTo(sprite.anchor.x, sprite.anchor.y, kimiko.secToFrame(0.5), Easing.LINEAR)
-				.loop();
-		}
-
-		// 左右に行ったりきたり
-		export function brainX4(sprite: any): void {
-			var anchor = sprite.anchor;
-			anchor.x -= 120;
-			anchor.y -= 16;
-			var range = 240;
-			sprite.y = anchor.y;
-			var totalFrame = kimiko.secToFrame(8.0);
-			function fireToPlayer() {
-				// プレイヤーの向きを求める.
-				var player = sprite.scene.player;
-				var wp: WeaponA = sprite.weapon;
-				wp.fireCount = 1;
-				wp.wayNum = 1;
-				wp.dir.x = player.center.x - sprite.center.x;
-				wp.dir.y = 0; // player.center.y - sprite.center.y;
-				wp.fireFunc = WeaponA.fireA;
-				utils.Vector2D.normalize(wp.dir);
-				wp.startFire();
-			}
-			sprite.tl.
-				then(fireToPlayer).
-				moveTo(anchor.x - range, anchor.y, totalFrame * 0.5, Easing.LINEAR).
-				then(fireToPlayer).
-				moveTo(anchor.x + range, anchor.y, totalFrame * 0.5, Easing.LINEAR).
-				loop();
 		}
 
 		// BOSS.
@@ -602,7 +449,7 @@ module jp.osakana4242.kimiko.scenes {
 		},
 
 		0x1: {
-			hpMax: 1,
+			hpMax: 2,
 			level: 1,
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain1,
@@ -610,7 +457,7 @@ module jp.osakana4242.kimiko.scenes {
 		},
 
 		0x2: {
-			hpMax: 1,
+			hpMax: 2,
 			level: 1,
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain2,
