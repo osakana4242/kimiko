@@ -317,11 +317,11 @@ module jp.osakana4242.kimiko.scenes {
 				this.isSlowMove = kimiko.core.input.a;
 				if (flag !== 0) {
 					if (this.isSlowMove) {
-						this.inputForce.x = DF.DIR_FLAG_TO_VECTOR2D[flag].x * 2;
-						this.inputForce.y = DF.DIR_FLAG_TO_VECTOR2D[flag].y * 2;
+						this.inputForce.x = DF.DIR_FLAG_TO_VECTOR2D[flag].x * kimiko.dpsToDpf(2 * 60);
+						this.inputForce.y = DF.DIR_FLAG_TO_VECTOR2D[flag].y * kimiko.dpsToDpf(2 * 60);
 					} else {
-						this.inputForce.x = DF.DIR_FLAG_TO_VECTOR2D[flag].x * 4;
-						this.inputForce.y = DF.DIR_FLAG_TO_VECTOR2D[flag].y * 4;
+						this.inputForce.x = DF.DIR_FLAG_TO_VECTOR2D[flag].x * kimiko.dpsToDpf(4 * 60);
+						this.inputForce.y = DF.DIR_FLAG_TO_VECTOR2D[flag].y * kimiko.dpsToDpf(4 * 60);
 					}
 				}
 			},
@@ -330,28 +330,7 @@ module jp.osakana4242.kimiko.scenes {
 				var scene = this.scene;
 				var player = this;
 				var touch: utils.Touch = scene.touch;
-				if (!touch.isTouching) {
-					var input = kimiko.core.input;
-					var flag =
-						((input.left  ? 1 : 0) << 0) |
-						((input.right ? 1 : 0) << 1) |
-						((input.up    ? 1 : 0) << 2) |
-						((input.down  ? 1 : 0) << 3);
-					var isSlow: bool = kimiko.core.input.a;
-					if (isSlow) {
-						player.inputForce.x = 0;
-						player.inputForce.y = 0;
-					}
-					if (flag !== 0) {
-						if (isSlow) {
-							player.inputForce.x = DF.DIR_FLAG_TO_VECTOR2D[flag].x * 2;
-							player.inputForce.y = DF.DIR_FLAG_TO_VECTOR2D[flag].y * 2;
-						} else {
-							player.inputForce.x = DF.DIR_FLAG_TO_VECTOR2D[flag].x * 4;
-							player.inputForce.y = DF.DIR_FLAG_TO_VECTOR2D[flag].y * 4;
-						}
-					}
-				} else {
+				if (touch.isTouching) {
 					var moveLimit = DF.TOUCH_TO_CHARA_MOVE_LIMIT;
 					var moveRate = kimiko.config.swipeToMoveRate;
 					if (DF.PLAYER_TOUCH_ANCHOR_ENABLE) {
