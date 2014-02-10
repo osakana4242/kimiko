@@ -166,7 +166,8 @@ module jp.osakana4242.kimiko.scenes {
 		},
 
 		damage: function (attacker?: any) {
-			this.life.damage(1);
+			var damageValue = kimiko.config.isDamageEnabled ? 1 : 0;
+			this.life.damage(damageValue);
 			if (this.life.isAlive()) {
 				this.state = this.stateDamage;
 			} else {

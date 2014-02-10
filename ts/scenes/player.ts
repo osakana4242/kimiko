@@ -169,6 +169,9 @@ module jp.osakana4242.kimiko.scenes {
 			},
 
 			attack: function () {
+				if (!kimiko.config.isFireEnabled) {
+					return;
+				}
 				var bullet = this.scene.newOwnBullet();
 				if (bullet === null) {
 					return;

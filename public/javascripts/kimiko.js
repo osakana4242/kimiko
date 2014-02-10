@@ -1373,7 +1373,8 @@ var jp;
                         this.state = this.stateNeutral;
                     },
                     damage: function (attacker) {
-                        this.life.damage(1);
+                        var damageValue = kimiko.kimiko.config.isDamageEnabled ? 1 : 0;
+                        this.life.damage(damageValue);
                         if(this.life.isAlive()) {
                             this.state = this.stateDamage;
                         } else {
@@ -2009,6 +2010,9 @@ var jp;
                         return str;
                     },
                     attack: function () {
+                        if(!kimiko.kimiko.config.isFireEnabled) {
+                            return;
+                        }
                         var bullet = this.scene.newOwnBullet();
                         if(bullet === null) {
                             return;

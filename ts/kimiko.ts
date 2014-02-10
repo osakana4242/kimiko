@@ -765,6 +765,10 @@ module jp.osakana4242.kimiko {
 	export interface IConfig {
 		fps: number;
 		isSoundEnabled: bool;
+		/** プレイヤーが発砲するか. */
+		isFireEnabled: bool;
+		/** プレイヤー、敵がダメージを受けるか. */
+		isDamageEnabled: bool;
 		swipeToMoveRate: utils.IVector2D;
 		version: string;
 	}
