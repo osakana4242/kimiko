@@ -1771,91 +1771,104 @@ var jp;
                         level: 1,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain1,
-                        score: 100
+                        score: 100,
+                        align: "center middle"
                     },
                     1: {
                         hpMax: 2,
                         level: 1,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain1,
-                        score: 100
+                        score: 100,
+                        align: "center middle"
                     },
                     2: {
                         hpMax: 2,
                         level: 1,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain2,
-                        score: 100
+                        score: 100,
+                        align: "center middle"
                     },
                     3: {
                         hpMax: 2,
                         level: 1,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain3,
-                        score: 100
+                        score: 100,
+                        align: "center middle"
                     },
                     4: {
                         hpMax: 2,
                         level: 1,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain4,
-                        score: 100
+                        score: 100,
+                        align: "center top"
                     },
                     5: {
                         hpMax: 16,
                         level: 1,
                         body: EnemyBodys.body4,
                         brain: EnemyBrains.brain5,
-                        score: 100
+                        score: 100,
+                        align: "center middle"
                     },
                     6: {
                         hpMax: 2,
                         level: 1,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain6,
-                        score: 100
+                        score: 100,
+                        align: "center middle"
                     },
                     7: {
                         hpMax: 2,
                         level: 1,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain7,
-                        score: 100
+                        score: 100,
+                        align: "center middle"
                     },
                     8: {
                         hpMax: 2,
                         level: 1,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain8,
-                        score: 100
+                        score: 100,
+                        align: "center middle"
                     },
                     9: {
                         hpMax: 2,
                         level: 1,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain9,
-                        score: 100
+                        score: 100,
+                        align: "center middle"
                     },
                     10: {
                         hpMax: 2,
                         level: 2,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain6,
-                        score: 100
+                        score: 100,
+                        align: "center middle"
                     },
                     11: {
                         hpMax: 2,
                         level: 2,
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain7,
-                        score: 100
+                        score: 100,
+                        align: "center middle"
                     },
                     15: {
                         hpMax: 100,
                         level: 1,
                         body: EnemyBodys.body2,
                         brain: EnemyBrains.brainBoss,
-                        score: 1000
+                        score: 1000,
+                        align: "center middle"
                     }
                 };
             })(kimiko.scenes || (kimiko.scenes = {}));
@@ -3066,10 +3079,41 @@ var jp;
                                     enemy.life.hpMax = data.hpMax;
                                     enemy.life.hp = enemy.life.hpMax;
                                     data.body(enemy);
-                                    var center = left + (kimiko.DF.MAP_TILE_W - enemy.width) / 2;
-                                    var bottom = top + (kimiko.DF.MAP_TILE_H - enemy.height);
-                                    enemy.x = enemy.anchor.x = center;
-                                    enemy.y = enemy.anchor.y = bottom;
+                                    var anchorX = left;
+                                    var anchorY = top;
+                                    var aligns = data.align.split(" ");
+                                    var alignH = aligns[0];
+                                    var alignV = aligns[1];
+                                    switch(alignH) {
+                                        case "left":
+                                            anchorX = left;
+                                            break;
+                                        case "center":
+                                            anchorX = left + (kimiko.DF.MAP_TILE_W - enemy.width) / 2;
+                                            break;
+                                        case "right":
+                                            anchorX = left + kimiko.DF.MAP_TILE_W - enemy.width;
+                                            break;
+                                        default:
+                                            console.log("unknown case:" + alignH);
+                                            break;
+                                    }
+                                    switch(alignV) {
+                                        case "top":
+                                            anchorY = top;
+                                            break;
+                                        case "middle":
+                                            anchorY = top + (kimiko.DF.MAP_TILE_H - enemy.height) / 2;
+                                            break;
+                                        case "bottom":
+                                            anchorY = top + kimiko.DF.MAP_TILE_H - enemy.height;
+                                            break;
+                                        default:
+                                            console.log("unknown case:" + alignV);
+                                            break;
+                                    }
+                                    enemy.x = enemy.anchor.x = anchorX;
+                                    enemy.y = enemy.anchor.y = anchorY;
                                     data.brain(enemy);
                                     enemy.name = "enemy" + (++enemyIdx);
                                     mapCharaMgr.addSleep(enemy);

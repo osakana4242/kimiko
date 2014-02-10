@@ -967,10 +967,44 @@ module jp.osakana4242.kimiko.scenes {
 						enemy.life.hp = enemy.life.hpMax;
 						data.body(enemy);
 						
-						var center = left + (DF.MAP_TILE_W - enemy.width) / 2;
-						var bottom = top + (DF.MAP_TILE_H - enemy.height);
-						enemy.x = enemy.anchor.x = center;
-						enemy.y = enemy.anchor.y = bottom;
+						// セルのどこに吸着させるか.
+						var anchorX = left;
+						var anchorY = top;
+
+						var aligns = data.align.split(" ");
+						var alignH = aligns[0];
+						var alignV = aligns[1];
+						switch(alignH) {
+						case "left":
+							anchorX = left;
+							break;
+						case "center":
+							anchorX = left + (DF.MAP_TILE_W - enemy.width) / 2;
+							break;
+						case "right":
+							anchorX = left + DF.MAP_TILE_W - enemy.width;
+							break;
+						default:
+							console.log("unknown case:" + alignH);
+							break;
+						}
+						switch(alignV) {
+						case "top":
+							anchorY = top;
+							break;
+						case "middle":
+							anchorY = top + (DF.MAP_TILE_H - enemy.height) / 2;
+							break;
+						case "bottom":
+							anchorY = top + DF.MAP_TILE_H - enemy.height;
+							break;
+						default:
+							console.log("unknown case:" + alignV);
+							break;
+						}
+						
+						enemy.x = enemy.anchor.x = anchorX;
+						enemy.y = enemy.anchor.y = anchorY;
 						data.brain(enemy);
 						enemy.name = "enemy" + (++enemyIdx);
 						mapCharaMgr.addSleep(enemy);

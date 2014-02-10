@@ -438,6 +438,7 @@ module jp.osakana4242.kimiko.scenes {
 		body: (sprite: any) => void;
 		brain: any;
 		score: number;
+		align: string;
 	}
 	export var EnemyData: { [index: number]: IEnemyData; } = <any>{
 		0x0: {
@@ -446,6 +447,7 @@ module jp.osakana4242.kimiko.scenes {
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain1,
 			score: 100,
+			align: "center middle",
 		},
 
 		0x1: {
@@ -454,6 +456,7 @@ module jp.osakana4242.kimiko.scenes {
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain1,
 			score: 100,
+			align: "center middle",
 		},
 
 		0x2: {
@@ -462,6 +465,7 @@ module jp.osakana4242.kimiko.scenes {
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain2,
 			score: 100,
+			align: "center middle",
 		},
 
 		0x3: {
@@ -470,6 +474,7 @@ module jp.osakana4242.kimiko.scenes {
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain3,
 			score: 100,
+			align: "center middle",
 		},
 
 		0x4: {
@@ -478,6 +483,7 @@ module jp.osakana4242.kimiko.scenes {
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain4,
 			score: 100,
+			align: "center top",
 		},
 		0x5: {
 			hpMax: 16,
@@ -485,6 +491,7 @@ module jp.osakana4242.kimiko.scenes {
 			body: EnemyBodys.body4,
 			brain: EnemyBrains.brain5,
 			score: 100,
+			align: "center middle",
 		},
 		0x6: {
 			hpMax: 2,
@@ -492,6 +499,7 @@ module jp.osakana4242.kimiko.scenes {
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain6,
 			score: 100,
+			align: "center middle",
 		},
 		0x7: {
 			hpMax: 2,
@@ -499,6 +507,7 @@ module jp.osakana4242.kimiko.scenes {
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain7,
 			score: 100,
+			align: "center middle",
 		},
 		0x8: {
 			hpMax: 2,
@@ -506,6 +515,7 @@ module jp.osakana4242.kimiko.scenes {
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain8,
 			score: 100,
+			align: "center middle",
 		},
 		0x9: {
 			hpMax: 2,
@@ -513,6 +523,7 @@ module jp.osakana4242.kimiko.scenes {
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain9,
 			score: 100,
+			align: "center middle",
 		},
 		0xa: {
 			hpMax: 2,
@@ -520,6 +531,7 @@ module jp.osakana4242.kimiko.scenes {
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain6,
 			score: 100,
+			align: "center middle",
 		},
 		0xb: {
 			hpMax: 2,
@@ -527,6 +539,7 @@ module jp.osakana4242.kimiko.scenes {
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain7,
 			score: 100,
+			align: "center middle",
 		},
 		// boss.
 		0xf: {
@@ -535,6 +548,7 @@ module jp.osakana4242.kimiko.scenes {
 			body: EnemyBodys.body2,
 			brain: EnemyBrains.brainBoss,
 			score: 1000,
+			align: "center middle",
 		},
 	};
 
