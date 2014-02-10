@@ -1553,7 +1553,7 @@ var jp;
                                 var speed = kimiko.kimiko.dpsToDpf(2 * kimiko.DF.BASE_FPS);
                                 dir.x = dir.x * dist / mag;
                                 dir.y = dir.y * dist / mag;
-                                var frame = Math.floor(dist / speed);
+                                var frame = (speed === 0) ? 1 : Math.max(Math.floor(dist / speed), 1);
                                 sprite.tl.moveTo(sprite.x + dir.x, sprite.y + dir.y, frame).then(function () {
                                     if(2 <= sprite.enemyData.level) {
                                         sprite.weapon.lookAtPlayer();
