@@ -2340,12 +2340,16 @@ var jp;
                     },
                     updateBodyStyle: function () {
                         // body style
+                        this.scaleY = 1;
                         var nextBodyStyle = this.bodyStyle;
                         if (this.life.isDead()) {
                             nextBodyStyle = this.bodyStyles.dead;
                         } else if (0 < this.wallPushDir.y) {
                             // しゃがみ判定.
                             // 横の移動量が規定範囲内 + 接地した状態で地面方向に力がかかってる状態.
+                            nextBodyStyle = this.bodyStyles.squat;
+                        } else if (this.wallPushDir.y < 0) {
+                            this.scaleY = -1;
                             nextBodyStyle = this.bodyStyles.squat;
                         } else if (!jp.osakana4242.utils.Vector2D.equals(this.inputForce, jp.osakana4242.utils.Vector2D.zero)) {
                             nextBodyStyle = this.bodyStyles.walk;
@@ -2355,6 +2359,11 @@ var jp;
 
                         if (this.bodyStyle !== nextBodyStyle) {
                             this.bodyStyle = nextBodyStyle;
+                        }
+                    },
+                    isBodyStyleSquat: {
+                        get: function () {
+                            return this.bodyStyle === this.bodyStyles.squat;
                         }
                     },
                     stepMove: function () {
@@ -2576,6 +2585,13 @@ var jp;
 
                         // 指で操作する関係で下方向に余裕を持たせる.
                         this._targetPos.y = node.center.y - (camera.height / 2) + 24;
+                        if (node.isBodyStyleSquat) {
+                            if (node.scaleY < 0) {
+                                this._targetPos.y -= 16;
+                            } else {
+                                this._targetPos.y += 16;
+                            }
+                        }
                         return this._targetPos;
                     },
                     onenterframe: function () {
@@ -3651,7 +3667,7 @@ var jp;
                         camera.limitRect.x = 0;
                         camera.limitRect.y = 0;
                         camera.limitRect.width = map.width;
-                        camera.limitRect.height = map.height + (jp.osakana4242.kimiko.DF.SC1_H / 2);
+                        camera.limitRect.height = map.height; // + (DF.SC1_H / 2);
 
                         var player = this.player;
                         jp.osakana4242.utils.Rect.copyFrom(player.limitRect, camera.limitRect);

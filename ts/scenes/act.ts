@@ -1018,7 +1018,7 @@ module jp.osakana4242.kimiko.scenes {
 			camera.limitRect.x = 0;
 			camera.limitRect.y = 0;
 			camera.limitRect.width = map.width;
-			camera.limitRect.height = map.height + (DF.SC1_H / 2);
+			camera.limitRect.height = map.height;// + (DF.SC1_H / 2);
 			
 			var player = this.player;
 			utils.Rect.copyFrom(player.limitRect, camera.limitRect);

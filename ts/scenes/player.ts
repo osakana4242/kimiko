@@ -181,12 +181,16 @@ module jp.osakana4242.kimiko.scenes {
 			
 			updateBodyStyle: function () {
 				// body style
+				this.scaleY = 1;
 				var nextBodyStyle = this.bodyStyle;
 				if (this.life.isDead()) {
 					nextBodyStyle = this.bodyStyles.dead;
 				} else if (0 < this.wallPushDir.y) {
 					// しゃがみ判定.
 					// 横の移動量が規定範囲内 + 接地した状態で地面方向に力がかかってる状態.
+					nextBodyStyle = this.bodyStyles.squat;
+				} else if (this.wallPushDir.y < 0) {
+					this.scaleY = -1;
 					nextBodyStyle = this.bodyStyles.squat;
 				} else if (!utils.Vector2D.equals(this.inputForce, utils.Vector2D.zero)) {
 					nextBodyStyle = this.bodyStyles.walk;
@@ -197,6 +201,12 @@ module jp.osakana4242.kimiko.scenes {
 				if (this.bodyStyle !== nextBodyStyle) {
 					this.bodyStyle = nextBodyStyle;
 				}
+			},
+
+			isBodyStyleSquat: {
+				get: function () {
+					return this.bodyStyle === this.bodyStyles.squat;
+				},
 			},
 
 			stepMove: function () {

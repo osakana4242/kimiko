@@ -69,6 +69,13 @@ module jp.osakana4242.kimiko.scenes {
 			this._targetPos.x = node.center.x - (camera.width / 2) + (node.dirX * 16);
 			// 指で操作する関係で下方向に余裕を持たせる.
 			this._targetPos.y = node.center.y - (camera.height / 2) + 24;
+			if (node.isBodyStyleSquat) {
+				if (node.scaleY < 0) {
+					this._targetPos.y -= 16;
+				} else {
+					this._targetPos.y += 16;
+				}
+			}
 			return this._targetPos;
 		},
 
