@@ -101,7 +101,7 @@ module jp.osakana4242.kimiko.scenes {
 				);
 				var mag = utils.Vector2D.magnitude(dir);
 				// var dist = mag;
-				var dist = 32 * 3;
+				var dist = 32 * 4;
 				if (dist < 4) {
 					// 移動の必要ナシ.
 					isNext = false;
@@ -153,6 +153,7 @@ module jp.osakana4242.kimiko.scenes {
 
 		/** 天井ジャンプ. */
 		export function brain4(sprite: any): void {
+			sprite.scaleY = -1;
 			var anchor = sprite.anchor;
 			sprite.weapon.fireFunc = WeaponA.fireA;
 
@@ -177,8 +178,8 @@ module jp.osakana4242.kimiko.scenes {
 			var anchor = sprite.anchor;
 			var totalFrame = kimiko.secToFrame(8.0);
 			sprite.tl.
-				moveTo(anchor.x - 32 * 3, anchor.y, totalFrame * 0.5, Easing.LINEAR).
-				moveTo(anchor.x + 0,      anchor.y, totalFrame * 0.5, Easing.LINEAR).
+				moveTo(anchor.x - 32 * 3 + sprite.width / 2, anchor.y, totalFrame * 0.5, Easing.LINEAR).
+				moveTo(anchor.x + 0      + sprite.width / 2, anchor.y, totalFrame * 0.5, Easing.LINEAR).
 				loop();
 		}
 
@@ -257,8 +258,8 @@ module jp.osakana4242.kimiko.scenes {
 		/** 水平追跡.*/
 		export function brain9(sprite: any): void {
 			var anchor = sprite.anchor;
-			var xMin = anchor.x + (32 * -2);
-			var xMax = anchor.x + (32 *  2);
+			var xMin = anchor.x + (32 * -2) + sprite.width / 2;
+			var xMax = anchor.x + (32 *  2) + sprite.width / 2;
 			var cnt = 0;
 			function f1(e) {
 				if (e) {
@@ -475,7 +476,7 @@ module jp.osakana4242.kimiko.scenes {
 			body: EnemyBodys.body1,
 			brain: EnemyBrains.brain3,
 			score: 100,
-			align: "center middle",
+			align: "center bottom",
 		},
 
 		0x4: {
@@ -492,7 +493,7 @@ module jp.osakana4242.kimiko.scenes {
 			body: EnemyBodys.body4,
 			brain: EnemyBrains.brain5,
 			score: 100,
-			align: "center middle",
+			align: "center bottom",
 		},
 		0x6: {
 			hpMax: 2,
@@ -549,7 +550,7 @@ module jp.osakana4242.kimiko.scenes {
 			body: EnemyBodys.body2,
 			brain: EnemyBrains.brainBoss,
 			score: 1000,
-			align: "center middle",
+			align: "center bottom",
 		},
 	};
 

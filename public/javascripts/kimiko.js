@@ -1778,7 +1778,7 @@ var jp;
                             var mag = jp.osakana4242.utils.Vector2D.magnitude(dir);
 
                             // var dist = mag;
-                            var dist = 32 * 3;
+                            var dist = 32 * 4;
                             if (dist < 4) {
                                 // 移動の必要ナシ.
                                 isNext = false;
@@ -1819,6 +1819,7 @@ var jp;
 
                     /** 天井ジャンプ. */
                     function brain4(sprite) {
+                        sprite.scaleY = -1;
                         var anchor = sprite.anchor;
                         sprite.weapon.fireFunc = jp.osakana4242.kimiko.scenes.WeaponA.fireA;
 
@@ -1835,7 +1836,7 @@ var jp;
                     function brain5(sprite) {
                         var anchor = sprite.anchor;
                         var totalFrame = jp.osakana4242.kimiko.kimiko.secToFrame(8.0);
-                        sprite.tl.moveTo(anchor.x - 32 * 3, anchor.y, totalFrame * 0.5, Easing.LINEAR).moveTo(anchor.x + 0, anchor.y, totalFrame * 0.5, Easing.LINEAR).loop();
+                        sprite.tl.moveTo(anchor.x - 32 * 3 + sprite.width / 2, anchor.y, totalFrame * 0.5, Easing.LINEAR).moveTo(anchor.x + 0 + sprite.width / 2, anchor.y, totalFrame * 0.5, Easing.LINEAR).loop();
                     }
                     EnemyBrains.brain5 = brain5;
 
@@ -1898,8 +1899,8 @@ var jp;
                     /** 水平追跡.*/
                     function brain9(sprite) {
                         var anchor = sprite.anchor;
-                        var xMin = anchor.x + (32 * -2);
-                        var xMax = anchor.x + (32 * 2);
+                        var xMin = anchor.x + (32 * -2) + sprite.width / 2;
+                        var xMax = anchor.x + (32 * 2) + sprite.width / 2;
                         var cnt = 0;
                         function f1(e) {
                             if (e) {
@@ -2069,7 +2070,7 @@ var jp;
                         body: EnemyBodys.body1,
                         brain: EnemyBrains.brain3,
                         score: 100,
-                        align: "center middle"
+                        align: "center bottom"
                     },
                     0x4: {
                         hpMax: 2,
@@ -2085,7 +2086,7 @@ var jp;
                         body: EnemyBodys.body4,
                         brain: EnemyBrains.brain5,
                         score: 100,
-                        align: "center middle"
+                        align: "center bottom"
                     },
                     0x6: {
                         hpMax: 2,
@@ -2143,7 +2144,7 @@ var jp;
                         body: EnemyBodys.body2,
                         brain: EnemyBrains.brainBoss,
                         score: 1000,
-                        align: "center middle"
+                        align: "center bottom"
                     }
                 };
             })(kimiko.scenes || (kimiko.scenes = {}));
