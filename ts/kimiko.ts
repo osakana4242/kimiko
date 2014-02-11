@@ -695,7 +695,9 @@ module jp.osakana4242.kimiko {
 		export var FONT_M: string = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
 		export var FONT_L: string = '24px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
 	
-		export var GRAVITY: number = 0.25 * 60;
+		export var GRAVITY: number = 0.5 * 60;
+		/** キー入力後、プレイヤーに重力がかかるまでの間隔. */
+		export var GRAVITY_HOLD_SEC: number = 0.3;
 		
 		export var PLAYER_TOUCH_ANCHOR_ENABLE = true;
 

@@ -711,7 +711,10 @@ var jp;
                 DF.FONT_M = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
                 DF.FONT_L = '24px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
 
-                DF.GRAVITY = 0.25 * 60;
+                DF.GRAVITY = 0.5 * 60;
+
+                /** キー入力後、プレイヤーに重力がかかるまでの間隔. */
+                DF.GRAVITY_HOLD_SEC = 0.3;
 
                 DF.PLAYER_TOUCH_ANCHOR_ENABLE = true;
 
@@ -2226,6 +2229,7 @@ var jp;
                             }
                         };
 
+                        this.gravityHoldCounter = 0;
                         this.touchStartAnchor = new jp.osakana4242.utils.Vector2D();
                         this.isPause = false;
                         this.isSlowMove = false;
@@ -2370,7 +2374,12 @@ var jp;
                         } else {
                             //
                         }
-                        this.force.y += jp.osakana4242.kimiko.kimiko.dpsToDpf(jp.osakana4242.kimiko.DF.GRAVITY);
+                        if (0 < this.gravityHoldCounter) {
+                            --this.gravityHoldCounter;
+                        } else {
+                            var gravityMax = jp.osakana4242.kimiko.kimiko.dpsToDpf(60 * 8);
+                            this.force.y = Math.min(this.force.y + jp.osakana4242.kimiko.kimiko.dpsToDpf(jp.osakana4242.kimiko.DF.GRAVITY), gravityMax);
+                        }
 
                         var totalMx = this.force.x;
                         var totalMy = this.force.y;
@@ -2467,6 +2476,9 @@ var jp;
                                 this.inputForce.y = jp.osakana4242.kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * jp.osakana4242.kimiko.kimiko.dpsToDpf(4 * 60);
                             }
                         }
+                        if (this.isSlowMove || flag !== 0) {
+                            this.gravityHoldCounter = jp.osakana4242.kimiko.kimiko.secToFrame(jp.osakana4242.kimiko.DF.GRAVITY_HOLD_SEC);
+                        }
                     },
                     checkTouchInput: function () {
                         var scene = this.scene;
@@ -2490,6 +2502,7 @@ var jp;
                                 player.inputForce.x = jp.osakana4242.kimiko.kimiko.numberUtil.trim(touch.diff.x * moveRate.x, -moveLimit, moveLimit);
                                 player.inputForce.y = jp.osakana4242.kimiko.kimiko.numberUtil.trim(touch.diff.y * moveRate.y, -moveLimit, moveLimit);
                             }
+                            this.gravityHoldCounter = jp.osakana4242.kimiko.kimiko.secToFrame(jp.osakana4242.kimiko.DF.GRAVITY_HOLD_SEC);
                         }
                     }
                 });

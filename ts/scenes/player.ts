@@ -68,6 +68,7 @@ module jp.osakana4242.kimiko.scenes {
 					}
 				};
 
+				this.gravityHoldCounter = 0;
 				this.touchStartAnchor = new utils.Vector2D();
 				this.isPause = false;
 				this.isSlowMove = false;
@@ -215,7 +216,12 @@ module jp.osakana4242.kimiko.scenes {
 				} else {
 					//
 				}
-				this.force.y += kimiko.dpsToDpf(DF.GRAVITY);
+				if (0 < this.gravityHoldCounter) {
+					--this.gravityHoldCounter;
+				} else {
+					var gravityMax = kimiko.dpsToDpf(60 * 8)
+					this.force.y = Math.min(this.force.y + kimiko.dpsToDpf(DF.GRAVITY), gravityMax);
+				}
 	
 				var totalMx = this.force.x;
 				var totalMy = this.force.y;
@@ -320,6 +326,9 @@ module jp.osakana4242.kimiko.scenes {
 						this.inputForce.y = DF.DIR_FLAG_TO_VECTOR2D[flag].y * kimiko.dpsToDpf(4 * 60);
 					}
 				}
+				if (this.isSlowMove || flag !== 0) {
+					this.gravityHoldCounter = kimiko.secToFrame(DF.GRAVITY_HOLD_SEC);
+				}
 			},
 
 			checkTouchInput: function () {
@@ -348,6 +357,7 @@ module jp.osakana4242.kimiko.scenes {
 						player.inputForce.x = kimiko.numberUtil.trim(touch.diff.x * moveRate.x, -moveLimit, moveLimit);
 						player.inputForce.y = kimiko.numberUtil.trim(touch.diff.y * moveRate.y, -moveLimit, moveLimit);
 					}
+					this.gravityHoldCounter = kimiko.secToFrame(DF.GRAVITY_HOLD_SEC);
 				}
 			},
 
