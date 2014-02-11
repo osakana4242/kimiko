@@ -100,11 +100,12 @@ module jp.osakana4242.kimiko.scenes {
 					kimiko.numberUtil.trim(player.center.y, yMin, yMax) - sprite.center.y
 				);
 				var mag = utils.Vector2D.magnitude(dir);
-				if (mag < 4) {
+				// var dist = mag;
+				var dist = 32 * 3;
+				if (dist < 4) {
 					// 移動の必要ナシ.
 					isNext = false;
 				} else {
-					var dist = mag;
 					var speed = kimiko.dpsToDpf(2 * DF.BASE_FPS);
 					dir.x = dir.x * dist / mag;
 					dir.y = dir.y * dist / mag;

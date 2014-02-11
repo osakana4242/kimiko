@@ -1547,10 +1547,10 @@ var jp;
                             var player = sprite.scene.player;
                             var dir = osakana4242.utils.Vector2D.alloc(kimiko.kimiko.numberUtil.trim(player.center.x, xMin, xMax) - sprite.center.x, kimiko.kimiko.numberUtil.trim(player.center.y, yMin, yMax) - sprite.center.y);
                             var mag = osakana4242.utils.Vector2D.magnitude(dir);
-                            if(mag < 4) {
+                            var dist = 32 * 3;
+                            if(dist < 4) {
                                 isNext = false;
                             } else {
-                                var dist = mag;
                                 var speed = kimiko.kimiko.dpsToDpf(2 * kimiko.DF.BASE_FPS);
                                 dir.x = dir.x * dist / mag;
                                 dir.y = dir.y * dist / mag;
