@@ -281,14 +281,81 @@
             /** 矩形の当たり判定 */
             var Collider = (function () {
                 function Collider() {
+                    var _this = this;
                     this.rect = new Rect();
+                    this.relRect = new Rect();
                     this.workRect = new Rect();
+                    this.onAdded = function () {
+                        _this.parent.parentNode.addChild(_this.sprite);
+                    };
+                    this.onRemoved = function () {
+                        if (_this.sprite.parentNode) {
+                            _this.sprite.parentNode.removeChild(_this.sprite);
+                        }
+                    };
+                    if (false) {
+                        // コリジョンの表示.
+                        this.sprite = new enchant.Sprite();
+                        this.sprite.backgroundColor = "rgb(255,0,0)";
+                        this.sprite.addEventListener(enchant.Event.RENDER, function () {
+                            _this.onRender();
+                        });
+                    }
                 }
-                Collider.prototype.getRect = function () {
+                Object.defineProperty(Collider.prototype, "parent", {
+                    get: function () {
+                        return this._parent;
+                    },
+                    set: function (value) {
+                        this._parent = value;
+
+                        if (this.sprite && value["addEventListener"]) {
+                            var pSprite = value;
+                            if (pSprite.parentNode) {
+                                this.onAdded();
+                            }
+                            pSprite.addEventListener(enchant.Event.ADDED, this.onAdded);
+                            pSprite.addEventListener(enchant.Event.REMOVED, this.onRemoved);
+                        }
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+
+
+                Collider.prototype.getRelRect = function () {
                     var s = this.rect;
-                    var d = this.workRect;
+                    var d = this.relRect;
+                    var x = s.x;
+                    var y = s.y;
+                    var p = this.parent;
+                    if (p) {
+                        var scaleX = p["scaleX"];
+                        var scaleY = p["scaleY"];
+                        var isFlipX = scaleX && (scaleX < 0);
+                        var isFlipY = scaleY && (scaleY < 0);
+                        if (isFlipX) {
+                            var phw = p.width >> 1;
+                            var shw = s.width >> 1;
+                            x = (-1 * (s.x + shw - phw)) - shw + phw;
+                        }
+                        if (isFlipY) {
+                            var phh = p.height >> 1;
+                            var shh = s.width >> 1;
+                            y = (-1 * (s.y + shh - phh)) - shh + phh;
+                        }
+                    }
+                    d.x = x;
+                    d.y = y;
                     d.width = s.width;
                     d.height = s.height;
+
+                    return d;
+                };
+
+                Collider.prototype.getRect = function () {
+                    var s = this.getRelRect();
+                    var d = this.workRect;
                     var x = s.x;
                     var y = s.y;
                     var p = this.parent;
@@ -298,27 +365,44 @@
                     }
                     d.x = x;
                     d.y = y;
+                    d.width = s.width;
+                    d.height = s.height;
+
                     return d;
                 };
 
-                Collider.prototype.centerBottom = function (width, height) {
-                    var rect = this.rect;
-                    rect.width = width;
-                    rect.height = height;
-                    rect.x = (this.parent.width - width) / 2;
-                    rect.y = this.parent.height - height;
-                };
-
-                Collider.prototype.centerMiddle = function (width, height) {
-                    var rect = this.rect;
-                    rect.width = width;
-                    rect.height = height;
-                    rect.x = (this.parent.width - width) / 2;
-                    rect.y = (this.parent.height - height) / 2;
+                Collider.prototype.onRender = function () {
+                    var sprite = this.sprite;
+                    if (!sprite) {
+                        return;
+                    }
+                    var rect = this.getRect();
+                    sprite.x = rect.x;
+                    sprite.y = rect.y;
+                    sprite.width = rect.width;
+                    sprite.height = rect.height;
                 };
 
                 Collider.prototype.intersect = function (collider) {
                     return Rect.intersect(this.getRect(), collider.getRect());
+                };
+
+                Collider.centerBottom = function (parent, width, height) {
+                    var rect = new Rect();
+                    rect.width = width;
+                    rect.height = height;
+                    rect.x = (parent.width - width) / 2;
+                    rect.y = parent.height - height;
+                    return rect;
+                };
+
+                Collider.centerMiddle = function (parent, width, height) {
+                    var rect = new Rect();
+                    rect.width = width;
+                    rect.height = height;
+                    rect.x = (parent.width - width) / 2;
+                    rect.y = (parent.height - height) / 2;
+                    return rect;
                 };
                 return Collider;
             })();
@@ -461,7 +545,8 @@
 
             /** enchant.tl.Timeline拡張. */
             (function () {
-                enchant.tl.Timeline.prototype.removeFromParentNode = function () {
+                var Timeline = enchant.Timeline || enchant.tl.Timeline;
+                Timeline.prototype.removeFromParentNode = function () {
                     return this.then(function () {
                         this.parentNode.removeChild(this);
                     });
@@ -560,6 +645,7 @@ var jp;
                 Assets.IMAGE_CHARA003 = "./images/chara003.png";
                 Assets.IMAGE_BULLET = "./images/bullet.png";
                 Assets.IMAGE_EFFECT = "./images/bullet.png";
+                Assets.IMAGE_COLLIDER = "./images/collider.png";
                 Assets.SOUND_BGM = "./sounds/bgm.mp3";
             })(_kimiko.Assets || (_kimiko.Assets = {}));
             var Assets = _kimiko.Assets;
@@ -609,6 +695,8 @@ var jp;
                 DF.ANIM_ID_DAMAGE = 400;
                 DF.ANIM_ID_MISS = 401;
                 DF.ANIM_ID_DEAD = 402;
+
+                DF.ANIM_ID_COLLIDER = 500;
 
                 // スワイプで1フレームにキャラが移動できる最大距離.
                 DF.TOUCH_TO_CHARA_MOVE_LIMIT = 320;
@@ -852,6 +940,8 @@ var jp;
                         r(DF.ANIM_ID_DAMAGE, Assets.IMAGE_EFFECT, 16, 16, 0.1, [8, 9, 10, 11]);
                         r(DF.ANIM_ID_MISS, Assets.IMAGE_EFFECT, 16, 16, 0.1, [12, 13, 14, 15]);
                         r(DF.ANIM_ID_DEAD, Assets.IMAGE_EFFECT, 16, 16, 0.1, [8, 9, 10, 11]);
+
+                        r(DF.ANIM_ID_COLLIDER, Assets.IMAGE_COLLIDER, 16, 16, 0.1, [0]);
                     })();
 
                     // key bind
@@ -1350,7 +1440,7 @@ var jp;
                         this.collider = (function () {
                             var c = new jp.osakana4242.utils.Collider();
                             c.parent = _this;
-                            c.centerMiddle(4, 4);
+                            jp.osakana4242.utils.Rect.copyFrom(c.rect, jp.osakana4242.utils.Collider.centerMiddle(_this, 4, 4));
                             return c;
                         })();
                     },
@@ -1399,7 +1489,7 @@ var jp;
                         this.collider = (function () {
                             var c = new jp.osakana4242.utils.Collider();
                             c.parent = _this;
-                            c.centerMiddle(12, 8);
+                            jp.osakana4242.utils.Rect.copyFrom(c.rect, new jp.osakana4242.utils.Rect(-24, 4, 32, 8));
                             return c;
                         })();
                     },
@@ -1606,7 +1696,7 @@ var jp;
                         sprite.width = 32;
                         sprite.height = 32;
                         sprite.anim.sequence = jp.osakana4242.kimiko.kimiko.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA002_WALK);
-                        sprite.collider.centerBottom(28, 28);
+                        jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerBottom(sprite, 28, 28));
                     }
                     EnemyBodys.body1 = body1;
 
@@ -1615,7 +1705,7 @@ var jp;
                         sprite.width = 64;
                         sprite.height = 64;
                         sprite.anim.sequence = jp.osakana4242.kimiko.kimiko.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA003_WALK);
-                        sprite.collider.centerMiddle(56, 56);
+                        jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerMiddle(sprite, 56, 56));
                         sprite.weaponNum = 3;
                     }
                     EnemyBodys.body2 = body2;
@@ -1627,7 +1717,7 @@ var jp;
 
                         //sprite.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
                         sprite.backgroundColor = "rgb(255,48,48)";
-                        sprite.collider.centerMiddle(28, 12);
+                        jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerMiddle(sprite, 28, 12));
                     }
                     EnemyBodys.body3 = body3;
 
@@ -1638,7 +1728,7 @@ var jp;
 
                         //sprite.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
                         sprite.backgroundColor = "rgb(255,48,48)";
-                        sprite.collider.centerBottom(32, 40);
+                        jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerBottom(sprite, 32, 40));
                     }
                     EnemyBodys.body4 = body4;
                 })(scenes.EnemyBodys || (scenes.EnemyBodys = {}));
@@ -2091,18 +2181,8 @@ var jp;
                             var animDead = jp.osakana4242.kimiko.kimiko.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA001_DEAD);
                             _this.anim.sequence = animWalk;
 
-                            var colliderA = (function () {
-                                var c = new jp.osakana4242.utils.Collider();
-                                c.parent = _this;
-                                c.centerBottom(12, 28);
-                                return c;
-                            })();
-                            var colliderB = (function () {
-                                var c = new jp.osakana4242.utils.Collider();
-                                c.parent = _this;
-                                c.centerBottom(12, 14);
-                                return c;
-                            })();
+                            var colliderA = jp.osakana4242.utils.Collider.centerBottom(_this, 12, 28);
+                            var colliderB = jp.osakana4242.utils.Collider.centerBottom(_this, 12, 14);
                             var muzzlePosUp = new jp.osakana4242.utils.Vector2D(32, 12);
                             var muzzlePosDown = new jp.osakana4242.utils.Vector2D(32, 24);
 
@@ -2130,6 +2210,11 @@ var jp;
                             };
                         })();
 
+                        this.collider = (function () {
+                            var c = new jp.osakana4242.utils.Collider();
+                            c.parent = _this;
+                            return c;
+                        })();
                         this.bodyStyle = this.bodyStyles.stand;
 
                         this.life.hpMax = jp.osakana4242.kimiko.DF.PLAYER_HP;
@@ -2176,7 +2261,7 @@ var jp;
                         set: function (v) {
                             this._bodyStyle = v;
                             this.anim.sequence = v.anim;
-                            this.collider = v.collider;
+                            jp.osakana4242.utils.Rect.copyFrom(this.collider.rect, v.collider);
                         }
                     },
                     searchEnemy: function () {
@@ -2242,6 +2327,7 @@ var jp;
                         if (bullet === null) {
                             return;
                         }
+                        bullet.scaleX = this.scaleX;
                         bullet.force.x = this.dirX * jp.osakana4242.kimiko.kimiko.dpsToDpf(6 * 60);
                         bullet.force.y = 0;
                         bullet.center.x = this.center.x + this.scaleX * (this.bodyStyle.muzzlePos.x - (this.width / 2));
@@ -3179,12 +3265,14 @@ var jp;
                         camera.targetGroup = world;
                         world.addChild(camera);
 
-                        sprite = new jp.osakana4242.kimiko.scenes.Player();
-                        this.player = sprite;
-                        sprite.name = "player";
-                        world.addChild(sprite);
-                        sprite.x = 0;
-                        sprite.y = this.map.height - sprite.height;
+                        this.player = (function () {
+                            var sprite = new jp.osakana4242.kimiko.scenes.Player();
+                            sprite.name = "player";
+                            sprite.x = 0;
+                            sprite.y = _this.map.height - sprite.height;
+                            return sprite;
+                        })();
+                        world.addChild(this.player);
 
                         (function () {
                             // 操作エリア.
@@ -3693,6 +3781,7 @@ var jp;
                         // 地形とプレイヤーの衝突判定.
                         // 自分の周囲の地形を調べる.
                         var collider = player.collider;
+                        var pRelRect = collider.getRelRect();
                         var prect = collider.getRect();
                         var map = this.map;
                         var xDiff = map.tileWidth;
@@ -3720,22 +3809,22 @@ var jp;
                                     // TODO: たま消しのときは無駄になってしまうので省略したい
                                     if (!map.hitTest(x, y - yDiff) && 0 <= player.force.y && prect.y <= rect.y + hoge) {
                                         // top
-                                        player.y = rect.y - prect.height - collider.rect.y;
+                                        player.y = rect.y - prect.height - pRelRect.y;
                                         onTrim.call(player, 0, 1);
                                         player.force.y = 0;
                                         //player.isOnMap = true;
                                     } else if (!map.hitTest(x, y + yDiff) && player.force.y <= 0 && rect.y + rect.height - hoge < prect.y + prect.height) {
                                         // bottom
-                                        player.y = rect.y + rect.height - collider.rect.y;
+                                        player.y = rect.y + rect.height - pRelRect.y;
                                         onTrim.call(player, 0, -1);
                                         player.force.y = 0;
                                     } else if (!map.hitTest(x - xDiff, y) && 0 <= player.force.x && prect.x <= rect.x + hoge) {
                                         // left
-                                        player.x = rect.x - prect.width - collider.rect.x;
+                                        player.x = rect.x - prect.width - pRelRect.x;
                                         onTrim.call(player, 1, 0);
                                     } else if (!map.hitTest(x + xDiff, y) && player.force.x <= 0 && rect.x + rect.width - hoge < prect.x + prect.width) {
                                         // right
-                                        player.x = rect.x + rect.width - collider.rect.x;
+                                        player.x = rect.x + rect.width - pRelRect.x;
                                         onTrim.call(player, -1, 0);
                                     }
                                     if (!player.parentNode) {

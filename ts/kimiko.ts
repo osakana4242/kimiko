@@ -270,15 +270,79 @@ module jp.osakana4242.utils {
 
 	/** 矩形の当たり判定 */
 	export class Collider {
-		public parent: IRect;
+		private _parent: any;
+		public sprite: any;
 		public rect = new Rect();
+		private relRect = new Rect();
 		private workRect = new Rect();
-		
-		public getRect() {
+		private onAdded = () => {
+			this.parent.parentNode.addChild(this.sprite);
+		};
+		private onRemoved = () => {
+			if (this.sprite.parentNode) {
+				this.sprite.parentNode.removeChild(this.sprite);
+			}
+		};
+
+		public constructor() {
+			if (false) {
+				// コリジョンの表示.
+				this.sprite = new enchant.Sprite();
+				this.sprite.backgroundColor = "rgb(255,0,0)";
+				this.sprite.addEventListener(enchant.Event.RENDER, () => { this.onRender(); } );
+			}
+		}
+
+		public get parent() {
+			return this._parent;
+		}
+
+		public set parent( value ) {
+			this._parent = value;
+
+			if (this.sprite && value["addEventListener"]) {
+				var pSprite = value;
+				if (pSprite.parentNode) {
+					this.onAdded();
+				}
+				pSprite.addEventListener(enchant.Event.ADDED, this.onAdded);
+				pSprite.addEventListener(enchant.Event.REMOVED, this.onRemoved);
+			}
+		}
+
+		public getRelRect() {
 			var s = this.rect;
-			var d = this.workRect;
+			var d = this.relRect;
+			var x = s.x;
+			var y = s.y;
+			var p = this.parent;
+			if (p) {
+				var scaleX: number = p["scaleX"];
+				var scaleY: number = p["scaleY"];
+				var isFlipX = scaleX && (scaleX < 0);
+				var isFlipY = scaleY && (scaleY < 0);
+				if (isFlipX) {
+					var phw = p.width >> 1;
+					var shw = s.width >> 1;
+					x = (-1 * (s.x + shw - phw)) - shw + phw;
+				}
+				if (isFlipY) {
+					var phh = p.height >> 1;
+					var shh = s.width >> 1;
+					y = (-1 * (s.y + shh - phh)) - shh + phh;
+				}
+			}
+			d.x = x;
+			d.y = y;
 			d.width = s.width;
 			d.height = s.height;
+
+			return d;
+		}
+		
+		public getRect() {
+			var s = this.getRelRect();
+			var d = this.workRect;
 			var x = s.x;
 			var y = s.y;
 			var p = this.parent;
@@ -288,29 +352,46 @@ module jp.osakana4242.utils {
 			}
 			d.x = x;
 			d.y = y;
+			d.width = s.width;
+			d.height = s.height;
+
 			return d;
 		}
-		
-		public centerBottom(width: number, height: number) {
-			var rect = this.rect;
-			rect.width  = width;
-			rect.height = height;
-			rect.x = (this.parent.width - width) / 2;
-			rect.y = this.parent.height - height;
-		}
-		
-		public centerMiddle(width: number, height: number) {
-			var rect = this.rect;
-			rect.width  = width;
-			rect.height = height;
-			rect.x = (this.parent.width  - width ) / 2;
-			rect.y = (this.parent.height - height) / 2;
-		}
 
+		public onRender() {
+			var sprite = this.sprite;
+			if (!sprite) {
+				return;
+			}
+			var rect = this.getRect();
+			sprite.x = rect.x;
+			sprite.y = rect.y;
+			sprite.width = rect.width;
+			sprite.height = rect.height;
+		}
+		
 		public intersect(collider: Collider): boolean {
 			return Rect.intersect(this.getRect(), collider.getRect());
 		}
+
+		public static centerBottom(parent: IRect, width: number, height: number): IRect {
+			var rect = new Rect();
+			rect.width  = width;
+			rect.height = height;
+			rect.x = (parent.width - width) / 2;
+			rect.y = parent.height - height;
+			return rect;
+		}
 		
+		public static centerMiddle(parent: IRect, width: number, height: number) {
+			var rect = new Rect();
+			rect.width  = width;
+			rect.height = height;
+			rect.x = (parent.width  - width ) / 2;
+			rect.y = (parent.height - height) / 2;
+			return rect;
+		}
+	
 	}
 	
 
@@ -454,7 +535,8 @@ module jp.osakana4242.utils {
 	
 	/** enchant.tl.Timeline拡張. */
 	(() => {
-		enchant.tl.Timeline.prototype.removeFromParentNode = function() {
+		var Timeline = enchant.Timeline || enchant.tl.Timeline;
+		Timeline.prototype.removeFromParentNode = function() {
 			return this.then(function() {
 					this.parentNode.removeChild(this);
 			});
@@ -548,6 +630,7 @@ module jp.osakana4242.kimiko {
 		export var IMAGE_CHARA003 = "./images/chara003.png";
 		export var IMAGE_BULLET = "./images/bullet.png";
 		export var IMAGE_EFFECT = "./images/bullet.png";
+		export var IMAGE_COLLIDER = "./images/collider.png";
 		export var SOUND_BGM = "./sounds/bgm.mp3";
 	}
 
@@ -597,6 +680,8 @@ module jp.osakana4242.kimiko {
 		export var ANIM_ID_DAMAGE = 400;
 		export var ANIM_ID_MISS = 401;
 		export var ANIM_ID_DEAD = 402;
+
+		export var ANIM_ID_COLLIDER = 500;
 	
 
 		// スワイプで1フレームにキャラが移動できる最大距離.
@@ -864,6 +949,8 @@ module jp.osakana4242.kimiko {
 				r(DF.ANIM_ID_DAMAGE,         Assets.IMAGE_EFFECT,   16, 16, 0.1, [8, 9, 10, 11]);
 				r(DF.ANIM_ID_MISS,           Assets.IMAGE_EFFECT,   16, 16, 0.1, [12, 13, 14, 15]);
 				r(DF.ANIM_ID_DEAD,           Assets.IMAGE_EFFECT,   16, 16, 0.1, [8, 9, 10, 11]);
+
+				r(DF.ANIM_ID_COLLIDER,       Assets.IMAGE_COLLIDER, 16, 16, 0.1, [0]);
 			})();
 
 			// key bind

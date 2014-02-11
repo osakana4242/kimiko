@@ -19,7 +19,7 @@ module jp.osakana4242.kimiko.scenes {
 			this.collider = (() => {
 				var c = new utils.Collider();
 				c.parent = this;
-				c.centerMiddle(4, 4);
+				utils.Rect.copyFrom(c.rect, utils.Collider.centerMiddle(this, 4, 4));
 				return c;
 			})();
 		},
@@ -72,7 +72,7 @@ module jp.osakana4242.kimiko.scenes {
 			this.collider = (() => {
 				var c = new utils.Collider();
 				c.parent = this;
-				c.centerMiddle(12, 8);
+				utils.Rect.copyFrom(c.rect, new utils.Rect(-24, 4, 32, 8));
 				return c;
 			})();
 		},

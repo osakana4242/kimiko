@@ -17,7 +17,7 @@ module jp.osakana4242.kimiko.scenes {
 			sprite.width = 32;
 			sprite.height = 32;
 			sprite.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
-			sprite.collider.centerBottom(28, 28);
+			utils.Rect.copyFrom(sprite.collider.rect, utils.Collider.centerBottom(sprite, 28, 28));
 		}
 
 		/** クネクネカラス */
@@ -25,7 +25,7 @@ module jp.osakana4242.kimiko.scenes {
 			sprite.width = 64;
 			sprite.height = 64;
 			sprite.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_CHARA003_WALK);
-			sprite.collider.centerMiddle(56, 56);
+			utils.Rect.copyFrom(sprite.collider.rect, utils.Collider.centerMiddle(sprite, 56, 56));
 			sprite.weaponNum = 3;
 		}
 
@@ -35,7 +35,7 @@ module jp.osakana4242.kimiko.scenes {
 			sprite.height = 16;
 			//sprite.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
 			sprite.backgroundColor = "rgb(255,48,48)";
-			sprite.collider.centerMiddle(28, 12);
+			utils.Rect.copyFrom(sprite.collider.rect, utils.Collider.centerMiddle(sprite, 28, 12));
 		}
 
 		/** 中キャラ */
@@ -44,7 +44,7 @@ module jp.osakana4242.kimiko.scenes {
 			sprite.height = 48;
 			//sprite.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
 			sprite.backgroundColor = "rgb(255,48,48)";
-			sprite.collider.centerBottom(32, 40);
+			utils.Rect.copyFrom(sprite.collider.rect, utils.Collider.centerBottom(sprite, 32, 40));
 		}
 	}
 

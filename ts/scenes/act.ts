@@ -612,7 +612,6 @@ module jp.osakana4242.kimiko.scenes {
 			this.world = world;
 			scene.addChild(world);
 
-
 			var map = new enchant.Map(DF.MAP_TILE_W, DF.MAP_TILE_H);
 			this.map = map;
 			this.mapOption = {};
@@ -634,12 +633,14 @@ module jp.osakana4242.kimiko.scenes {
 			camera.targetGroup = world;
 			world.addChild(camera);
 
-			sprite = new Player();
-			this.player = sprite;
-			sprite.name = "player";
-			world.addChild(sprite);
-			sprite.x = 0;
-			sprite.y = this.map.height - sprite.height;
+			this.player = (() => {
+				var sprite = new Player();
+				sprite.name = "player";
+				sprite.x = 0;
+				sprite.y = this.map.height - sprite.height;
+				return sprite;
+			})();
+			world.addChild(this.player);
 			
 			(() => {
 				// 操作エリア.
@@ -706,7 +707,7 @@ module jp.osakana4242.kimiko.scenes {
 				spr.name = "EnemyBullet" + idx;
 				return spr;
 			});
-	
+
 			this.effectPool = new utils.SpritePool(16, (idx: number) => {
 				var spr = new enchant.Sprite(16, 16);
 				spr.name = "effect" + idx;
@@ -786,7 +787,7 @@ module jp.osakana4242.kimiko.scenes {
 		onenterframe: function () {
 			this.state();
 			this.updateStatusText();
-	},
+		},
 	
 		//---------------------------------------------------------------------------
 		// states..
@@ -1186,6 +1187,7 @@ module jp.osakana4242.kimiko.scenes {
 			// 地形とプレイヤーの衝突判定.
 			// 自分の周囲の地形を調べる.
 			var collider: utils.Collider = player.collider;
+			var pRelRect = collider.getRelRect();
 			var prect: utils.IRect = collider.getRect();
 			var map = this.map;
 			var xDiff = map.tileWidth;
@@ -1217,22 +1219,22 @@ module jp.osakana4242.kimiko.scenes {
 						// TODO: たま消しのときは無駄になってしまうので省略したい
 						if (!map.hitTest(x, y - yDiff) && 0 <= player.force.y && prect.y <= rect.y + hoge) {
 							// top
-							player.y = rect.y - prect.height - collider.rect.y;
+							player.y = rect.y - prect.height - pRelRect.y;
 							onTrim.call(player, 0, 1);
 							player.force.y = 0;
 							//player.isOnMap = true;
 						} else if (!map.hitTest(x, y + yDiff) && player.force.y <= 0 && rect.y + rect.height - hoge < prect.y + prect.height) {
 							// bottom
-							player.y = rect.y + rect.height - collider.rect.y;
+							player.y = rect.y + rect.height - pRelRect.y;
 							onTrim.call(player, 0, -1);
 							player.force.y = 0;
 						} else if (!map.hitTest(x - xDiff, y) && 0 <= player.force.x && prect.x <= rect.x + hoge) {
 							// left
-							player.x = rect.x - prect.width - collider.rect.x;
+							player.x = rect.x - prect.width - pRelRect.x;
 							onTrim.call(player, 1, 0);
 						} else if (!map.hitTest(x + xDiff, y) && player.force.x <= 0 && rect.x + rect.width - hoge < prect.x + prect.width) {
 							// right
-							player.x = rect.x + rect.width - collider.rect.x;
+							player.x = rect.x + rect.width - pRelRect.x;
 							onTrim.call(player, -1, 0);
 						}
 						if (!player.parentNode) {

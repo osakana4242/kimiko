@@ -24,18 +24,8 @@ module jp.osakana4242.kimiko.scenes {
 					var animDead = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_DEAD);
 					this.anim.sequence = animWalk;
 	
-					var colliderA = (() => {
-						var c = new utils.Collider();
-						c.parent = this;
-						c.centerBottom(12, 28);
-						return c;
-					})();
-					var colliderB = (() => {
-						var c = new utils.Collider();
-						c.parent = this;
-						c.centerBottom(12, 14);
-						return c;
-					})();
+					var colliderA = utils.Collider.centerBottom(this, 12, 28);
+					var colliderB = utils.Collider.centerBottom(this, 12, 14);
 					var muzzlePosUp = new utils.Vector2D( 32, 12 );
 					var muzzlePosDown = new utils.Vector2D( 32, 24 );
 
@@ -63,6 +53,11 @@ module jp.osakana4242.kimiko.scenes {
 					};
 				})();
 				
+				this.collider = (() => {
+					var c = new utils.Collider();
+					c.parent = this;
+					return c;
+				})();
 				this.bodyStyle = this.bodyStyles.stand;
 
 				this.life.hpMax = DF.PLAYER_HP;
@@ -106,7 +101,7 @@ module jp.osakana4242.kimiko.scenes {
 				set: function (v) { 
 					this._bodyStyle = v;
 					this.anim.sequence = v.anim;
-					this.collider = v.collider;
+					utils.Rect.copyFrom(this.collider.rect, v.collider);
 				},
 			},
 
@@ -176,6 +171,7 @@ module jp.osakana4242.kimiko.scenes {
 				if (bullet === null) {
 					return;
 				}
+				bullet.scaleX = this.scaleX;
 				bullet.force.x = this.dirX * kimiko.dpsToDpf(6 * 60);
 				bullet.force.y = 0;
 				bullet.center.x = this.center.x + this.scaleX * (this.bodyStyle.muzzlePos.x - (this.width / 2));
