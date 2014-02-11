@@ -505,7 +505,7 @@ var jp;
                 DF.MAP_TILE_W = 32;
                 DF.MAP_TILE_H = 32;
                 DF.ENEMY_SPAWN_RECT_MARGIN = 8;
-                DF.ENEMY_SLEEP_RECT_MARGIN = 128;
+                DF.ENEMY_SLEEP_RECT_MARGIN = 320;
                 DF.PLAYER_COLOR = "rgb(240, 240, 240)";
                 DF.PLAYER_DAMAGE_COLOR = "rgb(240, 240, 120)";
                 DF.PLAYER_ATTACK_COLOR = "rgb(160, 160, 240)";

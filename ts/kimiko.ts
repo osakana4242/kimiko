@@ -574,7 +574,7 @@ module jp.osakana4242.kimiko {
 		export var MAP_TILE_W = 32;
 		export var MAP_TILE_H = 32;
 		export var ENEMY_SPAWN_RECT_MARGIN: number = 8;
-		export var ENEMY_SLEEP_RECT_MARGIN: number = 128;
+		export var ENEMY_SLEEP_RECT_MARGIN: number = 320;
 		export var PLAYER_COLOR: string = "rgb(240, 240, 240)";
 		export var PLAYER_DAMAGE_COLOR: string = "rgb(240, 240, 120)";
 		export var PLAYER_ATTACK_COLOR: string = "rgb(160, 160, 240)";
