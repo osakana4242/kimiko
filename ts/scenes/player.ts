@@ -29,13 +29,13 @@ module jp.osakana4242.kimiko.scenes {
 						c.parent = this;
 						c.centerBottom(12, 28);
 						return c;
-					}());
+					})();
 					var colliderB = (() => {
 						var c = new utils.Collider();
 						c.parent = this;
 						c.centerBottom(12, 14);
 						return c;
-					}());
+					})();
 					var muzzlePosUp = new utils.Vector2D( 32, 12 );
 					var muzzlePosDown = new utils.Vector2D( 32, 24 );
 
@@ -61,7 +61,7 @@ module jp.osakana4242.kimiko.scenes {
 							"muzzlePos": muzzlePosUp,
 						},
 					};
-				}());
+				})();
 				
 				this.bodyStyle = this.bodyStyles.stand;
 
@@ -234,7 +234,7 @@ module jp.osakana4242.kimiko.scenes {
 				var mx = totalMx / loopCnt;
 				var my = totalMy / loopCnt;
 				
-				for (var i = 0, loopCnt; i <= loopCnt; ++i) {
+				for (var i = 0; i <= loopCnt; ++i) {
 					if (i < loopCnt) {
 						this.x += mx;
 						this.y += my;

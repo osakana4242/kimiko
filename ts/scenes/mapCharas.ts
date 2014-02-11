@@ -21,7 +21,7 @@ module jp.osakana4242.kimiko.scenes {
 				c.parent = this;
 				c.centerMiddle(4, 4);
 				return c;
-			}());
+			})();
 		},
 
 		onenterframe: function () {
@@ -74,7 +74,7 @@ module jp.osakana4242.kimiko.scenes {
 				c.parent = this;
 				c.centerMiddle(12, 8);
 				return c;
-			}());
+			})();
 		},
 
 		onenterframe: function () {

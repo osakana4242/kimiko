@@ -25,13 +25,13 @@ module jp.osakana4242.utils {
 		public static zero = new Vector2D(0, 0);
 		public static one = new Vector2D(1, 1);
 
-		static pool: Vector2D[] = (() => {
-			var pool = new Vector2D[]();
+		private static pool: Array<Vector2D> = (() => {
+			var pool = new Array<Vector2D>();
 			for (var i = 0, iNum = 64; i < iNum; ++i) {
 				pool.push(new Vector2D());
 			}
 			return pool;
-		}());
+		})();
 
 		public static alloc(
 			x: number = 0,
@@ -149,13 +149,13 @@ module jp.osakana4242.utils {
 
 	export class Rect implements IRect{
 		
-		static pool: Rect[] = (() => {
-			var pool = new Rect[]();
+		static pool: Array<Rect> = (() => {
+			var pool = new Array<Rect>();
 			for (var i = 0, iNum = 64; i < iNum; ++i) {
 				pool.push(new Rect());
 			}
 			return pool;
-		}());
+		})();
 
 		public static alloc(
 			x: number = 0,
@@ -209,19 +209,19 @@ module jp.osakana4242.utils {
 			a.height = b.height;
 		}
 
-		public static inside(a: IRect, b: IRect): bool {
+		public static inside(a: IRect, b: IRect): boolean {
 			return (a.x <= b.x) && (b.x + b.width < a.x + a.width)
 				&& (a.y <= b.y) && (b.y + b.height < a.y + a.height);
 
 		}
 
 		// a の外側に b がいるか.
-		public static outside(a: IRect, b: IRect): bool {
+		public static outside(a: IRect, b: IRect): boolean {
 			return (b.x + b.width < a.x) || (a.x + a.width <= b.x)
 				|| (b.y + b.height < a.y) || (a.y + a.height <= b.y);
 		}
 
-		public static intersect(a: IRect, other: IRect): bool {
+		public static intersect(a: IRect, other: IRect): boolean {
 			return (a.x < other.x + other.width) && (other.x < a.x + a.width)
 				&& (a.y < other.y + other.height) && (other.y < a.y + a.height);
 		}
@@ -307,7 +307,7 @@ module jp.osakana4242.utils {
 			rect.y = (this.parent.height - height) / 2;
 		}
 
-		public intersect(collider: Collider): bool {
+		public intersect(collider: Collider): boolean {
 			return Rect.intersect(this.getRect(), collider.getRect());
 		}
 		
@@ -321,7 +321,7 @@ module jp.osakana4242.utils {
 		endFrame: number;
 		totalDiff: Vector2D = new Vector2D();
 		diff: Vector2D = new Vector2D();
-		isTouching: bool = false;
+		isTouching: boolean = false;
 		
 		saveTouchStart(pos: IVector2D): void {
 			Vector2D.copyFrom(this.start, pos);
@@ -453,23 +453,23 @@ module jp.osakana4242.utils {
 	}
 	
 	/** enchant.tl.Timeline拡張. */
-	(function() {
+	(() => {
 		enchant.tl.Timeline.prototype.removeFromParentNode = function() {
 			return this.then(function() {
 					this.parentNode.removeChild(this);
 			});
 		};
-	}());
+	})();
 
 	/** enchant.Sprite拡張. */
-	(function() {
+	(() => {
 		var orig = enchant.Sprite.prototype.initialize;
 		enchant.Sprite.prototype.initialize = function() {
 			orig.apply(this, arguments);
 			this.center = new utils.RectCenter(this);
 			this.anim = new utils.AnimSequencer(this);
 		};
-	}());
+	})();
 
 	export class SpritePool {
 		actives: any[];
@@ -554,7 +554,7 @@ module jp.osakana4242.kimiko {
 	export module DF {
 
 		/** ドアを隠すか. */
-		export var IS_HIDDEN_DOOR: bool = false;
+		export var IS_HIDDEN_DOOR: boolean = false;
 
 		export var BASE_FPS: number = 60;
 		export var SC_W: number = 320;
@@ -745,7 +745,7 @@ module jp.osakana4242.kimiko {
 
 			a[BIT_L | BIT_R | BIT_U | BIT_D] = { x: 0, y: 0 };
 			return a;
-		}());
+		})();
 	}
 	
 	export class NumberUtil {
@@ -764,11 +764,11 @@ module jp.osakana4242.kimiko {
 		
 	export interface IConfig {
 		fps: number;
-		isSoundEnabled: bool;
+		isSoundEnabled: boolean;
 		/** プレイヤーが発砲するか. */
-		isFireEnabled: bool;
+		isFireEnabled: boolean;
 		/** プレイヤー、敵がダメージを受けるか. */
-		isDamageEnabled: bool;
+		isDamageEnabled: boolean;
 		swipeToMoveRate: utils.IVector2D;
 		version: string;
 	}
@@ -864,7 +864,7 @@ module jp.osakana4242.kimiko {
 				r(DF.ANIM_ID_DAMAGE,         Assets.IMAGE_EFFECT,   16, 16, 0.1, [8, 9, 10, 11]);
 				r(DF.ANIM_ID_MISS,           Assets.IMAGE_EFFECT,   16, 16, 0.1, [12, 13, 14, 15]);
 				r(DF.ANIM_ID_DEAD,           Assets.IMAGE_EFFECT,   16, 16, 0.1, [8, 9, 10, 11]);
-			}());
+			})();
 
 			// key bind
 			core.keybind(" ".charCodeAt(0), "a");	

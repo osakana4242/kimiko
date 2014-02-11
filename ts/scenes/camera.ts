@@ -133,7 +133,7 @@ module jp.osakana4242.kimiko.scenes {
 			}
 		},
 
-		isIntersectSpawnRect: function (entity: utils.IRect): bool {
+		isIntersectSpawnRect: function (entity: utils.IRect): boolean {
 				var rect: utils.IRect = this.spawnRect;
 				rect.x = this.x -((rect.width - this.width) / 2);
 				rect.y = this.y -((rect.height - this.height) / 2);

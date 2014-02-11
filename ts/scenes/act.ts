@@ -44,11 +44,11 @@ module jp.osakana4242.kimiko.scenes {
 			}
 		}
 
-		public isAlive(): bool { return 0 < this.hp; }
-		public isDead(): bool { return !this.isAlive(); }
+		public isAlive(): boolean { return 0 < this.hp; }
+		public isDead(): boolean { return !this.isAlive(); }
 		/** 無敵時間. */
-		public isGhostTime(): bool { return this.ghostFrameCounter < this.ghostFrameMax; }
-		public canAddDamage(): bool { return this.isAlive() && !this.isGhostTime(); }
+		public isGhostTime(): boolean { return this.ghostFrameCounter < this.ghostFrameMax; }
+		public canAddDamage(): boolean { return this.isAlive() && !this.isGhostTime(); }
 
 		public damage(v: number): void {
 			this.hp -= v;
@@ -74,7 +74,7 @@ module jp.osakana4242.kimiko.scenes {
 			this.scene = scene;
 		}
 
-		public isAllDead(): bool {
+		public isAllDead(): boolean {
 			if (0 < this.sleeps.length) {
 				return false;
 			}
@@ -178,7 +178,7 @@ module jp.osakana4242.kimiko.scenes {
 				spr.x = 0;
 				spr.y = 8;
 				return spr;
-			}());
+			})();
 
 			var player = (() => {
 				var spr = new enchant.Sprite();
@@ -198,7 +198,7 @@ module jp.osakana4242.kimiko.scenes {
 						moveTo(ax, ay,      kimiko.secToFrame(0.1), Easing.CUBIC_EASEIN);
 				});
 				return spr;
-			}());
+			})();
 		
 			var author = (() => {
 				var spr = new enchant.Label("created by @osakana4242");
@@ -210,7 +210,7 @@ module jp.osakana4242.kimiko.scenes {
 				spr.x = 0;
 				spr.y = 300;
 				return spr;
-			}());
+			})();
 
 			var mapLabel = (() => {
 				var spr = new enchant.Label();
@@ -222,7 +222,7 @@ module jp.osakana4242.kimiko.scenes {
 				spr.x = 0;
 				spr.y = 70;
 				return spr;
-			}());
+			})();
 			
 			var mapLabel2 = (() => {
 				var spr = new enchant.Label();
@@ -234,7 +234,7 @@ module jp.osakana4242.kimiko.scenes {
 				spr.x = 0;
 				spr.y = 94;
 				return spr;
-			}());
+			})();
 
 			function updateMapLabel() {
 				var mapId = mapIds[mapIdsIdx];
@@ -255,7 +255,7 @@ module jp.osakana4242.kimiko.scenes {
 				spr.y = 80;
 				spr.addEventListener(Event.TOUCH_END, prevMap);
 				return spr;
-			}());
+			})();
 
 			var rightBtn = (() => {
 				var spr = new enchant.Label("->");
@@ -269,7 +269,7 @@ module jp.osakana4242.kimiko.scenes {
 				spr.y = 80;
 				spr.addEventListener(Event.TOUCH_END, nextMap);
 				return spr;
-			}());
+			})();
 		
 			var startBtn = (() => {
 				var spr = new enchant.Label("START");
@@ -283,7 +283,7 @@ module jp.osakana4242.kimiko.scenes {
 				spr.y = 140;
 				spr.addEventListener(Event.TOUCH_END, gotoGameStart);
 				return spr;
-			}());
+			})();
 
 			//
 			scene.backgroundColor = "rgb( 32, 32, 32)";
@@ -339,7 +339,7 @@ module jp.osakana4242.kimiko.scenes {
 				sprite.x = 0;
 				sprite.y = 0;
 				sprite.image = kimiko.core.assets[Assets.IMAGE_GAME_START_BG];
-			}(bg1));
+			})(bg1);
 			//
 			var label1 = new enchant.Label("GOOD NIGHT...");
 			((label: any) => {
@@ -356,7 +356,7 @@ module jp.osakana4242.kimiko.scenes {
 					moveTo(ax + 0, ay + 8, kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).
 					moveTo(ax + 0, ay - 8, kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).
 					loop();
-			}(label1));
+			})(label1);
 			//
 			var fader = new Fader(this);
 			//
@@ -380,7 +380,7 @@ module jp.osakana4242.kimiko.scenes {
 					then(next);
 					scene.addEventListener(Event.TOUCH_END, next);
 					scene.addEventListener(Event.A_BUTTON_UP, next);
-			}());
+			})();
 		},
 
 	});
@@ -396,7 +396,7 @@ module jp.osakana4242.kimiko.scenes {
 				spr.backgroundColor = "#000";
 				spr.opacity = 0.5;
 				return spr;
-			}());
+			})();
 
 			var label1 = (() => {
 				var label = new enchant.Label("PAUSE");
@@ -412,7 +412,7 @@ module jp.osakana4242.kimiko.scenes {
 					moveBy(0,  8, kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).
 					loop();
 				return label;
-			}());
+			})();
 			//
 			var label2 = (() => {
 				var label = new enchant.Label("GOTO TITLE");
@@ -429,7 +429,7 @@ module jp.osakana4242.kimiko.scenes {
 					kimiko.core.replaceScene(new scenes.Title());
 				});
 				return label;
-			}());
+			})();
 
 			var label3 = (() => {
 				var label = new enchant.Label("CONTINUE");
@@ -445,7 +445,7 @@ module jp.osakana4242.kimiko.scenes {
 					kimiko.core.popScene();
 				});
 				return label;
-			}());
+			})();
 
 			scene.addChild(bg);
 			scene.addChild(label1); 
@@ -475,7 +475,7 @@ module jp.osakana4242.kimiko.scenes {
 					moveTo(ax + 0, ay + 8, kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).
 					moveTo(ax + 0, ay - 8, kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).
 					loop();
-			}(label1));
+			})(label1);
 			//
 			var layer1 = new enchant.Group();
 			layer1.addChild(label1); 
@@ -520,7 +520,7 @@ module jp.osakana4242.kimiko.scenes {
 					delay(kimiko.secToFrame(0.5)).
 					show().
 					moveTo(ax, ay, kimiko.secToFrame(0.5), Easing.SIN_EASEOUT);
-			}(label1));
+			})(label1);
 			//
 			var label2 = new enchant.Label("REST TIME " + Math.floor(kimiko.frameToSec(pd.restTimeCounter)));
 			((label: any) => {
@@ -538,7 +538,7 @@ module jp.osakana4242.kimiko.scenes {
 					delay(kimiko.secToFrame(1.0)).
 					show().
 					moveTo(ax, ay, kimiko.secToFrame(0.5), Easing.SIN_EASEOUT);
-			}(label2));
+			})(label2);
 
 			var label3 = new enchant.Label("SCORE " + pd.score);
 			((label: any) => {
@@ -556,7 +556,7 @@ module jp.osakana4242.kimiko.scenes {
 					delay(kimiko.secToFrame(1.5)).
 					show().
 					moveTo(ax, ay, kimiko.secToFrame(0.5), Easing.SIN_EASEOUT);
-			}(label3));
+			})(label3);
 
 			//
 			var layer1 = new enchant.Group();
@@ -652,7 +652,7 @@ module jp.osakana4242.kimiko.scenes {
 					spr.y = 0;
 					spr.backgroundColor = "rgb(64, 64, 64)";
 					return spr;
-				}());
+				})();
 
 				// labels
 				this.labels = [];
@@ -679,7 +679,7 @@ module jp.osakana4242.kimiko.scenes {
 						kimiko.core.pushScene(kimiko.pauseScene);
 					});
 					return spr;
-				}());
+				})();
 
 				var group = new enchant.Group();
 				this.statusGroup = group;
@@ -693,7 +693,7 @@ module jp.osakana4242.kimiko.scenes {
 				group.addChild(btnPause);
 				this.addChild(group);
 
-			}());
+			})();
 
 			this.ownBulletPool = new utils.SpritePool(DF.PLAYER_BULLET_NUM, (idx: number) => {
 				var spr = new OwnBullet();
@@ -939,7 +939,7 @@ module jp.osakana4242.kimiko.scenes {
 				
 				map.loadData(tiles);
 				map.collisionData = collisionData;
-			}());
+			})();
 
 			// 敵, スタート地点.
 			(() => {
@@ -1012,7 +1012,7 @@ module jp.osakana4242.kimiko.scenes {
 
 				});
 
-			} ());
+			})();
 			var camera = this.camera;
 			camera.limitRect.x = 0;
 			camera.limitRect.y = 0;

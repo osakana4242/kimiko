@@ -23,7 +23,7 @@ module jp.osakana4242.kimiko.scenes {
 		parent: any;
 		targetPos: utils.Vector2D;
 		dir: utils.Vector2D;
-		isTracePlayer: bool;
+		isTracePlayer: boolean;
 
 		state: () => void;
 		fireFunc: (bullet: any, tpos: utils.Vector2D, speed: number) => void;
@@ -190,7 +190,7 @@ module jp.osakana4242.kimiko.scenes {
 			this.state = this.stateFire;
 		}
 
-		public isStateFire(): bool {
+		public isStateFire(): boolean {
 			return this.state === this.stateFire;
 		}
 	}

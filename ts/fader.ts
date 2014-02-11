@@ -23,7 +23,7 @@ module jp.osakana4242.kimiko.scenes {
 				var spr = new enchant.Sprite(DF.SC_W, DF.SC_H);
 				spr.backgroundColor = "rgb(0, 0, 0)";
 				return spr;
-			}());
+			})();
 		}
 
 		private addFilm(): any {
@@ -40,7 +40,7 @@ module jp.osakana4242.kimiko.scenes {
 			return film;
 		}
 
-		setBlack(isBlack: bool):void {
+		setBlack(isBlack: boolean):void {
 			if (isBlack) {
 				var film = this.addFilm();
 				film.opacity = 1.0;
