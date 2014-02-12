@@ -66,23 +66,16 @@ module jp.osakana4242.kimiko.scenes {
 			// カメラ移動.
 			// プレイヤーからどれだけずらすか。
 			// 前方は後方より少しだけ先が見えるようにする。
-			this._targetPos.x = node.center.x - (camera.width / 2) + (node.dirX * 16);
+			this._targetPos.x = node.center.x - (camera.width / 2);
 			// 指で操作する関係で下方向に余裕を持たせる.
-			this._targetPos.y = node.center.y - (camera.height / 2) + 24;
-			if (node.isBodyStyleSquat) {
-				if (node.scaleY < 0) {
-					this._targetPos.y -= 16;
-				} else {
-					this._targetPos.y += 16;
-				}
-			}
+			this._targetPos.y = node.center.y - (camera.height / 2);
 			return this._targetPos;
 		},
 
 		onenterframe: function () {
 			var camera = this;
 			var tp = this.calcTargetPos();
-			var speed = kimiko.dpsToDpf(5 * 60);
+			var speed = kimiko.dpsToDpf(3 * 60);
 			var dv = utils.Vector2D.alloc(
 				tp.x - camera.x,
 				tp.y - camera.y
@@ -97,16 +90,17 @@ module jp.osakana4242.kimiko.scenes {
 				mv.x = dv.x;
 				mv.y = dv.y;
 			}
-			camera.x = Math.floor(camera.x + mv.x);
-			camera.y = Math.floor(camera.y + mv.y);
+			camera.x = camera.x + mv.x;
+			camera.y = camera.y + mv.y;
 			
-			var marginX = camera.width * 0.9;
-			var marginY = camera.height * 0.9;
+			// カメラと対象のずれの許容範囲.
+			var marginX = camera.width * 0.25;
+			var marginY = camera.height * 0.25;
 			var limitRect = utils.Rect.alloc(
-				Math.floor(tp.x - marginX / 2),
-				Math.floor(tp.y - marginY / 2),
-				Math.floor(camera.width + marginX),
-				Math.floor(camera.height + marginY)
+				tp.x - (marginX / 2),
+				tp.y - (marginY / 2),
+				camera.width + marginX,
+				camera.height + marginY
 			);
 			
 			utils.Rect.trimPos(camera, limitRect);
@@ -135,8 +129,8 @@ module jp.osakana4242.kimiko.scenes {
 		updateGroup: function() {
 			var group = this.targetGroup;
 			if (group) {
-				group.x = - this.x;
-				group.y = - this.y;
+				group.x = Math.round(- this.x);
+				group.y = Math.round(- this.y);
 			}
 		},
 

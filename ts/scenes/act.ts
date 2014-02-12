@@ -641,6 +641,7 @@ module jp.osakana4242.kimiko.scenes {
 				return sprite;
 			})();
 			world.addChild(this.player);
+			// world.addChild(this.player.viewpoint);
 			
 			(() => {
 				// 操作エリア.
@@ -1025,7 +1026,7 @@ module jp.osakana4242.kimiko.scenes {
 			player.startMap();
 
 			// カメラの追跡対象をプレイヤーにする.
-			camera.targetNode = player;
+			camera.targetNode = player.viewpoint;
 			camera.moveToTarget();
 		},
 

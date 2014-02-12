@@ -2219,6 +2219,13 @@ var jp;
                             c.parent = _this;
                             return c;
                         })();
+
+                        this.viewpoint = (function () {
+                            var sprite = new enchant.Sprite(32, 32);
+                            sprite.backgroundColor = "rgb(255,255,0)";
+                            return sprite;
+                        })();
+
                         this.bodyStyle = this.bodyStyles.stand;
 
                         this.life.hpMax = jp.osakana4242.kimiko.DF.PLAYER_HP;
@@ -2256,6 +2263,22 @@ var jp;
                             if (isAlive) {
                                 _this.stepMove();
                                 _this.searchEnemy();
+                            }
+
+                            // viewpoint.
+                            var viewpoint = _this.viewpoint;
+                            viewpoint.x = _this.x;
+                            viewpoint.y = _this.y;
+                            viewpoint.x += (_this.dirX * 16);
+
+                            // 指で操作する関係で下方向に余裕を持たせる.
+                            viewpoint.y += 24;
+                            if (_this.isBodyStyleSquat) {
+                                if (_this.scaleY < 0) {
+                                    viewpoint.y -= 16;
+                                } else {
+                                    viewpoint.y += 16;
+                                }
                             }
                         });
                     },
@@ -2336,7 +2359,7 @@ var jp;
                         bullet.force.x = this.dirX * jp.osakana4242.kimiko.kimiko.dpsToDpf(6 * 60);
                         bullet.force.y = 0;
                         bullet.center.x = this.center.x + this.scaleX * (this.bodyStyle.muzzlePos.x - (this.width / 2));
-                        bullet.center.y = this.y + this.bodyStyle.muzzlePos.y;
+                        bullet.center.y = this.center.y + this.scaleY * (this.bodyStyle.muzzlePos.y - (this.height / 2));
                     },
                     updateBodyStyle: function () {
                         // body style
@@ -2581,23 +2604,16 @@ var jp;
                         // カメラ移動.
                         // プレイヤーからどれだけずらすか。
                         // 前方は後方より少しだけ先が見えるようにする。
-                        this._targetPos.x = node.center.x - (camera.width / 2) + (node.dirX * 16);
+                        this._targetPos.x = node.center.x - (camera.width / 2);
 
                         // 指で操作する関係で下方向に余裕を持たせる.
-                        this._targetPos.y = node.center.y - (camera.height / 2) + 24;
-                        if (node.isBodyStyleSquat) {
-                            if (node.scaleY < 0) {
-                                this._targetPos.y -= 16;
-                            } else {
-                                this._targetPos.y += 16;
-                            }
-                        }
+                        this._targetPos.y = node.center.y - (camera.height / 2);
                         return this._targetPos;
                     },
                     onenterframe: function () {
                         var camera = this;
                         var tp = this.calcTargetPos();
-                        var speed = jp.osakana4242.kimiko.kimiko.dpsToDpf(5 * 60);
+                        var speed = jp.osakana4242.kimiko.kimiko.dpsToDpf(3 * 60);
                         var dv = jp.osakana4242.utils.Vector2D.alloc(tp.x - camera.x, tp.y - camera.y);
                         var mv = jp.osakana4242.utils.Vector2D.alloc();
                         var distance = jp.osakana4242.utils.Vector2D.magnitude(dv);
@@ -2609,12 +2625,13 @@ var jp;
                             mv.x = dv.x;
                             mv.y = dv.y;
                         }
-                        camera.x = Math.floor(camera.x + mv.x);
-                        camera.y = Math.floor(camera.y + mv.y);
+                        camera.x = camera.x + mv.x;
+                        camera.y = camera.y + mv.y;
 
-                        var marginX = camera.width * 0.9;
-                        var marginY = camera.height * 0.9;
-                        var limitRect = jp.osakana4242.utils.Rect.alloc(Math.floor(tp.x - marginX / 2), Math.floor(tp.y - marginY / 2), Math.floor(camera.width + marginX), Math.floor(camera.height + marginY));
+                        // カメラと対象のずれの許容範囲.
+                        var marginX = camera.width * 0.25;
+                        var marginY = camera.height * 0.25;
+                        var limitRect = jp.osakana4242.utils.Rect.alloc(tp.x - (marginX / 2), tp.y - (marginY / 2), camera.width + marginX, camera.height + marginY);
 
                         jp.osakana4242.utils.Rect.trimPos(camera, limitRect);
 
@@ -2641,8 +2658,8 @@ var jp;
                     updateGroup: function () {
                         var group = this.targetGroup;
                         if (group) {
-                            group.x = -this.x;
-                            group.y = -this.y;
+                            group.x = Math.round(-this.x);
+                            group.y = Math.round(-this.y);
                         }
                     },
                     isIntersectSpawnRect: function (entity) {
@@ -3304,6 +3321,7 @@ var jp;
                         })();
                         world.addChild(this.player);
 
+                        // world.addChild(this.player.viewpoint);
                         (function () {
                             // 操作エリア.
                             // 背景.
@@ -3674,7 +3692,7 @@ var jp;
                         player.startMap();
 
                         // カメラの追跡対象をプレイヤーにする.
-                        camera.targetNode = player;
+                        camera.targetNode = player.viewpoint;
                         camera.moveToTarget();
                     },
                     addEffect: function (animId, pos) {

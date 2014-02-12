@@ -58,6 +58,13 @@ module jp.osakana4242.kimiko.scenes {
 					c.parent = this;
 					return c;
 				})();
+
+				this.viewpoint = (() => {
+					var sprite = new enchant.Sprite(32,32);
+					sprite.backgroundColor = "rgb(255,255,0)";
+					return sprite;
+				})();
+
 				this.bodyStyle = this.bodyStyles.stand;
 
 				this.life.hpMax = DF.PLAYER_HP;
@@ -94,7 +101,21 @@ module jp.osakana4242.kimiko.scenes {
 						this.stepMove();
 						this.searchEnemy();
 					}
-			});
+					// viewpoint.
+					var viewpoint = this.viewpoint;
+					viewpoint.x = this.x;
+					viewpoint.y = this.y;
+					viewpoint.x += (this.dirX * 16);
+					// 指で操作する関係で下方向に余裕を持たせる.
+					viewpoint.y += 24;
+					if (this.isBodyStyleSquat) {
+						if (this.scaleY < 0) {
+							viewpoint.y -= 16;
+						} else {
+							viewpoint.y += 16;
+						}
+					}
+				});
 			},
 			
 			bodyStyle: {
@@ -176,7 +197,7 @@ module jp.osakana4242.kimiko.scenes {
 				bullet.force.x = this.dirX * kimiko.dpsToDpf(6 * 60);
 				bullet.force.y = 0;
 				bullet.center.x = this.center.x + this.scaleX * (this.bodyStyle.muzzlePos.x - (this.width / 2));
-				bullet.center.y = this.y + this.bodyStyle.muzzlePos.y;
+				bullet.center.y = this.center.y + this.scaleY * (this.bodyStyle.muzzlePos.y - (this.height / 2));
 			},
 			
 			updateBodyStyle: function () {
