@@ -2,6 +2,23 @@
 (function (jp) {
     (function (osakana4242) {
         (function (utils) {
+            (function (NumberUtil) {
+                function trim(v, vMin, vMax) {
+                    return Math.max(vMin, Math.min(vMax, v));
+                }
+                NumberUtil.trim = trim;
+
+                function sign(v) {
+                    if (0 <= v) {
+                        return 1;
+                    } else {
+                        return -1;
+                    }
+                }
+                NumberUtil.sign = sign;
+            })(utils.NumberUtil || (utils.NumberUtil = {}));
+            var NumberUtil = utils.NumberUtil;
+
             (function (StringUtil) {
                 /** 文字列を指定回数繰り返す.文字列に数値を掛け算. */
                 function mul(v, count) {
@@ -494,7 +511,7 @@
                         this.loopCnt = 0;
                         this.sprite.width = v.frameWidth;
                         this.sprite.height = v.frameHeight;
-                        this.sprite.image = jp.osakana4242.kimiko.app.core.assets[v.imageName];
+                        this.sprite.image = enchant.Core.instance.assets[v.imageName];
                     },
                     enumerable: true,
                     configurable: true
@@ -624,19 +641,12 @@
     })(jp.osakana4242 || (jp.osakana4242 = {}));
     var osakana4242 = jp.osakana4242;
 })(jp || (jp = {}));
+/// <reference path="utils.ts" />
 
 var jp;
 (function (jp) {
     (function (osakana4242) {
         (function (kimiko) {
-            var Class = enchant.Class;
-            var Core = enchant.Core;
-            var Scene = enchant.Scene;
-            var Label = enchant.Label;
-            var Event = enchant.Event;
-
-            kimiko.app = null;
-
             (function (Assets) {
                 Assets.IMAGE_GAME_START_BG = "./images/game_start_bg.png";
                 Assets.IMAGE_MAP = "./images/map.png";
@@ -852,24 +862,18 @@ var jp;
                 })();
             })(kimiko.DF || (kimiko.DF = {}));
             var DF = kimiko.DF;
+        })(osakana4242.kimiko || (osakana4242.kimiko = {}));
+        var kimiko = osakana4242.kimiko;
+    })(jp.osakana4242 || (jp.osakana4242 = {}));
+    var osakana4242 = jp.osakana4242;
+})(jp || (jp = {}));
+/// <reference path="kimiko.ts" />
 
-            var NumberUtil = (function () {
-                function NumberUtil() {
-                }
-                NumberUtil.prototype.trim = function (v, vMin, vMax) {
-                    return Math.max(vMin, Math.min(vMax, v));
-                };
-
-                NumberUtil.prototype.sign = function (v) {
-                    if (0 <= v) {
-                        return 1;
-                    } else {
-                        return -1;
-                    }
-                };
-                return NumberUtil;
-            })();
-            kimiko.NumberUtil = NumberUtil;
+var jp;
+(function (jp) {
+    (function (osakana4242) {
+        (function (kimiko) {
+            var DF = jp.osakana4242.kimiko.DF;
 
             var PlayerData = (function () {
                 function PlayerData() {
@@ -881,24 +885,42 @@ var jp;
                     this.score = 0;
                     this.restTimeCounter = 0;
                     this.restTimeMax = 0;
-                    this.restTimeMax = kimiko.app.secToFrame(180);
+                    this.restTimeMax = jp.osakana4242.kimiko.app.secToFrame(180);
                     this.restTimeCounter = this.restTimeMax;
                     this.mapId = DF.MAP_ID_MIN;
                 };
                 return PlayerData;
             })();
             kimiko.PlayerData = PlayerData;
+        })(osakana4242.kimiko || (osakana4242.kimiko = {}));
+        var kimiko = osakana4242.kimiko;
+    })(jp.osakana4242 || (jp.osakana4242 = {}));
+    var osakana4242 = jp.osakana4242;
+})(jp || (jp = {}));
+/// <reference path="utils.ts" />
+/// <reference path="defines.ts" />
+/// <reference path="player_data.ts" />
+
+var jp;
+(function (jp) {
+    (function (osakana4242) {
+        (function (kimiko) {
+            var DF = jp.osakana4242.kimiko.DF;
+            var Assets = jp.osakana4242.kimiko.Assets;
 
             var App = (function () {
-                function App(config) {
-                    var _this = this;
-                    this.numberUtil = new NumberUtil();
+                function App() {
+                    this.numberUtil = jp.osakana4242.utils.NumberUtil;
+                    this.stringUtil = jp.osakana4242.utils.StringUtil;
+                    this.isInited = false;
                     this.animFrames = {};
-                    if (App.instance) {
+                }
+                App.prototype.init = function (config) {
+                    if (kimiko.app.isInited) {
                         return;
                     }
-                    App.instance = this;
-                    this.config = config;
+                    kimiko.app.isInited = true;
+                    kimiko.app.config = config;
 
                     var core = new enchant.Core(DF.SC_W, DF.SC_H);
                     core.fps = config.fps || DF.BASE_FPS;
@@ -927,7 +949,7 @@ var jp;
                     (function () {
                         var r = function (animId, imageName, frameWidth, frameHeight, frameSec, frames) {
                             var seq = new jp.osakana4242.utils.AnimSequence(imageName, frameWidth, frameHeight, frameSec, frames);
-                            _this.registerAnimFrames(animId, seq);
+                            kimiko.app.registerAnimFrames(animId, seq);
                         };
                         r(DF.ANIM_ID_CHARA001_WALK, Assets.IMAGE_CHARA001, 32, 32, 0.1, [0, 1, 0, 2]);
                         r(DF.ANIM_ID_CHARA001_STAND, Assets.IMAGE_CHARA001, 32, 32, 0.1, [0]);
@@ -956,25 +978,26 @@ var jp;
 
                     //
                     core.onload = (function () {
-                        _this.gameScene = new jp.osakana4242.kimiko.scenes.Act();
-                        _this.pauseScene = new jp.osakana4242.kimiko.scenes.Pause();
-                        kimiko.app.playerData = new PlayerData();
+                        kimiko.app.playerData = new jp.osakana4242.kimiko.PlayerData();
+                        kimiko.app.gameScene = new jp.osakana4242.kimiko.scenes.Act();
+                        kimiko.app.pauseScene = new jp.osakana4242.kimiko.scenes.Pause();
                         if (true) {
                             var scene = new jp.osakana4242.kimiko.scenes.Title();
                             core.replaceScene(scene);
                         } else {
                             kimiko.app.playerData.reset();
                             kimiko.app.playerData.mapId = DF.MAP_ID_MAX;
-                            core.replaceScene(_this.gameScene);
+                            core.replaceScene(kimiko.app.gameScene);
                         }
                     });
-                }
+                };
+
                 App.prototype.registerAnimFrames = function (animId, seq) {
-                    this.animFrames[animId] = seq;
+                    kimiko.app.animFrames[animId] = seq;
                 };
 
                 App.prototype.getAnimFrames = function (animId) {
-                    return this.animFrames[animId];
+                    return kimiko.app.animFrames[animId];
                 };
 
                 Object.defineProperty(App.prototype, "core", {
@@ -986,11 +1009,11 @@ var jp;
                 });
 
                 App.prototype.secToFrame = function (sec) {
-                    return this.core.fps * sec;
+                    return kimiko.app.core.fps * sec;
                 };
 
                 App.prototype.frameToSec = function (frame) {
-                    return frame / this.core.fps;
+                    return frame / kimiko.app.core.fps;
                 };
 
                 /**
@@ -1000,22 +1023,24 @@ var jp;
                 20FPSで1フレームに1dot → 1 x 20 = 1秒間に20dot = 20dps
                 */
                 App.prototype.dpsToDpf = function (dotPerSec) {
-                    return dotPerSec ? dotPerSec / this.core.fps : 0;
+                    return dotPerSec ? dotPerSec / kimiko.app.core.fps : 0;
                 };
 
                 /** 指定距離を指定dpsで通過できる時間(frame)
                 関数名が決まらない. ('A`)
                 */
                 App.prototype.getFrameCountByHoge = function (distance, dps) {
-                    return distance / this.dpsToDpf(dps);
+                    return distance / kimiko.app.dpsToDpf(dps);
                 };
-                App.instance = null;
                 return App;
             })();
             kimiko.App = App;
 
+            kimiko.app = new App();
+
+            /** HTMLから呼ぶ. */
             function start(params) {
-                kimiko.app = new App(params);
+                kimiko.app.init(params);
                 kimiko.app.core.start();
             }
             kimiko.start = start;
@@ -3814,7 +3839,7 @@ var jp;
                         var pd = jp.osakana4242.kimiko.app.playerData;
                         var mapCharaMgr = this.mapCharaMgr;
                         var texts = this.statusTexts;
-                        var lifeText = jp.osakana4242.utils.StringUtil.mul("o", player.life.hp) + jp.osakana4242.utils.StringUtil.mul("_", player.life.hpMax - player.life.hp);
+                        var lifeText = jp.osakana4242.kimiko.app.stringUtil.mul("o", player.life.hp) + jp.osakana4242.utils.StringUtil.mul("_", player.life.hpMax - player.life.hp);
                         texts[0][0] = "SC " + jp.osakana4242.kimiko.app.playerData.score + " " + "TIME " + Math.floor(jp.osakana4242.kimiko.app.frameToSec(pd.restTimeCounter));
                         texts[1][0] = "LIFE " + lifeText + " " + "WALL " + player.wallPushDir.x + "," + player.wallPushDir.y + " " + (player.targetEnemy ? "LOCK" : "    ") + " " + "";
 

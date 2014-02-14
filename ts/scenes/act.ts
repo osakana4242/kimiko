@@ -1165,7 +1165,7 @@ module jp.osakana4242.kimiko.scenes {
 			var pd = app.playerData;
 			var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
 			var texts: string[][] = this.statusTexts;
-			var lifeText = utils.StringUtil.mul("o", player.life.hp) + utils.StringUtil.mul("_", player.life.hpMax - player.life.hp);
+			var lifeText = app.stringUtil.mul("o", player.life.hp) + utils.StringUtil.mul("_", player.life.hpMax - player.life.hp);
 			texts[0][0] = "SC " + app.playerData.score + " " +
 				"TIME " + Math.floor(app.frameToSec(pd.restTimeCounter));	
 			texts[1][0] = "LIFE " + lifeText + " " +
