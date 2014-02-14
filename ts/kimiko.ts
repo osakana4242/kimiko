@@ -103,7 +103,7 @@ module jp.osakana4242.kimiko {
 			//
 			core.onload = (() => {
 				app.playerData = new jp.osakana4242.kimiko.PlayerData();
-				app.gameScene = new jp.osakana4242.kimiko.scenes.Act();
+				app.gameScene = new jp.osakana4242.kimiko.scenes.Game();
 				app.pauseScene = new jp.osakana4242.kimiko.scenes.Pause();
 				if (true) {
 					var scene = new jp.osakana4242.kimiko.scenes.Title();

@@ -979,7 +979,7 @@ var jp;
                     //
                     core.onload = (function () {
                         kimiko.app.playerData = new jp.osakana4242.kimiko.PlayerData();
-                        kimiko.app.gameScene = new jp.osakana4242.kimiko.scenes.Act();
+                        kimiko.app.gameScene = new jp.osakana4242.kimiko.scenes.Game();
                         kimiko.app.pauseScene = new jp.osakana4242.kimiko.scenes.Pause();
                         if (true) {
                             var scene = new jp.osakana4242.kimiko.scenes.Title();
@@ -3286,7 +3286,7 @@ var jp;
                     }
                 });
 
-                scenes.Act = Class.create(Scene, {
+                scenes.Game = Class.create(Scene, {
                     initialize: function () {
                         var _this = this;
                         Scene.call(this);

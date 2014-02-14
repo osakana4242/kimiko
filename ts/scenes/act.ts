@@ -586,7 +586,7 @@ module jp.osakana4242.kimiko.scenes {
 		}
 	});
 
-	export var Act: any = Class.create(Scene, {
+	export var Game: any = Class.create(Scene, {
 		initialize: function () {
 			Scene.call(this);
 
