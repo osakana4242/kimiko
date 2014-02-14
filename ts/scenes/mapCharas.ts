@@ -11,7 +11,7 @@ module jp.osakana4242.kimiko.scenes {
 	export var EnemyBullet: any = Class.create(enchant.Sprite, {
 		initialize: function () {
 			enchant.Sprite.call(this, 16, 16);
-			this.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_BULLET002);
+			this.anim.sequence = app.getAnimFrames(DF.ANIM_ID_BULLET002);
 			this.ageMax = 0;
 			this.force = new utils.Vector2D();
 			this.force.x = 0;
@@ -64,7 +64,7 @@ module jp.osakana4242.kimiko.scenes {
 	export var OwnBullet: any = Class.create(enchant.Sprite, {
 		initialize: function () {
 			enchant.Sprite.call(this, 16, 16);
-			this.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_BULLET001);
+			this.anim.sequence = app.getAnimFrames(DF.ANIM_ID_BULLET001);
 			this.ageMax = 0;
 			this.force = new utils.Vector2D();
 			this.force.x = 0;
@@ -166,7 +166,7 @@ module jp.osakana4242.kimiko.scenes {
 		},
 
 		damage: function (attacker?: any) {
-			var damageValue = kimiko.config.isDamageEnabled ? 1 : 0;
+			var damageValue = app.config.isDamageEnabled ? 1 : 0;
 			this.life.damage(damageValue);
 			if (this.life.isAlive()) {
 				this.state = this.stateDamage;
@@ -181,7 +181,7 @@ module jp.osakana4242.kimiko.scenes {
 			effect.width = spr.width;
 			effect.height = spr.height;
 			effect.backgroundColor = "rgb(196,64,64)";
-			var effectTime: number = kimiko.secToFrame(0.3);
+			var effectTime: number = app.secToFrame(0.3);
 			effect.visible = false;
 
 
@@ -225,7 +225,7 @@ module jp.osakana4242.kimiko.scenes {
 			this.anchor = new utils.Vector2D();
 			this.collider = new utils.Collider();
 			this.collider.parent = this;
-			this.life.setGhostFrameMax(kimiko.secToFrame(0.2));
+			this.life.setGhostFrameMax(app.secToFrame(0.2));
 
 
 			function stepWeapons() {
@@ -259,7 +259,7 @@ module jp.osakana4242.kimiko.scenes {
 			this.center.x = attacker.center.x;
 			this.center.y = attacker.center.y;
 			this.backgroundColor = "rgb(196,64,64)";
-			var effectTime: number = kimiko.secToFrame(0.3);
+			var effectTime: number = app.secToFrame(0.3);
 			this.visible = false;
 			this.scaleX = this.scaleY = 0.1;
 			this.tl.

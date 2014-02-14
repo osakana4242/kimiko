@@ -18,10 +18,10 @@ module jp.osakana4242.kimiko.scenes {
 				Attacker.call(this);
 				
 				this.bodyStyles = (() => {
-					var animWalk = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_WALK);
-					var animStand = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_STAND);
-					var animSquat = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_SQUAT);
-					var animDead = kimiko.getAnimFrames(DF.ANIM_ID_CHARA001_DEAD);
+					var animWalk = app.getAnimFrames(DF.ANIM_ID_CHARA001_WALK);
+					var animStand = app.getAnimFrames(DF.ANIM_ID_CHARA001_STAND);
+					var animSquat = app.getAnimFrames(DF.ANIM_ID_CHARA001_SQUAT);
+					var animDead = app.getAnimFrames(DF.ANIM_ID_CHARA001_DEAD);
 					this.anim.sequence = animWalk;
 	
 					var colliderA = utils.Collider.centerBottom(this, 12, 28);
@@ -69,7 +69,7 @@ module jp.osakana4242.kimiko.scenes {
 
 				this.life.hpMax = DF.PLAYER_HP;
 				this.life.hp = this.life.hpMax;
-				this.life.setGhostFrameMax(kimiko.secToFrame(1.5));
+				this.life.setGhostFrameMax(app.secToFrame(1.5));
 				this.life.damageListener = () => {
 					if (this.life.isDead()) {
 					}
@@ -129,7 +129,7 @@ module jp.osakana4242.kimiko.scenes {
 
 			searchEnemy: function () {
 				var scene = this.scene;
-				if ((this.age % kimiko.secToFrame(0.2)) === 0) {
+				if ((this.age % app.secToFrame(0.2)) === 0) {
 					// TODO: ロックオン済みの敵がいる場合は索敵間隔を遅らせたほうがいいかも.
 					// 近い敵を探す.
 					var srect = utils.Rect.alloc();
@@ -159,9 +159,9 @@ module jp.osakana4242.kimiko.scenes {
 							this.targetEnemy = null;
 						} else {
 							// ロックオン状態. 常に敵を見る.
-							this.dirX = kimiko.numberUtil.sign(this.targetEnemy.x - this.x);
+							this.dirX = app.numberUtil.sign(this.targetEnemy.x - this.x);
 							this.scaleX = this.dirX;
-							if ((this.age % kimiko.secToFrame(0.2)) === 0) {
+							if ((this.age % app.secToFrame(0.2)) === 0) {
 								// TODO: 敵同様にweaponクラス化.
 								var srect = utils.Rect.alloc();
 								srect.width = DF.SC1_W;
@@ -186,7 +186,7 @@ module jp.osakana4242.kimiko.scenes {
 			},
 
 			attack: function () {
-				if (!kimiko.config.isFireEnabled) {
+				if (!app.config.isFireEnabled) {
 					return;
 				}
 				var bullet = this.scene.newOwnBullet();
@@ -194,7 +194,7 @@ module jp.osakana4242.kimiko.scenes {
 					return;
 				}
 				bullet.scaleX = this.scaleX;
-				bullet.force.x = this.dirX * kimiko.dpsToDpf(6 * 60);
+				bullet.force.x = this.dirX * app.dpsToDpf(6 * 60);
 				bullet.force.y = 0;
 				bullet.center.x = this.center.x + this.scaleX * (this.bodyStyle.muzzlePos.x - (this.width / 2));
 				bullet.center.y = this.center.y + this.scaleY * (this.bodyStyle.muzzlePos.y - (this.height / 2));
@@ -235,7 +235,7 @@ module jp.osakana4242.kimiko.scenes {
 
 				if (!this.targetEnemy) {
 					if (0 !== this.inputForce.x) {
-						this.dirX = kimiko.numberUtil.sign(this.inputForce.x);
+						this.dirX = app.numberUtil.sign(this.inputForce.x);
 						this.scaleX = this.dirX;
 					}
 				}
@@ -250,8 +250,8 @@ module jp.osakana4242.kimiko.scenes {
 				if (0 < this.gravityHoldCounter) {
 					--this.gravityHoldCounter;
 				} else {
-					var gravityMax = kimiko.dpsToDpf(60 * 8)
-					this.force.y = Math.min(this.force.y + kimiko.dpsToDpf(DF.GRAVITY), gravityMax);
+					var gravityMax = app.dpsToDpf(60 * 8)
+					this.force.y = Math.min(this.force.y + app.dpsToDpf(DF.GRAVITY), gravityMax);
 				}
 	
 				var totalMx = this.force.x;
@@ -341,24 +341,24 @@ module jp.osakana4242.kimiko.scenes {
 			},
 
 			checkKeyInput: function () {
-				var input = kimiko.core.input;
+				var input = app.core.input;
 				var flag =
 					((input.left  ? 1 : 0) << 0) |
 					((input.right ? 1 : 0) << 1) |
 					((input.up    ? 1 : 0) << 2) |
 					((input.down  ? 1 : 0) << 3);
-				this.isSlowMove = kimiko.core.input.a;
+				this.isSlowMove = app.core.input.a;
 				if (flag !== 0) {
 					if (this.isSlowMove) {
-						this.inputForce.x = DF.DIR_FLAG_TO_VECTOR2D[flag].x * kimiko.dpsToDpf(2 * 60);
-						this.inputForce.y = DF.DIR_FLAG_TO_VECTOR2D[flag].y * kimiko.dpsToDpf(2 * 60);
+						this.inputForce.x = DF.DIR_FLAG_TO_VECTOR2D[flag].x * app.dpsToDpf(2 * 60);
+						this.inputForce.y = DF.DIR_FLAG_TO_VECTOR2D[flag].y * app.dpsToDpf(2 * 60);
 					} else {
-						this.inputForce.x = DF.DIR_FLAG_TO_VECTOR2D[flag].x * kimiko.dpsToDpf(4 * 60);
-						this.inputForce.y = DF.DIR_FLAG_TO_VECTOR2D[flag].y * kimiko.dpsToDpf(4 * 60);
+						this.inputForce.x = DF.DIR_FLAG_TO_VECTOR2D[flag].x * app.dpsToDpf(4 * 60);
+						this.inputForce.y = DF.DIR_FLAG_TO_VECTOR2D[flag].y * app.dpsToDpf(4 * 60);
 					}
 				}
 				if (this.isSlowMove || flag !== 0) {
-					this.gravityHoldCounter = kimiko.secToFrame(DF.GRAVITY_HOLD_SEC);
+					this.gravityHoldCounter = app.secToFrame(DF.GRAVITY_HOLD_SEC);
 				}
 			},
 
@@ -368,7 +368,7 @@ module jp.osakana4242.kimiko.scenes {
 				var touch: utils.Touch = scene.touch;
 				if (touch.isTouching) {
 					var moveLimit = DF.TOUCH_TO_CHARA_MOVE_LIMIT;
-					var moveRate = kimiko.config.swipeToMoveRate;
+					var moveRate = app.config.swipeToMoveRate;
 					if (DF.PLAYER_TOUCH_ANCHOR_ENABLE) {
 						var tv = utils.Vector2D.alloc(
 							player.touchStartAnchor.x + touch.totalDiff.x * moveRate.x,
@@ -385,10 +385,10 @@ module jp.osakana4242.kimiko.scenes {
 						utils.Vector2D.free(tv);
 						utils.Vector2D.free(v);
 					} else {
-						player.inputForce.x = kimiko.numberUtil.trim(touch.diff.x * moveRate.x, -moveLimit, moveLimit);
-						player.inputForce.y = kimiko.numberUtil.trim(touch.diff.y * moveRate.y, -moveLimit, moveLimit);
+						player.inputForce.x = app.numberUtil.trim(touch.diff.x * moveRate.x, -moveLimit, moveLimit);
+						player.inputForce.y = app.numberUtil.trim(touch.diff.y * moveRate.y, -moveLimit, moveLimit);
 					}
-					this.gravityHoldCounter = kimiko.secToFrame(DF.GRAVITY_HOLD_SEC);
+					this.gravityHoldCounter = app.secToFrame(DF.GRAVITY_HOLD_SEC);
 				}
 			},
 

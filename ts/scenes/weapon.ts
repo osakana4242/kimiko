@@ -33,11 +33,11 @@ module jp.osakana4242.kimiko.scenes {
 			this.state = this.stateNeutral;
 			this.wayNum = 1;
 			this.fireCount = 1;
-			this.fireInterval = kimiko.secToFrame(0.2);
-			this.reloadFrameCount = kimiko.secToFrame(3.0);
+			this.fireInterval = app.secToFrame(0.2);
+			this.reloadFrameCount = app.secToFrame(3.0);
 			this.dir = new utils.Vector2D(1, 0);
 			this.targetPos = new utils.Vector2D();
-			this.speed = kimiko.dpsToDpf(60 * 1.0);
+			this.speed = app.dpsToDpf(60 * 1.0);
 			this.fireFunc = WeaponA.fireC;
 			this.isTracePlayer = false;
 		}
@@ -137,8 +137,8 @@ module jp.osakana4242.kimiko.scenes {
 			var d2 = 480;
 			var dx = d.x * d2 / m;
 			var dy = d.y * d2 / m;
-			var frame1 = Math.floor(d2 * 0.2 / kimiko.dpsToDpf(4 * 60));
-			var frame2 = Math.floor(d2 * 0.8 / kimiko.dpsToDpf(1 * 60));
+			var frame1 = Math.floor(d2 * 0.2 / app.dpsToDpf(4 * 60));
+			var frame2 = Math.floor(d2 * 0.8 / app.dpsToDpf(1 * 60));
 	
 			bullet.tl.
 				// 早く移動.
@@ -158,7 +158,7 @@ module jp.osakana4242.kimiko.scenes {
 			bullet.force.y = 0;
 			var dx = tpos.x - bullet.center.x;
 			var dy = tpos.y - bullet.center.y;
-			var frameNum = kimiko.secToFrame(1.0);
+			var frameNum = app.secToFrame(1.0);
 			bullet.tl.
 				moveBy(dx * 0.25, dy * 0.25 - 64 * 0.7, frameNum * 0.25).
 				moveBy(dx * 0.25, dy * 0.25 - 64 * 0.3, frameNum * 0.25).

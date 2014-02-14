@@ -500,7 +500,7 @@ module jp.osakana4242.utils {
 			this.loopCnt = 0;
 			this.sprite.width = v.frameWidth;
 			this.sprite.height = v.frameHeight;
-			this.sprite.image = kimiko.kimiko.core.assets[v.imageName];
+			this.sprite.image = kimiko.app.core.assets[v.imageName];
 		}
 		
 		get curFrame(): number {
@@ -519,7 +519,7 @@ module jp.osakana4242.utils {
 			}
 			
 			this.waitCnt += 1;
-			if (kimiko.kimiko.secToFrame(this.sequence_.frameTime) / this.speed <= this.waitCnt) {
+			if (kimiko.app.secToFrame(this.sequence_.frameTime) / this.speed <= this.waitCnt) {
 				this.frameIdx += 1;
 				if (this.sequence_.frameNum <= this.frameIdx) {
 					this.frameIdx = 0;
@@ -620,7 +620,7 @@ module jp.osakana4242.kimiko {
 	var Label = enchant.Label;
 	var Event = enchant.Event;
 	
-	export var kimiko: Kimiko = null;
+	export var app: App = null;
 	
 	export module Assets {
 		export var IMAGE_GAME_START_BG = "./images/game_start_bg.png";
@@ -886,15 +886,15 @@ module jp.osakana4242.kimiko {
 			this.score= 0;
 			this.restTimeCounter= 0;
 			this.restTimeMax= 0;
-			this.restTimeMax = kimiko.secToFrame(180);
+			this.restTimeMax = app.secToFrame(180);
 			this.restTimeCounter = this.restTimeMax;
 			this.mapId= DF.MAP_ID_MIN;
 		}
 	}
 
-	export class Kimiko {
+	export class App {
 		
-		static instance: Kimiko = null;
+		static instance: App = null;
 		
 		numberUtil = new NumberUtil();
 		config: IConfig;
@@ -903,10 +903,10 @@ module jp.osakana4242.kimiko {
 		pauseScene: any;
 		
 		constructor(config: IConfig) {
-			if (Kimiko.instance) {
+			if (App.instance) {
 				return;
 			}
-			Kimiko.instance = this;
+			App.instance = this;
 			this.config = config;
 			
 			var core: any = new enchant.Core(DF.SC_W, DF.SC_H);
@@ -966,13 +966,13 @@ module jp.osakana4242.kimiko {
 			core.onload = (() => {
 				this.gameScene = new jp.osakana4242.kimiko.scenes.Act();
 				this.pauseScene = new jp.osakana4242.kimiko.scenes.Pause();
-				kimiko.playerData = new PlayerData();
+				app.playerData = new PlayerData();
 				if (true) {
 					var scene = new jp.osakana4242.kimiko.scenes.Title();
 					core.replaceScene(scene);
 				} else {
-					kimiko.playerData.reset();
-					kimiko.playerData.mapId = DF.MAP_ID_MAX;
+					app.playerData.reset();
+					app.playerData.mapId = DF.MAP_ID_MAX;
 					core.replaceScene(this.gameScene);
 				}
 			});
@@ -1022,7 +1022,7 @@ module jp.osakana4242.kimiko {
 	}
 	
 	export function start(params) {
-		kimiko = new Kimiko(params);
-		kimiko.core.start();
+		app = new App(params);
+		app.core.start();
 	}
 }

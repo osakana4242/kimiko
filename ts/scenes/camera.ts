@@ -75,7 +75,7 @@ module jp.osakana4242.kimiko.scenes {
 		onenterframe: function () {
 			var camera = this;
 			var tp = this.calcTargetPos();
-			var speed = kimiko.dpsToDpf(3 * 60);
+			var speed = app.dpsToDpf(3 * 60);
 			var dv = utils.Vector2D.alloc(
 				tp.x - camera.x,
 				tp.y - camera.y

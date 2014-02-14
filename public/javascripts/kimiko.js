@@ -494,7 +494,7 @@
                         this.loopCnt = 0;
                         this.sprite.width = v.frameWidth;
                         this.sprite.height = v.frameHeight;
-                        this.sprite.image = jp.osakana4242.kimiko.kimiko.core.assets[v.imageName];
+                        this.sprite.image = jp.osakana4242.kimiko.app.core.assets[v.imageName];
                     },
                     enumerable: true,
                     configurable: true
@@ -527,7 +527,7 @@
                     }
 
                     this.waitCnt += 1;
-                    if (jp.osakana4242.kimiko.kimiko.secToFrame(this.sequence_.frameTime) / this.speed <= this.waitCnt) {
+                    if (jp.osakana4242.kimiko.app.secToFrame(this.sequence_.frameTime) / this.speed <= this.waitCnt) {
                         this.frameIdx += 1;
                         if (this.sequence_.frameNum <= this.frameIdx) {
                             this.frameIdx = 0;
@@ -628,14 +628,14 @@
 var jp;
 (function (jp) {
     (function (osakana4242) {
-        (function (_kimiko) {
+        (function (kimiko) {
             var Class = enchant.Class;
             var Core = enchant.Core;
             var Scene = enchant.Scene;
             var Label = enchant.Label;
             var Event = enchant.Event;
 
-            _kimiko.kimiko = null;
+            kimiko.app = null;
 
             (function (Assets) {
                 Assets.IMAGE_GAME_START_BG = "./images/game_start_bg.png";
@@ -647,8 +647,8 @@ var jp;
                 Assets.IMAGE_EFFECT = "./images/bullet.png";
                 Assets.IMAGE_COLLIDER = "./images/collider.png";
                 Assets.SOUND_BGM = "./sounds/bgm.mp3";
-            })(_kimiko.Assets || (_kimiko.Assets = {}));
-            var Assets = _kimiko.Assets;
+            })(kimiko.Assets || (kimiko.Assets = {}));
+            var Assets = kimiko.Assets;
 
             (function (DF) {
                 /** ドアを隠すか. */
@@ -850,8 +850,8 @@ var jp;
                     a[DF.BIT_L | DF.BIT_R | DF.BIT_U | DF.BIT_D] = { x: 0, y: 0 };
                     return a;
                 })();
-            })(_kimiko.DF || (_kimiko.DF = {}));
-            var DF = _kimiko.DF;
+            })(kimiko.DF || (kimiko.DF = {}));
+            var DF = kimiko.DF;
 
             var NumberUtil = (function () {
                 function NumberUtil() {
@@ -869,7 +869,7 @@ var jp;
                 };
                 return NumberUtil;
             })();
-            _kimiko.NumberUtil = NumberUtil;
+            kimiko.NumberUtil = NumberUtil;
 
             var PlayerData = (function () {
                 function PlayerData() {
@@ -881,23 +881,23 @@ var jp;
                     this.score = 0;
                     this.restTimeCounter = 0;
                     this.restTimeMax = 0;
-                    this.restTimeMax = _kimiko.kimiko.secToFrame(180);
+                    this.restTimeMax = kimiko.app.secToFrame(180);
                     this.restTimeCounter = this.restTimeMax;
                     this.mapId = DF.MAP_ID_MIN;
                 };
                 return PlayerData;
             })();
-            _kimiko.PlayerData = PlayerData;
+            kimiko.PlayerData = PlayerData;
 
-            var Kimiko = (function () {
-                function Kimiko(config) {
+            var App = (function () {
+                function App(config) {
                     var _this = this;
                     this.numberUtil = new NumberUtil();
                     this.animFrames = {};
-                    if (Kimiko.instance) {
+                    if (App.instance) {
                         return;
                     }
-                    Kimiko.instance = this;
+                    App.instance = this;
                     this.config = config;
 
                     var core = new enchant.Core(DF.SC_W, DF.SC_H);
@@ -958,26 +958,26 @@ var jp;
                     core.onload = (function () {
                         _this.gameScene = new jp.osakana4242.kimiko.scenes.Act();
                         _this.pauseScene = new jp.osakana4242.kimiko.scenes.Pause();
-                        _kimiko.kimiko.playerData = new PlayerData();
+                        kimiko.app.playerData = new PlayerData();
                         if (true) {
                             var scene = new jp.osakana4242.kimiko.scenes.Title();
                             core.replaceScene(scene);
                         } else {
-                            _kimiko.kimiko.playerData.reset();
-                            _kimiko.kimiko.playerData.mapId = DF.MAP_ID_MAX;
+                            kimiko.app.playerData.reset();
+                            kimiko.app.playerData.mapId = DF.MAP_ID_MAX;
                             core.replaceScene(_this.gameScene);
                         }
                     });
                 }
-                Kimiko.prototype.registerAnimFrames = function (animId, seq) {
+                App.prototype.registerAnimFrames = function (animId, seq) {
                     this.animFrames[animId] = seq;
                 };
 
-                Kimiko.prototype.getAnimFrames = function (animId) {
+                App.prototype.getAnimFrames = function (animId) {
                     return this.animFrames[animId];
                 };
 
-                Object.defineProperty(Kimiko.prototype, "core", {
+                Object.defineProperty(App.prototype, "core", {
                     get: function () {
                         return enchant.Core.instance;
                     },
@@ -985,11 +985,11 @@ var jp;
                     configurable: true
                 });
 
-                Kimiko.prototype.secToFrame = function (sec) {
+                App.prototype.secToFrame = function (sec) {
                     return this.core.fps * sec;
                 };
 
-                Kimiko.prototype.frameToSec = function (frame) {
+                App.prototype.frameToSec = function (frame) {
                     return frame / this.core.fps;
                 };
 
@@ -999,26 +999,26 @@ var jp;
                 60FPSで1フレームに1dot → 1 x 60 = 1秒間に60dot = 60dps
                 20FPSで1フレームに1dot → 1 x 20 = 1秒間に20dot = 20dps
                 */
-                Kimiko.prototype.dpsToDpf = function (dotPerSec) {
+                App.prototype.dpsToDpf = function (dotPerSec) {
                     return dotPerSec ? dotPerSec / this.core.fps : 0;
                 };
 
                 /** 指定距離を指定dpsで通過できる時間(frame)
                 関数名が決まらない. ('A`)
                 */
-                Kimiko.prototype.getFrameCountByHoge = function (distance, dps) {
+                App.prototype.getFrameCountByHoge = function (distance, dps) {
                     return distance / this.dpsToDpf(dps);
                 };
-                Kimiko.instance = null;
-                return Kimiko;
+                App.instance = null;
+                return App;
             })();
-            _kimiko.Kimiko = Kimiko;
+            kimiko.App = App;
 
             function start(params) {
-                _kimiko.kimiko = new Kimiko(params);
-                _kimiko.kimiko.core.start();
+                kimiko.app = new App(params);
+                kimiko.app.core.start();
             }
-            _kimiko.start = start;
+            kimiko.start = start;
         })(osakana4242.kimiko || (osakana4242.kimiko = {}));
         var kimiko = osakana4242.kimiko;
     })(jp.osakana4242 || (jp.osakana4242 = {}));
@@ -1267,11 +1267,11 @@ var jp;
                         this.state = this.stateNeutral;
                         this.wayNum = 1;
                         this.fireCount = 1;
-                        this.fireInterval = jp.osakana4242.kimiko.kimiko.secToFrame(0.2);
-                        this.reloadFrameCount = jp.osakana4242.kimiko.kimiko.secToFrame(3.0);
+                        this.fireInterval = jp.osakana4242.kimiko.app.secToFrame(0.2);
+                        this.reloadFrameCount = jp.osakana4242.kimiko.app.secToFrame(3.0);
                         this.dir = new jp.osakana4242.utils.Vector2D(1, 0);
                         this.targetPos = new jp.osakana4242.utils.Vector2D();
-                        this.speed = jp.osakana4242.kimiko.kimiko.dpsToDpf(60 * 1.0);
+                        this.speed = jp.osakana4242.kimiko.app.dpsToDpf(60 * 1.0);
                         this.fireFunc = WeaponA.fireC;
                         this.isTracePlayer = false;
                     }
@@ -1366,8 +1366,8 @@ var jp;
                         var d2 = 480;
                         var dx = d.x * d2 / m;
                         var dy = d.y * d2 / m;
-                        var frame1 = Math.floor(d2 * 0.2 / jp.osakana4242.kimiko.kimiko.dpsToDpf(4 * 60));
-                        var frame2 = Math.floor(d2 * 0.8 / jp.osakana4242.kimiko.kimiko.dpsToDpf(1 * 60));
+                        var frame1 = Math.floor(d2 * 0.2 / jp.osakana4242.kimiko.app.dpsToDpf(4 * 60));
+                        var frame2 = Math.floor(d2 * 0.8 / jp.osakana4242.kimiko.app.dpsToDpf(1 * 60));
 
                         bullet.tl.moveBy(dx * 0.2, dy * 0.2, frame1).moveBy(dx * 0.8, dy * 0.8, frame2).then(function () {
                             this.miss();
@@ -1381,7 +1381,7 @@ var jp;
                         bullet.force.y = 0;
                         var dx = tpos.x - bullet.center.x;
                         var dy = tpos.y - bullet.center.y;
-                        var frameNum = jp.osakana4242.kimiko.kimiko.secToFrame(1.0);
+                        var frameNum = jp.osakana4242.kimiko.app.secToFrame(1.0);
                         bullet.tl.moveBy(dx * 0.25, dy * 0.25 - 64 * 0.7, frameNum * 0.25).moveBy(dx * 0.25, dy * 0.25 - 64 * 0.3, frameNum * 0.25).moveBy(dx * 0.25, dy * 0.25 + 64 * 0.3, frameNum * 0.25).moveBy(dx * 0.25, dy * 0.25 + 64 * 0.7, frameNum * 0.25).moveBy(dx, 320, frameNum).then(function () {
                             this.miss();
                         });
@@ -1435,7 +1435,7 @@ var jp;
                     initialize: function () {
                         var _this = this;
                         enchant.Sprite.call(this, 16, 16);
-                        this.anim.sequence = jp.osakana4242.kimiko.kimiko.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_BULLET002);
+                        this.anim.sequence = jp.osakana4242.kimiko.app.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_BULLET002);
                         this.ageMax = 0;
                         this.force = new jp.osakana4242.utils.Vector2D();
                         this.force.x = 0;
@@ -1484,7 +1484,7 @@ var jp;
                     initialize: function () {
                         var _this = this;
                         enchant.Sprite.call(this, 16, 16);
-                        this.anim.sequence = jp.osakana4242.kimiko.kimiko.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_BULLET001);
+                        this.anim.sequence = jp.osakana4242.kimiko.app.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_BULLET001);
                         this.ageMax = 0;
                         this.force = new jp.osakana4242.utils.Vector2D();
                         this.force.x = 0;
@@ -1576,7 +1576,7 @@ var jp;
                         this.state = this.stateNeutral;
                     },
                     damage: function (attacker) {
-                        var damageValue = jp.osakana4242.kimiko.kimiko.config.isDamageEnabled ? 1 : 0;
+                        var damageValue = jp.osakana4242.kimiko.app.config.isDamageEnabled ? 1 : 0;
                         this.life.damage(damageValue);
                         if (this.life.isAlive()) {
                             this.state = this.stateDamage;
@@ -1590,7 +1590,7 @@ var jp;
                         effect.width = spr.width;
                         effect.height = spr.height;
                         effect.backgroundColor = "rgb(196,64,64)";
-                        var effectTime = jp.osakana4242.kimiko.kimiko.secToFrame(0.3);
+                        var effectTime = jp.osakana4242.kimiko.app.secToFrame(0.3);
                         effect.visible = false;
 
                         return effect;
@@ -1632,7 +1632,7 @@ var jp;
                         this.anchor = new jp.osakana4242.utils.Vector2D();
                         this.collider = new jp.osakana4242.utils.Collider();
                         this.collider.parent = this;
-                        this.life.setGhostFrameMax(jp.osakana4242.kimiko.kimiko.secToFrame(0.2));
+                        this.life.setGhostFrameMax(jp.osakana4242.kimiko.app.secToFrame(0.2));
 
                         function stepWeapons() {
                             for (var i = 0, iNum = this.weaponNum; i < iNum; ++i) {
@@ -1665,7 +1665,7 @@ var jp;
                         this.center.x = attacker.center.x;
                         this.center.y = attacker.center.y;
                         this.backgroundColor = "rgb(196,64,64)";
-                        var effectTime = jp.osakana4242.kimiko.kimiko.secToFrame(0.3);
+                        var effectTime = jp.osakana4242.kimiko.app.secToFrame(0.3);
                         this.visible = false;
                         this.scaleX = this.scaleY = 0.1;
                         this.tl.delay(delay).then(function () {
@@ -1698,7 +1698,7 @@ var jp;
                     function body1(sprite) {
                         sprite.width = 32;
                         sprite.height = 32;
-                        sprite.anim.sequence = jp.osakana4242.kimiko.kimiko.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA002_WALK);
+                        sprite.anim.sequence = jp.osakana4242.kimiko.app.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA002_WALK);
                         jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerBottom(sprite, 28, 28));
                     }
                     EnemyBodys.body1 = body1;
@@ -1707,7 +1707,7 @@ var jp;
                     function body2(sprite) {
                         sprite.width = 64;
                         sprite.height = 64;
-                        sprite.anim.sequence = jp.osakana4242.kimiko.kimiko.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA003_WALK);
+                        sprite.anim.sequence = jp.osakana4242.kimiko.app.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA003_WALK);
                         jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerMiddle(sprite, 56, 56));
                         sprite.weaponNum = 3;
                     }
@@ -1718,7 +1718,7 @@ var jp;
                         sprite.width = 32;
                         sprite.height = 16;
 
-                        //sprite.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
+                        //sprite.anim.sequence = app.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
                         sprite.backgroundColor = "rgb(255,48,48)";
                         jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerMiddle(sprite, 28, 12));
                     }
@@ -1729,7 +1729,7 @@ var jp;
                         sprite.width = 48;
                         sprite.height = 48;
 
-                        //sprite.anim.sequence = kimiko.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
+                        //sprite.anim.sequence = app.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
                         sprite.backgroundColor = "rgb(255,48,48)";
                         jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerBottom(sprite, 32, 40));
                     }
@@ -1742,12 +1742,12 @@ var jp;
                     function brain1(sprite) {
                         var anchor = sprite.anchor;
 
-                        sprite.tl.delay(jp.osakana4242.kimiko.kimiko.secToFrame(0.5)).then(function () {
+                        sprite.tl.delay(jp.osakana4242.kimiko.app.secToFrame(0.5)).then(function () {
                             var player = sprite.scene.player;
                             var dir = jp.osakana4242.utils.Vector2D.alloc(player.center.x - sprite.center.x, player.center.y - sprite.center.y);
                             var mag = jp.osakana4242.utils.Vector2D.magnitude(dir);
                             var dist = 480;
-                            var speed = jp.osakana4242.kimiko.kimiko.dpsToDpf(2 * jp.osakana4242.kimiko.DF.BASE_FPS);
+                            var speed = jp.osakana4242.kimiko.app.dpsToDpf(2 * jp.osakana4242.kimiko.DF.BASE_FPS);
                             dir.x = dir.x * dist / mag;
                             dir.y = dir.y * dist / mag;
                             var frame = Math.floor(dist / speed);
@@ -1777,7 +1777,7 @@ var jp;
                             }
                             var isNext = false;
                             var player = sprite.scene.player;
-                            var dir = jp.osakana4242.utils.Vector2D.alloc(jp.osakana4242.kimiko.kimiko.numberUtil.trim(player.center.x, xMin, xMax) - sprite.center.x, jp.osakana4242.kimiko.kimiko.numberUtil.trim(player.center.y, yMin, yMax) - sprite.center.y);
+                            var dir = jp.osakana4242.utils.Vector2D.alloc(jp.osakana4242.kimiko.app.numberUtil.trim(player.center.x, xMin, xMax) - sprite.center.x, jp.osakana4242.kimiko.app.numberUtil.trim(player.center.y, yMin, yMax) - sprite.center.y);
                             var mag = jp.osakana4242.utils.Vector2D.magnitude(dir);
 
                             // var dist = mag;
@@ -1786,7 +1786,7 @@ var jp;
                                 // 移動の必要ナシ.
                                 isNext = false;
                             } else {
-                                var speed = jp.osakana4242.kimiko.kimiko.dpsToDpf(2 * jp.osakana4242.kimiko.DF.BASE_FPS);
+                                var speed = jp.osakana4242.kimiko.app.dpsToDpf(2 * jp.osakana4242.kimiko.DF.BASE_FPS);
                                 dir.x = dir.x * dist / mag;
                                 dir.y = dir.y * dist / mag;
                                 var frame = (speed === 0) ? 1 : Math.max(Math.floor(dist / speed), 1);
@@ -1796,7 +1796,7 @@ var jp;
                                         sprite.weapon.lookAtPlayer();
                                         sprite.weapon.startFire();
                                     }
-                                }).delay(jp.osakana4242.kimiko.kimiko.secToFrame(0.5)).waitUntil(f1);
+                                }).delay(jp.osakana4242.kimiko.app.secToFrame(0.5)).waitUntil(f1);
                                 isNext = true;
                             }
                             jp.osakana4242.utils.Vector2D.free(dir);
@@ -1811,12 +1811,12 @@ var jp;
                         var anchor = sprite.anchor;
                         sprite.weapon.fireFunc = jp.osakana4242.kimiko.scenes.WeaponA.fireA;
 
-                        sprite.tl.moveBy(-32 * 4 * 0.5, -32 * 3, jp.osakana4242.kimiko.kimiko.secToFrame(0.5)).moveBy(-32 * 4 * 0.5, 32 * 3, jp.osakana4242.kimiko.kimiko.secToFrame(0.5)).delay(jp.osakana4242.kimiko.kimiko.secToFrame(0.25)).then(function () {
+                        sprite.tl.moveBy(-32 * 4 * 0.5, -32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).moveBy(-32 * 4 * 0.5, 32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).delay(jp.osakana4242.kimiko.app.secToFrame(0.25)).then(function () {
                             if (2 <= sprite.enemyData.level) {
                                 sprite.weapon.lookAtPlayer();
                                 sprite.weapon.startFire();
                             }
-                        }).moveBy(32 * 4 * 0.5, -32 * 3, jp.osakana4242.kimiko.kimiko.secToFrame(0.5)).moveBy(32 * 4 * 0.5, 32 * 3, jp.osakana4242.kimiko.kimiko.secToFrame(0.5)).delay(jp.osakana4242.kimiko.kimiko.secToFrame(0.25)).loop();
+                        }).moveBy(32 * 4 * 0.5, -32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).moveBy(32 * 4 * 0.5, 32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).delay(jp.osakana4242.kimiko.app.secToFrame(0.25)).loop();
                     }
                     EnemyBrains.brain3 = brain3;
 
@@ -1826,19 +1826,19 @@ var jp;
                         var anchor = sprite.anchor;
                         sprite.weapon.fireFunc = jp.osakana4242.kimiko.scenes.WeaponA.fireA;
 
-                        sprite.tl.moveBy(-32 * 4 * 0.5, 32 * 3, jp.osakana4242.kimiko.kimiko.secToFrame(0.5)).moveBy(-32 * 4 * 0.5, -32 * 3, jp.osakana4242.kimiko.kimiko.secToFrame(0.5)).delay(jp.osakana4242.kimiko.kimiko.secToFrame(0.25)).then(function () {
+                        sprite.tl.moveBy(-32 * 4 * 0.5, 32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).moveBy(-32 * 4 * 0.5, -32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).delay(jp.osakana4242.kimiko.app.secToFrame(0.25)).then(function () {
                             if (2 <= sprite.enemyData.level) {
                                 sprite.weapon.lookAtPlayer();
                                 sprite.weapon.startFire();
                             }
-                        }).moveBy(32 * 4 * 0.5, 32 * 3, jp.osakana4242.kimiko.kimiko.secToFrame(0.5)).moveBy(32 * 4 * 0.5, -32 * 3, jp.osakana4242.kimiko.kimiko.secToFrame(0.5)).delay(jp.osakana4242.kimiko.kimiko.secToFrame(0.25)).loop();
+                        }).moveBy(32 * 4 * 0.5, 32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).moveBy(32 * 4 * 0.5, -32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).delay(jp.osakana4242.kimiko.app.secToFrame(0.25)).loop();
                     }
                     EnemyBrains.brain4 = brain4;
 
                     /** うろつき. */
                     function brain5(sprite) {
                         var anchor = sprite.anchor;
-                        var totalFrame = jp.osakana4242.kimiko.kimiko.secToFrame(8.0);
+                        var totalFrame = jp.osakana4242.kimiko.app.secToFrame(8.0);
                         sprite.tl.moveTo(anchor.x - 32 * 3 + sprite.width / 2, anchor.y, totalFrame * 0.5, Easing.LINEAR).moveTo(anchor.x + 0 + sprite.width / 2, anchor.y, totalFrame * 0.5, Easing.LINEAR).loop();
                     }
                     EnemyBrains.brain5 = brain5;
@@ -1855,7 +1855,7 @@ var jp;
                             }
                         };
 
-                        sprite.tl.moveTo(anchor.x + 32 * -0.5, anchor.y + 32 * -0.5, jp.osakana4242.kimiko.kimiko.secToFrame(0.5)).moveTo(anchor.x + 32 * 0.5, anchor.y + 32 * -0.5, jp.osakana4242.kimiko.kimiko.secToFrame(0.5)).moveTo(anchor.x + 32 * -0.5, anchor.y + 32 * 0.5, jp.osakana4242.kimiko.kimiko.secToFrame(0.5)).moveTo(anchor.x + 32 * 0.0, anchor.y + 32 * 0.0, jp.osakana4242.kimiko.kimiko.secToFrame(0.5)).then(fire).moveTo(anchor.x + 32 * 0.5, anchor.y + 32 * 0.5, jp.osakana4242.kimiko.kimiko.secToFrame(0.5)).loop();
+                        sprite.tl.moveTo(anchor.x + 32 * -0.5, anchor.y + 32 * -0.5, jp.osakana4242.kimiko.app.secToFrame(0.5)).moveTo(anchor.x + 32 * 0.5, anchor.y + 32 * -0.5, jp.osakana4242.kimiko.app.secToFrame(0.5)).moveTo(anchor.x + 32 * -0.5, anchor.y + 32 * 0.5, jp.osakana4242.kimiko.app.secToFrame(0.5)).moveTo(anchor.x + 32 * 0.0, anchor.y + 32 * 0.0, jp.osakana4242.kimiko.app.secToFrame(0.5)).then(fire).moveTo(anchor.x + 32 * 0.5, anchor.y + 32 * 0.5, jp.osakana4242.kimiko.app.secToFrame(0.5)).loop();
                     }
                     EnemyBrains.brain6 = brain6;
 
@@ -1871,7 +1871,7 @@ var jp;
                             }
                         };
 
-                        var totalFrame = jp.osakana4242.kimiko.kimiko.secToFrame(2.0);
+                        var totalFrame = jp.osakana4242.kimiko.app.secToFrame(2.0);
                         sprite.tl.moveTo(anchor.x, anchor.y + 32 * 1, totalFrame * 0.5, Easing.LINEAR).then(fire).moveTo(anchor.x, anchor.y + 32 * -1, totalFrame * 0.5, Easing.LINEAR).then(fire).loop();
                     }
                     EnemyBrains.brain7 = brain7;
@@ -1880,12 +1880,12 @@ var jp;
                     function brain8(sprite) {
                         var anchor = sprite.anchor;
 
-                        sprite.tl.delay(jp.osakana4242.kimiko.kimiko.secToFrame(0.5)).then(function () {
+                        sprite.tl.delay(jp.osakana4242.kimiko.app.secToFrame(0.5)).then(function () {
                             var player = sprite.scene.player;
                             var dir = jp.osakana4242.utils.Vector2D.alloc(player.center.x - sprite.center.x, player.center.y - sprite.center.y);
                             var mag = jp.osakana4242.utils.Vector2D.magnitude(dir);
                             var dist = 480;
-                            var speed = jp.osakana4242.kimiko.kimiko.dpsToDpf(2 * jp.osakana4242.kimiko.DF.BASE_FPS);
+                            var speed = jp.osakana4242.kimiko.app.dpsToDpf(2 * jp.osakana4242.kimiko.DF.BASE_FPS);
                             dir.x = dir.x * dist / mag;
                             dir.y = 0;
                             var frame = Math.floor(dist / speed);
@@ -1911,18 +1911,18 @@ var jp;
                             }
                             var isNext = false;
                             var player = sprite.scene.player;
-                            var dir = jp.osakana4242.utils.Vector2D.alloc(jp.osakana4242.kimiko.kimiko.numberUtil.trim(player.center.x, xMin, xMax) - sprite.center.x, 0);
+                            var dir = jp.osakana4242.utils.Vector2D.alloc(jp.osakana4242.kimiko.app.numberUtil.trim(player.center.x, xMin, xMax) - sprite.center.x, 0);
                             var mag = jp.osakana4242.utils.Vector2D.magnitude(dir);
                             if (mag < 4) {
                                 // 移動の必要ナシ.
                                 isNext = false;
                             } else {
                                 var dist = mag;
-                                var speed = jp.osakana4242.kimiko.kimiko.dpsToDpf(1 * jp.osakana4242.kimiko.DF.BASE_FPS);
+                                var speed = jp.osakana4242.kimiko.app.dpsToDpf(1 * jp.osakana4242.kimiko.DF.BASE_FPS);
                                 dir.x = dir.x * dist / mag;
                                 dir.y = dir.y * dist / mag;
                                 var frame = (speed === 0) ? 1 : Math.max(Math.floor(dist / speed), 1);
-                                sprite.tl.moveTo(sprite.x + dir.x, sprite.y + dir.y, frame).delay(jp.osakana4242.kimiko.kimiko.secToFrame(0.2)).waitUntil(f1);
+                                sprite.tl.moveTo(sprite.x + dir.x, sprite.y + dir.y, frame).delay(jp.osakana4242.kimiko.app.secToFrame(0.2)).waitUntil(f1);
                                 isNext = true;
                             }
                             jp.osakana4242.utils.Vector2D.free(dir);
@@ -1942,15 +1942,15 @@ var jp;
 
                         // 発砲の予備動作.
                         function runup() {
-                            return sprite.tl.moveBy(0, -24, jp.osakana4242.kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, 24, jp.osakana4242.kimiko.kimiko.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, -8, jp.osakana4242.kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).moveBy(0, 8, jp.osakana4242.kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).delay(jp.osakana4242.kimiko.kimiko.secToFrame(0.5));
+                            return sprite.tl.moveBy(0, -24, jp.osakana4242.kimiko.app.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, 24, jp.osakana4242.kimiko.app.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, -8, jp.osakana4242.kimiko.app.secToFrame(0.1), Easing.CUBIC_EASEOUT).moveBy(0, 8, jp.osakana4242.kimiko.app.secToFrame(0.1), Easing.CUBIC_EASEOUT).delay(jp.osakana4242.kimiko.app.secToFrame(0.5));
                         }
 
                         function fireToPlayer() {
                             var wp = sprite.weapons[0];
                             wp.fireCount = 5;
                             wp.wayNum = 4;
-                            wp.fireInterval = jp.osakana4242.kimiko.kimiko.secToFrame(0.5);
-                            wp.speed = jp.osakana4242.kimiko.kimiko.dpsToDpf(3 * jp.osakana4242.kimiko.DF.BASE_FPS);
+                            wp.fireInterval = jp.osakana4242.kimiko.app.secToFrame(0.5);
+                            wp.speed = jp.osakana4242.kimiko.app.dpsToDpf(3 * jp.osakana4242.kimiko.DF.BASE_FPS);
                             wp.fireFunc = jp.osakana4242.kimiko.scenes.WeaponA.fireC;
                             wp.isTracePlayer = true;
                             wp.lookAtPlayer();
@@ -1959,8 +1959,8 @@ var jp;
                             wp = sprite.weapons[1];
                             wp.fireCount = 3;
                             wp.wayNum = 1;
-                            wp.fireInterval = jp.osakana4242.kimiko.kimiko.secToFrame(0.75);
-                            wp.speed = jp.osakana4242.kimiko.kimiko.dpsToDpf(2 * jp.osakana4242.kimiko.DF.BASE_FPS);
+                            wp.fireInterval = jp.osakana4242.kimiko.app.secToFrame(0.75);
+                            wp.speed = jp.osakana4242.kimiko.app.dpsToDpf(2 * jp.osakana4242.kimiko.DF.BASE_FPS);
                             wp.fireFunc = jp.osakana4242.kimiko.scenes.WeaponA.fireA;
                             wp.isTracePlayer = true;
                             wp.startFire();
@@ -1970,8 +1970,8 @@ var jp;
                             var wp = sprite.weapon;
                             wp.fireCount = 9;
                             wp.wayNum = 1;
-                            wp.fireInterval = jp.osakana4242.kimiko.kimiko.secToFrame(0.5);
-                            wp.speed = jp.osakana4242.kimiko.kimiko.dpsToDpf(3 * jp.osakana4242.kimiko.DF.BASE_FPS);
+                            wp.fireInterval = jp.osakana4242.kimiko.app.secToFrame(0.5);
+                            wp.speed = jp.osakana4242.kimiko.app.dpsToDpf(3 * jp.osakana4242.kimiko.DF.BASE_FPS);
                             wp.fireFunc = jp.osakana4242.kimiko.scenes.WeaponA.fireB;
                             wp.isTracePlayer = true;
                             wp.lookAtPlayer();
@@ -1980,8 +1980,8 @@ var jp;
                             wp = sprite.weapons[1];
                             wp.fireCount = 1;
                             wp.wayNum = 1;
-                            wp.fireInterval = jp.osakana4242.kimiko.kimiko.secToFrame(1.5);
-                            wp.speed = jp.osakana4242.kimiko.kimiko.dpsToDpf(1 * jp.osakana4242.kimiko.DF.BASE_FPS);
+                            wp.fireInterval = jp.osakana4242.kimiko.app.secToFrame(1.5);
+                            wp.speed = jp.osakana4242.kimiko.app.dpsToDpf(1 * jp.osakana4242.kimiko.DF.BASE_FPS);
                             wp.fireFunc = jp.osakana4242.kimiko.scenes.WeaponA.fireA;
                             wp.isTracePlayer = true;
                             wp.startFire();
@@ -1991,8 +1991,8 @@ var jp;
                             var wp = sprite.weapons[0];
                             wp.fireCount = 1;
                             wp.wayNum = 6;
-                            wp.fireInterval = jp.osakana4242.kimiko.kimiko.secToFrame(0.5);
-                            wp.speed = jp.osakana4242.kimiko.kimiko.dpsToDpf(1 * jp.osakana4242.kimiko.DF.BASE_FPS);
+                            wp.fireInterval = jp.osakana4242.kimiko.app.secToFrame(0.5);
+                            wp.speed = jp.osakana4242.kimiko.app.dpsToDpf(1 * jp.osakana4242.kimiko.DF.BASE_FPS);
                             wp.fireFunc = jp.osakana4242.kimiko.scenes.WeaponA.fireA;
                             wp.isTracePlayer = false;
                             wp.lookAtPlayer();
@@ -2001,15 +2001,15 @@ var jp;
                             wp = sprite.weapons[1];
                             wp.fireCount = 2;
                             wp.wayNum = 1;
-                            wp.fireInterval = jp.osakana4242.kimiko.kimiko.secToFrame(0.2);
-                            wp.speed = jp.osakana4242.kimiko.kimiko.dpsToDpf(3 * jp.osakana4242.kimiko.DF.BASE_FPS);
+                            wp.fireInterval = jp.osakana4242.kimiko.app.secToFrame(0.2);
+                            wp.speed = jp.osakana4242.kimiko.app.dpsToDpf(3 * jp.osakana4242.kimiko.DF.BASE_FPS);
                             wp.fireFunc = jp.osakana4242.kimiko.scenes.WeaponA.fireA;
                             wp.isTracePlayer = true;
                             wp.startFire();
                         }
 
                         function fire1() {
-                            return runup().then(fireToPlayer).moveBy(8, 0, jp.osakana4242.kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(jp.osakana4242.kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire);
+                            return runup().then(fireToPlayer).moveBy(8, 0, jp.osakana4242.kimiko.app.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(jp.osakana4242.kimiko.app.secToFrame(0.5)).waitUntil(waitFire);
                         }
 
                         function fire2() {
@@ -2017,7 +2017,7 @@ var jp;
                         }
 
                         function fire3() {
-                            return runup().then(fireToPlayer3).moveBy(8, 0, jp.osakana4242.kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(jp.osakana4242.kimiko.kimiko.secToFrame(0.5)).waitUntil(waitFire);
+                            return runup().then(fireToPlayer3).moveBy(8, 0, jp.osakana4242.kimiko.app.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(jp.osakana4242.kimiko.app.secToFrame(0.5)).waitUntil(waitFire);
                         }
 
                         var top = sprite.anchor.y - 96;
@@ -2026,16 +2026,16 @@ var jp;
                         var right = sprite.anchor.x + 0;
                         sprite.x = right;
                         sprite.y = top;
-                        sprite.tl.delay(jp.osakana4242.kimiko.kimiko.secToFrame(1.0)).moveTo(right, bottom, jp.osakana4242.kimiko.kimiko.secToFrame(2.0)).scaleTo(-1.0, 1.0, 1).delay(jp.osakana4242.kimiko.kimiko.secToFrame(0.5)).then(function () {
-                            sprite.tl.moveTo(left, bottom, jp.osakana4242.kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEIN).scaleTo(1.0, 1.0, 1);
-                            fire2().moveTo(left, top, jp.osakana4242.kimiko.kimiko.secToFrame(1.0));
-                            fire1().moveTo(right, top, jp.osakana4242.kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEIN).scaleTo(-1.0, 1.0, 1);
-                            fire2().moveTo(right, bottom, jp.osakana4242.kimiko.kimiko.secToFrame(1.0));
-                            fire1().moveTo(left, top, jp.osakana4242.kimiko.kimiko.secToFrame(2.0));
-                            fire3().moveTo(right, top, jp.osakana4242.kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEIN);
-                            fire3().moveTo(left, top, jp.osakana4242.kimiko.kimiko.secToFrame(0.5), Easing.CUBIC_EASEIN);
-                            fire3().moveTo(right, top, jp.osakana4242.kimiko.kimiko.secToFrame(0.5));
-                            fire3().delay(jp.osakana4242.kimiko.kimiko.secToFrame(1.0)).moveTo(right, bottom, jp.osakana4242.kimiko.kimiko.secToFrame(2.0)).loop();
+                        sprite.tl.delay(jp.osakana4242.kimiko.app.secToFrame(1.0)).moveTo(right, bottom, jp.osakana4242.kimiko.app.secToFrame(2.0)).scaleTo(-1.0, 1.0, 1).delay(jp.osakana4242.kimiko.app.secToFrame(0.5)).then(function () {
+                            sprite.tl.moveTo(left, bottom, jp.osakana4242.kimiko.app.secToFrame(0.5), Easing.CUBIC_EASEIN).scaleTo(1.0, 1.0, 1);
+                            fire2().moveTo(left, top, jp.osakana4242.kimiko.app.secToFrame(1.0));
+                            fire1().moveTo(right, top, jp.osakana4242.kimiko.app.secToFrame(0.5), Easing.CUBIC_EASEIN).scaleTo(-1.0, 1.0, 1);
+                            fire2().moveTo(right, bottom, jp.osakana4242.kimiko.app.secToFrame(1.0));
+                            fire1().moveTo(left, top, jp.osakana4242.kimiko.app.secToFrame(2.0));
+                            fire3().moveTo(right, top, jp.osakana4242.kimiko.app.secToFrame(0.5), Easing.CUBIC_EASEIN);
+                            fire3().moveTo(left, top, jp.osakana4242.kimiko.app.secToFrame(0.5), Easing.CUBIC_EASEIN);
+                            fire3().moveTo(right, top, jp.osakana4242.kimiko.app.secToFrame(0.5));
+                            fire3().delay(jp.osakana4242.kimiko.app.secToFrame(1.0)).moveTo(right, bottom, jp.osakana4242.kimiko.app.secToFrame(2.0)).loop();
                         });
                     }
                     EnemyBrains.brainBoss = brainBoss;
@@ -2179,10 +2179,10 @@ var jp;
                         jp.osakana4242.kimiko.scenes.Attacker.call(this);
 
                         this.bodyStyles = (function () {
-                            var animWalk = jp.osakana4242.kimiko.kimiko.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA001_WALK);
-                            var animStand = jp.osakana4242.kimiko.kimiko.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA001_STAND);
-                            var animSquat = jp.osakana4242.kimiko.kimiko.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA001_SQUAT);
-                            var animDead = jp.osakana4242.kimiko.kimiko.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA001_DEAD);
+                            var animWalk = jp.osakana4242.kimiko.app.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA001_WALK);
+                            var animStand = jp.osakana4242.kimiko.app.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA001_STAND);
+                            var animSquat = jp.osakana4242.kimiko.app.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA001_SQUAT);
+                            var animDead = jp.osakana4242.kimiko.app.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA001_DEAD);
                             _this.anim.sequence = animWalk;
 
                             var colliderA = jp.osakana4242.utils.Collider.centerBottom(_this, 12, 28);
@@ -2230,7 +2230,7 @@ var jp;
 
                         this.life.hpMax = jp.osakana4242.kimiko.DF.PLAYER_HP;
                         this.life.hp = this.life.hpMax;
-                        this.life.setGhostFrameMax(jp.osakana4242.kimiko.kimiko.secToFrame(1.5));
+                        this.life.setGhostFrameMax(jp.osakana4242.kimiko.app.secToFrame(1.5));
                         this.life.damageListener = function () {
                             if (_this.life.isDead()) {
                             }
@@ -2294,7 +2294,7 @@ var jp;
                     },
                     searchEnemy: function () {
                         var scene = this.scene;
-                        if ((this.age % jp.osakana4242.kimiko.kimiko.secToFrame(0.2)) === 0) {
+                        if ((this.age % jp.osakana4242.kimiko.app.secToFrame(0.2)) === 0) {
                             // TODO: ロックオン済みの敵がいる場合は索敵間隔を遅らせたほうがいいかも.
                             // 近い敵を探す.
                             var srect = jp.osakana4242.utils.Rect.alloc();
@@ -2324,9 +2324,9 @@ var jp;
                                     this.targetEnemy = null;
                                 } else {
                                     // ロックオン状態. 常に敵を見る.
-                                    this.dirX = jp.osakana4242.kimiko.kimiko.numberUtil.sign(this.targetEnemy.x - this.x);
+                                    this.dirX = jp.osakana4242.kimiko.app.numberUtil.sign(this.targetEnemy.x - this.x);
                                     this.scaleX = this.dirX;
-                                    if ((this.age % jp.osakana4242.kimiko.kimiko.secToFrame(0.2)) === 0) {
+                                    if ((this.age % jp.osakana4242.kimiko.app.secToFrame(0.2)) === 0) {
                                         // TODO: 敵同様にweaponクラス化.
                                         var srect = jp.osakana4242.utils.Rect.alloc();
                                         srect.width = jp.osakana4242.kimiko.DF.SC1_W;
@@ -2348,7 +2348,7 @@ var jp;
                         return str;
                     },
                     attack: function () {
-                        if (!jp.osakana4242.kimiko.kimiko.config.isFireEnabled) {
+                        if (!jp.osakana4242.kimiko.app.config.isFireEnabled) {
                             return;
                         }
                         var bullet = this.scene.newOwnBullet();
@@ -2356,7 +2356,7 @@ var jp;
                             return;
                         }
                         bullet.scaleX = this.scaleX;
-                        bullet.force.x = this.dirX * jp.osakana4242.kimiko.kimiko.dpsToDpf(6 * 60);
+                        bullet.force.x = this.dirX * jp.osakana4242.kimiko.app.dpsToDpf(6 * 60);
                         bullet.force.y = 0;
                         bullet.center.x = this.center.x + this.scaleX * (this.bodyStyle.muzzlePos.x - (this.width / 2));
                         bullet.center.y = this.center.y + this.scaleY * (this.bodyStyle.muzzlePos.y - (this.height / 2));
@@ -2394,7 +2394,7 @@ var jp;
 
                         if (!this.targetEnemy) {
                             if (0 !== this.inputForce.x) {
-                                this.dirX = jp.osakana4242.kimiko.kimiko.numberUtil.sign(this.inputForce.x);
+                                this.dirX = jp.osakana4242.kimiko.app.numberUtil.sign(this.inputForce.x);
                                 this.scaleX = this.dirX;
                             }
                         }
@@ -2409,8 +2409,8 @@ var jp;
                         if (0 < this.gravityHoldCounter) {
                             --this.gravityHoldCounter;
                         } else {
-                            var gravityMax = jp.osakana4242.kimiko.kimiko.dpsToDpf(60 * 8);
-                            this.force.y = Math.min(this.force.y + jp.osakana4242.kimiko.kimiko.dpsToDpf(jp.osakana4242.kimiko.DF.GRAVITY), gravityMax);
+                            var gravityMax = jp.osakana4242.kimiko.app.dpsToDpf(60 * 8);
+                            this.force.y = Math.min(this.force.y + jp.osakana4242.kimiko.app.dpsToDpf(jp.osakana4242.kimiko.DF.GRAVITY), gravityMax);
                         }
 
                         var totalMx = this.force.x;
@@ -2496,20 +2496,20 @@ var jp;
                         this.checkTouchInput();
                     },
                     checkKeyInput: function () {
-                        var input = jp.osakana4242.kimiko.kimiko.core.input;
+                        var input = jp.osakana4242.kimiko.app.core.input;
                         var flag = ((input.left ? 1 : 0) << 0) | ((input.right ? 1 : 0) << 1) | ((input.up ? 1 : 0) << 2) | ((input.down ? 1 : 0) << 3);
-                        this.isSlowMove = jp.osakana4242.kimiko.kimiko.core.input.a;
+                        this.isSlowMove = jp.osakana4242.kimiko.app.core.input.a;
                         if (flag !== 0) {
                             if (this.isSlowMove) {
-                                this.inputForce.x = jp.osakana4242.kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].x * jp.osakana4242.kimiko.kimiko.dpsToDpf(2 * 60);
-                                this.inputForce.y = jp.osakana4242.kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * jp.osakana4242.kimiko.kimiko.dpsToDpf(2 * 60);
+                                this.inputForce.x = jp.osakana4242.kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].x * jp.osakana4242.kimiko.app.dpsToDpf(2 * 60);
+                                this.inputForce.y = jp.osakana4242.kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * jp.osakana4242.kimiko.app.dpsToDpf(2 * 60);
                             } else {
-                                this.inputForce.x = jp.osakana4242.kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].x * jp.osakana4242.kimiko.kimiko.dpsToDpf(4 * 60);
-                                this.inputForce.y = jp.osakana4242.kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * jp.osakana4242.kimiko.kimiko.dpsToDpf(4 * 60);
+                                this.inputForce.x = jp.osakana4242.kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].x * jp.osakana4242.kimiko.app.dpsToDpf(4 * 60);
+                                this.inputForce.y = jp.osakana4242.kimiko.DF.DIR_FLAG_TO_VECTOR2D[flag].y * jp.osakana4242.kimiko.app.dpsToDpf(4 * 60);
                             }
                         }
                         if (this.isSlowMove || flag !== 0) {
-                            this.gravityHoldCounter = jp.osakana4242.kimiko.kimiko.secToFrame(jp.osakana4242.kimiko.DF.GRAVITY_HOLD_SEC);
+                            this.gravityHoldCounter = jp.osakana4242.kimiko.app.secToFrame(jp.osakana4242.kimiko.DF.GRAVITY_HOLD_SEC);
                         }
                     },
                     checkTouchInput: function () {
@@ -2518,7 +2518,7 @@ var jp;
                         var touch = scene.touch;
                         if (touch.isTouching) {
                             var moveLimit = jp.osakana4242.kimiko.DF.TOUCH_TO_CHARA_MOVE_LIMIT;
-                            var moveRate = jp.osakana4242.kimiko.kimiko.config.swipeToMoveRate;
+                            var moveRate = jp.osakana4242.kimiko.app.config.swipeToMoveRate;
                             if (jp.osakana4242.kimiko.DF.PLAYER_TOUCH_ANCHOR_ENABLE) {
                                 var tv = jp.osakana4242.utils.Vector2D.alloc(player.touchStartAnchor.x + touch.totalDiff.x * moveRate.x, player.touchStartAnchor.y + touch.totalDiff.y * moveRate.y);
                                 var v = jp.osakana4242.utils.Vector2D.alloc(tv.x - player.x, tv.y - player.y);
@@ -2531,10 +2531,10 @@ var jp;
                                 jp.osakana4242.utils.Vector2D.free(tv);
                                 jp.osakana4242.utils.Vector2D.free(v);
                             } else {
-                                player.inputForce.x = jp.osakana4242.kimiko.kimiko.numberUtil.trim(touch.diff.x * moveRate.x, -moveLimit, moveLimit);
-                                player.inputForce.y = jp.osakana4242.kimiko.kimiko.numberUtil.trim(touch.diff.y * moveRate.y, -moveLimit, moveLimit);
+                                player.inputForce.x = jp.osakana4242.kimiko.app.numberUtil.trim(touch.diff.x * moveRate.x, -moveLimit, moveLimit);
+                                player.inputForce.y = jp.osakana4242.kimiko.app.numberUtil.trim(touch.diff.y * moveRate.y, -moveLimit, moveLimit);
                             }
-                            this.gravityHoldCounter = jp.osakana4242.kimiko.kimiko.secToFrame(jp.osakana4242.kimiko.DF.GRAVITY_HOLD_SEC);
+                            this.gravityHoldCounter = jp.osakana4242.kimiko.app.secToFrame(jp.osakana4242.kimiko.DF.GRAVITY_HOLD_SEC);
                         }
                     }
                 });
@@ -2613,7 +2613,7 @@ var jp;
                     onenterframe: function () {
                         var camera = this;
                         var tp = this.calcTargetPos();
-                        var speed = jp.osakana4242.kimiko.kimiko.dpsToDpf(3 * 60);
+                        var speed = jp.osakana4242.kimiko.app.dpsToDpf(3 * 60);
                         var dv = jp.osakana4242.utils.Vector2D.alloc(tp.x - camera.x, tp.y - camera.y);
                         var mv = jp.osakana4242.utils.Vector2D.alloc();
                         var distance = jp.osakana4242.utils.Vector2D.magnitude(dv);
@@ -2708,7 +2708,7 @@ var jp;
                     function Life() {
                         this.hpMax = 100;
                         this.hp = this.hpMax;
-                        this.ghostFrameMax = jp.osakana4242.kimiko.kimiko.secToFrame(1.0);
+                        this.ghostFrameMax = jp.osakana4242.kimiko.app.secToFrame(1.0);
                         this.ghostFrameCounter = this.ghostFrameMax;
                     }
                     Life.prototype.setGhostFrameMax = function (frameMax) {
@@ -2870,7 +2870,7 @@ var jp;
 
                         var player = (function () {
                             var spr = new enchant.Sprite();
-                            spr.anim.sequence = jp.osakana4242.kimiko.kimiko.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA001_WALK);
+                            spr.anim.sequence = jp.osakana4242.kimiko.app.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA001_WALK);
                             spr.center.x = jp.osakana4242.kimiko.DF.SC_W / 2;
                             spr.y = 240;
                             var ax = spr.x;
@@ -2880,7 +2880,7 @@ var jp;
                                     // 演出終わってないのでカエル.
                                     return;
                                 }
-                                spr.tl.clear().moveTo(ax, ay - 32, jp.osakana4242.kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEOUT).moveTo(ax, ay, jp.osakana4242.kimiko.kimiko.secToFrame(0.1), Easing.CUBIC_EASEIN);
+                                spr.tl.clear().moveTo(ax, ay - 32, jp.osakana4242.kimiko.app.secToFrame(0.1), Easing.CUBIC_EASEOUT).moveTo(ax, ay, jp.osakana4242.kimiko.app.secToFrame(0.1), Easing.CUBIC_EASEIN);
                             });
                             return spr;
                         })();
@@ -2989,7 +2989,7 @@ var jp;
                         //
                         var fader = new jp.osakana4242.kimiko.scenes.Fader(this);
                         fader.setBlack(true);
-                        fader.fadeIn(jp.osakana4242.kimiko.kimiko.secToFrame(0.5));
+                        fader.fadeIn(jp.osakana4242.kimiko.app.secToFrame(0.5));
 
                         function nextMap() {
                             mapIdsIdx = (mapIdsIdx + mapIds.length + 1) % mapIds.length;
@@ -3002,11 +3002,11 @@ var jp;
                         }
 
                         function gotoGameStart() {
-                            var pd = jp.osakana4242.kimiko.kimiko.playerData;
+                            var pd = jp.osakana4242.kimiko.app.playerData;
                             pd.reset();
                             pd.mapId = mapIds[mapIdsIdx];
-                            fader.fadeOut(jp.osakana4242.kimiko.kimiko.secToFrame(0.3), function () {
-                                jp.osakana4242.kimiko.kimiko.core.replaceScene(new scenes.GameStart());
+                            fader.fadeOut(jp.osakana4242.kimiko.app.secToFrame(0.3), function () {
+                                jp.osakana4242.kimiko.app.core.replaceScene(new scenes.GameStart());
                             });
                         }
                         ;
@@ -3024,7 +3024,7 @@ var jp;
                         (function (sprite) {
                             sprite.x = 0;
                             sprite.y = 0;
-                            sprite.image = jp.osakana4242.kimiko.kimiko.core.assets[jp.osakana4242.kimiko.Assets.IMAGE_GAME_START_BG];
+                            sprite.image = jp.osakana4242.kimiko.app.core.assets[jp.osakana4242.kimiko.Assets.IMAGE_GAME_START_BG];
                         })(bg1);
 
                         //
@@ -3039,7 +3039,7 @@ var jp;
                             var ay = (jp.osakana4242.kimiko.DF.SC1_H - label.height) / 2;
                             label.x = ax;
                             label.y = ay;
-                            label.tl.moveTo(ax + 0, ay + 8, jp.osakana4242.kimiko.kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).moveTo(ax + 0, ay - 8, jp.osakana4242.kimiko.kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).loop();
+                            label.tl.moveTo(ax + 0, ay + 8, jp.osakana4242.kimiko.app.secToFrame(1.0), Easing.SIN_EASEINOUT).moveTo(ax + 0, ay - 8, jp.osakana4242.kimiko.app.secToFrame(1.0), Easing.SIN_EASEINOUT).loop();
                         })(label1);
 
                         //
@@ -3055,14 +3055,14 @@ var jp;
                         scene.addChild(layer1);
                         (function () {
                             var next = function () {
-                                fader.fadeOut2(jp.osakana4242.kimiko.kimiko.secToFrame(1.0), new jp.osakana4242.utils.Vector2D(242, 156), function () {
-                                    jp.osakana4242.kimiko.kimiko.core.replaceScene(jp.osakana4242.kimiko.kimiko.gameScene);
+                                fader.fadeOut2(jp.osakana4242.kimiko.app.secToFrame(1.0), new jp.osakana4242.utils.Vector2D(242, 156), function () {
+                                    jp.osakana4242.kimiko.app.core.replaceScene(jp.osakana4242.kimiko.app.gameScene);
                                 });
                             };
                             fader.setBlack(true);
                             scene.tl.then(function () {
-                                fader.fadeIn(jp.osakana4242.kimiko.kimiko.secToFrame(0.5));
-                            }).delay(jp.osakana4242.kimiko.kimiko.secToFrame(0.5)).delay(jp.osakana4242.kimiko.kimiko.secToFrame(2.0)).then(next);
+                                fader.fadeIn(jp.osakana4242.kimiko.app.secToFrame(0.5));
+                            }).delay(jp.osakana4242.kimiko.app.secToFrame(0.5)).delay(jp.osakana4242.kimiko.app.secToFrame(2.0)).then(next);
                             scene.addEventListener(Event.TOUCH_END, next);
                             scene.addEventListener(Event.A_BUTTON_UP, next);
                         })();
@@ -3092,7 +3092,7 @@ var jp;
                             label.textAlign = "center";
                             label.x = 0;
                             label.y = 60;
-                            label.tl.moveBy(0, -8, jp.osakana4242.kimiko.kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).moveBy(0, 8, jp.osakana4242.kimiko.kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).loop();
+                            label.tl.moveBy(0, -8, jp.osakana4242.kimiko.app.secToFrame(1.0), Easing.SIN_EASEINOUT).moveBy(0, 8, jp.osakana4242.kimiko.app.secToFrame(1.0), Easing.SIN_EASEINOUT).loop();
                             return label;
                         })();
 
@@ -3108,8 +3108,8 @@ var jp;
                             label.x = (jp.osakana4242.kimiko.DF.SC_W - label.width) / 2;
                             label.y = 90;
                             label.addEventListener(Event.TOUCH_END, function () {
-                                jp.osakana4242.kimiko.kimiko.gameScene.state = jp.osakana4242.kimiko.kimiko.gameScene.stateGameStart;
-                                jp.osakana4242.kimiko.kimiko.core.replaceScene(new scenes.Title());
+                                jp.osakana4242.kimiko.app.gameScene.state = jp.osakana4242.kimiko.app.gameScene.stateGameStart;
+                                jp.osakana4242.kimiko.app.core.replaceScene(new scenes.Title());
                             });
                             return label;
                         })();
@@ -3125,7 +3125,7 @@ var jp;
                             label.x = (jp.osakana4242.kimiko.DF.SC_W - label.width) / 2;
                             label.y = 180;
                             label.addEventListener(Event.TOUCH_END, function () {
-                                jp.osakana4242.kimiko.kimiko.core.popScene();
+                                jp.osakana4242.kimiko.app.core.popScene();
                             });
                             return label;
                         })();
@@ -3155,7 +3155,7 @@ var jp;
                             var ay = (jp.osakana4242.kimiko.DF.SC1_H - label.height) / 2;
                             label.x = ax;
                             label.y = ay;
-                            label.tl.moveTo(ax + 0, ay + 8, jp.osakana4242.kimiko.kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).moveTo(ax + 0, ay - 8, jp.osakana4242.kimiko.kimiko.secToFrame(1.0), Easing.SIN_EASEINOUT).loop();
+                            label.tl.moveTo(ax + 0, ay + 8, jp.osakana4242.kimiko.app.secToFrame(1.0), Easing.SIN_EASEINOUT).moveTo(ax + 0, ay - 8, jp.osakana4242.kimiko.app.secToFrame(1.0), Easing.SIN_EASEINOUT).loop();
                         })(label1);
 
                         //
@@ -3167,7 +3167,7 @@ var jp;
 
                         //
                         scene.addEventListener(Event.TOUCH_END, function () {
-                            jp.osakana4242.kimiko.kimiko.core.popScene();
+                            jp.osakana4242.kimiko.app.core.popScene();
                         });
                     }
                 });
@@ -3186,7 +3186,7 @@ var jp;
                         Scene.call(this);
 
                         var scene = this;
-                        var pd = jp.osakana4242.kimiko.kimiko.playerData;
+                        var pd = jp.osakana4242.kimiko.app.playerData;
 
                         //
                         var label1 = new enchant.Label("GAME CLEAR!");
@@ -3200,11 +3200,11 @@ var jp;
                             var ay = 32 + 24 * 1;
                             label.x = ax;
                             label.y = ay - 8;
-                            label.tl.hide().delay(jp.osakana4242.kimiko.kimiko.secToFrame(0.5)).show().moveTo(ax, ay, jp.osakana4242.kimiko.kimiko.secToFrame(0.5), Easing.SIN_EASEOUT);
+                            label.tl.hide().delay(jp.osakana4242.kimiko.app.secToFrame(0.5)).show().moveTo(ax, ay, jp.osakana4242.kimiko.app.secToFrame(0.5), Easing.SIN_EASEOUT);
                         })(label1);
 
                         //
-                        var label2 = new enchant.Label("REST TIME " + Math.floor(jp.osakana4242.kimiko.kimiko.frameToSec(pd.restTimeCounter)));
+                        var label2 = new enchant.Label("REST TIME " + Math.floor(jp.osakana4242.kimiko.app.frameToSec(pd.restTimeCounter)));
                         (function (label) {
                             label.font = jp.osakana4242.kimiko.DF.FONT_M;
                             label.width = jp.osakana4242.kimiko.DF.SC_W;
@@ -3215,7 +3215,7 @@ var jp;
                             var ay = 32 + 24 * 2;
                             label.x = ax;
                             label.y = ay - 8;
-                            label.tl.hide().delay(jp.osakana4242.kimiko.kimiko.secToFrame(1.0)).show().moveTo(ax, ay, jp.osakana4242.kimiko.kimiko.secToFrame(0.5), Easing.SIN_EASEOUT);
+                            label.tl.hide().delay(jp.osakana4242.kimiko.app.secToFrame(1.0)).show().moveTo(ax, ay, jp.osakana4242.kimiko.app.secToFrame(0.5), Easing.SIN_EASEOUT);
                         })(label2);
 
                         var label3 = new enchant.Label("SCORE " + pd.score);
@@ -3229,7 +3229,7 @@ var jp;
                             var ay = 32 + 24 * 3;
                             label.x = ax;
                             label.y = ay - 8;
-                            label.tl.hide().delay(jp.osakana4242.kimiko.kimiko.secToFrame(1.5)).show().moveTo(ax, ay, jp.osakana4242.kimiko.kimiko.secToFrame(0.5), Easing.SIN_EASEOUT);
+                            label.tl.hide().delay(jp.osakana4242.kimiko.app.secToFrame(1.5)).show().moveTo(ax, ay, jp.osakana4242.kimiko.app.secToFrame(0.5), Easing.SIN_EASEOUT);
                         })(label3);
 
                         //
@@ -3242,21 +3242,21 @@ var jp;
                         scene.addChild(layer1);
 
                         //
-                        scene.tl.delay(jp.osakana4242.kimiko.kimiko.secToFrame(3.0)).waitUntil(function () {
-                            if (pd.restTimeCounter < jp.osakana4242.kimiko.kimiko.secToFrame(1)) {
+                        scene.tl.delay(jp.osakana4242.kimiko.app.secToFrame(3.0)).waitUntil(function () {
+                            if (pd.restTimeCounter < jp.osakana4242.kimiko.app.secToFrame(1)) {
                                 return true;
                             }
-                            pd.restTimeCounter -= jp.osakana4242.kimiko.kimiko.secToFrame(1);
+                            pd.restTimeCounter -= jp.osakana4242.kimiko.app.secToFrame(1);
                             pd.score += Math.floor(10);
-                            label2.text = "REST TIME " + Math.floor(jp.osakana4242.kimiko.kimiko.frameToSec(pd.restTimeCounter));
+                            label2.text = "REST TIME " + Math.floor(jp.osakana4242.kimiko.app.frameToSec(pd.restTimeCounter));
                             label3.text = "SCORE " + pd.score;
                             return false;
                         });
 
                         //
                         scene.addEventListener(Event.TOUCH_END, function () {
-                            jp.osakana4242.kimiko.kimiko.core.popScene();
-                            jp.osakana4242.kimiko.kimiko.core.replaceScene(new scenes.Title());
+                            jp.osakana4242.kimiko.app.core.popScene();
+                            jp.osakana4242.kimiko.app.core.replaceScene(new scenes.Title());
                         });
                     }
                 });
@@ -3295,7 +3295,7 @@ var jp;
                         this.map = map;
                         this.mapOption = {};
                         map.name = "map";
-                        map.image = jp.osakana4242.kimiko.kimiko.core.assets[jp.osakana4242.kimiko.Assets.IMAGE_MAP];
+                        map.image = jp.osakana4242.kimiko.app.core.assets[jp.osakana4242.kimiko.Assets.IMAGE_MAP];
                         map.x = 0;
                         map.y = 0;
                         if (map._style) {
@@ -3356,7 +3356,7 @@ var jp;
                                 spr.x = jp.osakana4242.kimiko.DF.SC2_W - 56;
                                 spr.y = jp.osakana4242.kimiko.DF.SC2_H - 56;
                                 spr.addEventListener(Event.TOUCH_END, function () {
-                                    jp.osakana4242.kimiko.kimiko.core.pushScene(jp.osakana4242.kimiko.kimiko.pauseScene);
+                                    jp.osakana4242.kimiko.app.core.pushScene(jp.osakana4242.kimiko.app.pauseScene);
                                 });
                                 return spr;
                             })();
@@ -3407,7 +3407,7 @@ var jp;
                     // スコアリセット、プレイヤーHP回復。
                     initPlayerStatus: function () {
                         var scene = this;
-                        var pd = jp.osakana4242.kimiko.kimiko.playerData;
+                        var pd = jp.osakana4242.kimiko.app.playerData;
                         var player = this.player;
                         player.life.recover();
                         player.life.hpMax = pd.hpMax;
@@ -3469,20 +3469,20 @@ var jp;
                         this.clear();
                         this.initPlayerStatus();
                         this.world.addChild(this.player);
-                        this.loadMapData(jp.osakana4242.kimiko["mapData" + jp.osakana4242.kimiko.kimiko.playerData.mapId]);
+                        this.loadMapData(jp.osakana4242.kimiko["mapData" + jp.osakana4242.kimiko.app.playerData.mapId]);
 
                         scene.fader.setBlack(true);
 
-                        //scene.fader.fadeIn(kimiko.secToFrame(0.2));
+                        //scene.fader.fadeIn(app.secToFrame(0.2));
                         var player = scene.player;
                         var camera = scene.camera;
-                        scene.fader.fadeIn2(jp.osakana4242.kimiko.kimiko.secToFrame(0.2), camera.getTargetPosOnCamera());
+                        scene.fader.fadeIn2(jp.osakana4242.kimiko.app.secToFrame(0.2), camera.getTargetPosOnCamera());
 
                         scene.state = scene.stateNormal;
 
                         // scene.state = scene.stateGameClear;
-                        if (jp.osakana4242.kimiko.kimiko.config.isSoundEnabled) {
-                            var sound = jp.osakana4242.kimiko.kimiko.core.assets[jp.osakana4242.kimiko.Assets.SOUND_BGM];
+                        if (jp.osakana4242.kimiko.app.config.isSoundEnabled) {
+                            var sound = jp.osakana4242.kimiko.app.core.assets[jp.osakana4242.kimiko.Assets.SOUND_BGM];
                             var soundSec = 15.922 + 0.5;
                             var replay = function () {
                                 sound.play();
@@ -3522,20 +3522,20 @@ var jp;
                     },
                     stateGameOver: function () {
                         //
-                        var pd = jp.osakana4242.kimiko.kimiko.playerData;
+                        var pd = jp.osakana4242.kimiko.app.playerData;
                         pd.reset();
 
                         //
-                        jp.osakana4242.kimiko.kimiko.core.pushScene(new scenes.GameOver());
+                        jp.osakana4242.kimiko.app.core.pushScene(new scenes.GameOver());
                         this.state = this.stateGameStart;
                     },
                     stateGameClear: function () {
                         var _this = this;
-                        var pd = jp.osakana4242.kimiko.kimiko.playerData;
+                        var pd = jp.osakana4242.kimiko.app.playerData;
                         pd.hp = this.player.life.hp;
                         var mapOption = this.mapOption;
                         if (mapOption.nextMapId === 0) {
-                            jp.osakana4242.kimiko.kimiko.core.pushScene(new scenes.GameClear());
+                            jp.osakana4242.kimiko.app.core.pushScene(new scenes.GameClear());
                             this.state = this.stateGameStart;
                         } else {
                             pd.mapId = mapOption.nextMapId;
@@ -3546,7 +3546,7 @@ var jp;
 
                             var player = this.player;
                             var camera = this.camera;
-                            this.fader.fadeOut2(jp.osakana4242.kimiko.kimiko.secToFrame(0.5), camera.getTargetPosOnCamera(), function () {
+                            this.fader.fadeOut2(jp.osakana4242.kimiko.app.secToFrame(0.5), camera.getTargetPosOnCamera(), function () {
                                 _this.state = _this.stateGameStart;
                             });
                         }
@@ -3555,7 +3555,7 @@ var jp;
                     loadMapData: function (mapData) {
                         var _this = this;
                         var map = this.map;
-                        var mapOption = jp.osakana4242.kimiko.DF.MAP_OPTIONS[jp.osakana4242.kimiko.kimiko.playerData.mapId];
+                        var mapOption = jp.osakana4242.kimiko.DF.MAP_OPTIONS[jp.osakana4242.kimiko.app.playerData.mapId];
                         for (var key in mapOption) {
                             this.mapOption[key] = mapOption[key];
                         }
@@ -3700,7 +3700,7 @@ var jp;
                         if (effect === null) {
                             return;
                         }
-                        effect.anim.sequence = jp.osakana4242.kimiko.kimiko.getAnimFrames(animId);
+                        effect.anim.sequence = jp.osakana4242.kimiko.app.getAnimFrames(animId);
                         effect.center.set(pos);
                         effect.x += -1 + Math.random() * 3;
                         effect.y += -1 + Math.random() * 3;
@@ -3715,17 +3715,17 @@ var jp;
                         var t1x = sx + (-player.dirX * 96);
                         var t1y = sy - 64;
                         var dx = -player.dirX;
-                        player.tl.moveBy(dx * 96 * 0.25, -96 * 0.8, jp.osakana4242.kimiko.kimiko.secToFrame(0.2), Easing.LINEAR).moveBy(dx * 96 * 0.25, -96 * 0.2, jp.osakana4242.kimiko.kimiko.secToFrame(0.2), Easing.LINEAR).moveBy(dx * 96 * 0.25, 32 * 0.2, jp.osakana4242.kimiko.kimiko.secToFrame(0.3), Easing.LINEAR).moveBy(dx * 96 * 0.25, 32 * 0.8, jp.osakana4242.kimiko.kimiko.secToFrame(0.3), Easing.LINEAR).hide();
+                        player.tl.moveBy(dx * 96 * 0.25, -96 * 0.8, jp.osakana4242.kimiko.app.secToFrame(0.2), Easing.LINEAR).moveBy(dx * 96 * 0.25, -96 * 0.2, jp.osakana4242.kimiko.app.secToFrame(0.2), Easing.LINEAR).moveBy(dx * 96 * 0.25, 32 * 0.2, jp.osakana4242.kimiko.app.secToFrame(0.3), Easing.LINEAR).moveBy(dx * 96 * 0.25, 32 * 0.8, jp.osakana4242.kimiko.app.secToFrame(0.3), Easing.LINEAR).hide();
 
                         /*
                         player.tl.
-                        moveTo(sx + (t1x - sx) * 0.5, sy + (t1y - sy) * 0.5 - 8, kimiko.secToFrame(0.2), Easing.LINEAR).
-                        moveTo(sx + (t1x - sx) * 1.0, sy + (t1y - sy) * 1.0,     kimiko.secToFrame(0.3), Easing.LINEAR).
-                        moveBy(- player.dirX * 48,   32,  kimiko.secToFrame(0.5), Easing.LINEAR).
+                        moveTo(sx + (t1x - sx) * 0.5, sy + (t1y - sy) * 0.5 - 8, app.secToFrame(0.2), Easing.LINEAR).
+                        moveTo(sx + (t1x - sx) * 1.0, sy + (t1y - sy) * 1.0,     app.secToFrame(0.3), Easing.LINEAR).
+                        moveBy(- player.dirX * 48,   32,  app.secToFrame(0.5), Easing.LINEAR).
                         hide();
                         */
                         // ゲームオーバーカウント開始.
-                        scene.gameOverFrameMax = jp.osakana4242.kimiko.kimiko.secToFrame(1.0);
+                        scene.gameOverFrameMax = jp.osakana4242.kimiko.app.secToFrame(1.0);
                         scene.gameOverFrameCounter = 0;
                     },
                     onAllEnemyDead: function () {
@@ -3739,7 +3739,7 @@ var jp;
                                 break;
                             case "enemy_zero":
                                 // ゲームクリアカウント開始.
-                                scene.clearFrameMax = jp.osakana4242.kimiko.kimiko.secToFrame(3.0);
+                                scene.clearFrameMax = jp.osakana4242.kimiko.app.secToFrame(3.0);
                                 scene.clearFrameCounter = 0;
                                 break;
                             default:
@@ -3777,7 +3777,7 @@ var jp;
                         if (!bullet) {
                             return null;
                         }
-                        bullet.ageMax = jp.osakana4242.kimiko.kimiko.secToFrame(5);
+                        bullet.ageMax = jp.osakana4242.kimiko.app.secToFrame(5);
                         this.world.addChild(bullet);
                         return bullet;
                     },
@@ -3786,7 +3786,7 @@ var jp;
                         if (!bullet) {
                             return null;
                         }
-                        bullet.ageMax = jp.osakana4242.kimiko.kimiko.secToFrame(0.4);
+                        bullet.ageMax = jp.osakana4242.kimiko.app.secToFrame(0.4);
                         this.world.addChild(bullet);
                         return bullet;
                     },
@@ -3801,7 +3801,7 @@ var jp;
                     },
                     /** タイムオーバーになったらtrue. */
                     countTimeLimit: function () {
-                        var pd = jp.osakana4242.kimiko.kimiko.playerData;
+                        var pd = jp.osakana4242.kimiko.app.playerData;
                         if (pd.restTimeCounter <= 0) {
                             return true;
                         }
@@ -3811,11 +3811,11 @@ var jp;
                     updateStatusText: function () {
                         var scene = this;
                         var player = this.player;
-                        var pd = jp.osakana4242.kimiko.kimiko.playerData;
+                        var pd = jp.osakana4242.kimiko.app.playerData;
                         var mapCharaMgr = this.mapCharaMgr;
                         var texts = this.statusTexts;
                         var lifeText = jp.osakana4242.utils.StringUtil.mul("o", player.life.hp) + jp.osakana4242.utils.StringUtil.mul("_", player.life.hpMax - player.life.hp);
-                        texts[0][0] = "SC " + jp.osakana4242.kimiko.kimiko.playerData.score + " " + "TIME " + Math.floor(jp.osakana4242.kimiko.kimiko.frameToSec(pd.restTimeCounter));
+                        texts[0][0] = "SC " + jp.osakana4242.kimiko.app.playerData.score + " " + "TIME " + Math.floor(jp.osakana4242.kimiko.app.frameToSec(pd.restTimeCounter));
                         texts[1][0] = "LIFE " + lifeText + " " + "WALL " + player.wallPushDir.x + "," + player.wallPushDir.y + " " + (player.targetEnemy ? "LOCK" : "    ") + " " + "";
 
                         texts[2][0] = "nodes " + scene.world.childNodes.length;
@@ -3925,10 +3925,10 @@ var jp;
                                 var bullet = bullets[j];
                                 if (bullet.visible && enemy.life.canAddDamage() && enemy.collider.intersect(bullet.collider)) {
                                     enemy.damage(bullet);
-                                    jp.osakana4242.kimiko.kimiko.playerData.score += 10;
+                                    jp.osakana4242.kimiko.app.playerData.score += 10;
                                     if (enemy.life.isDead()) {
                                         var ed = enemy.enemyData;
-                                        jp.osakana4242.kimiko.kimiko.playerData.score += ed.score;
+                                        jp.osakana4242.kimiko.app.playerData.score += ed.score;
                                         if (mapCharaMgr.isAllDead()) {
                                             scene.onAllEnemyDead();
                                         }
