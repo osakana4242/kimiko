@@ -1,15 +1,9 @@
-﻿/// <reference path="act.ts" />
+﻿
+/// <reference path="../kimiko.ts" />
 
 declare var enchant: any;
 
-module jp.osakana4242.kimiko.scenes {
-
-	var Class = enchant.Class;
-	var Core = enchant.Core;
-	var Scene = enchant.Scene;
-	var Label = enchant.Label;
-	var Event = enchant.Event;
-	var Easing = enchant.Easing;
+module jp.osakana4242.kimiko.game {
 
 	export class WeaponA {
 		fireCounter: number;
@@ -195,3 +189,4 @@ module jp.osakana4242.kimiko.scenes {
 		}
 	}
 }
+

@@ -1,4 +1,4 @@
-
+﻿
 /// <reference path="kimiko.ts" />
 
 declare var enchant: any;

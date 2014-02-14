@@ -1,14 +1,10 @@
-/// <reference path="../kimiko.ts" />
+﻿/// <reference path="../kimiko.ts" />
 
 module jp.osakana4242.kimiko.scenes {
-	var Class = enchant.Class;
-	var Core = enchant.Core;
-	var Scene = enchant.Scene;
-	var Label = enchant.Label;
-	var Event = enchant.Event;
-	var Easing = enchant.Easing;
 
-	export var Camera: any = Class.create(enchant.Node, {
+	var app = jp.osakana4242.kimiko.app;
+
+	export var Camera: any = enchant.Class.create(enchant.Node, {
 		initialize: function () {
 			enchant.Node.call(this);
 

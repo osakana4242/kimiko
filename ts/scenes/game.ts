@@ -1,594 +1,24 @@
 // references
 /// <reference path="../kimiko.ts" />
 /// <reference path="../fader.ts" />
-/// <reference path="weapon.ts" />
-/// <reference path="mapCharas.ts" />
-/// <reference path="enemyBrains.ts" />
-/// <reference path="player.ts" />
-/// <reference path="camera.ts" />
-//
+/// <reference path="../game/camera.ts" />
+/// <reference path="../game/life.ts" />
+/// <reference path="../game/weapon.ts" />
+/// <reference path="../game/own_bullet.ts" />
+/// <reference path="../game/enemy_bullet.ts" />
+/// <reference path="../game/enemy.ts" />
+/// <reference path="../game/player.ts" />
 
 declare var enchant: any;
 
 module jp.osakana4242.kimiko.scenes {
 
-	var Class = enchant.Class;
-	var Core = enchant.Core;
-	var Scene = enchant.Scene;
-	var Label = enchant.Label;
-	var Event = enchant.Event;
-	var Easing = enchant.Easing;
+	var app = jp.osakana4242.kimiko.app;
+	var DF = jp.osakana4242.kimiko.DF;
 
-	export class Life {
-		hp: number;
-		hpMax: number;
-		ghostFrameCounter: number;
-		ghostFrameMax: number;
-		damageListener: () => void;
-
-		constructor() {
-			this.hpMax = 100;
-			this.hp = this.hpMax;
-			this.ghostFrameMax = app.secToFrame(1.0);
-			this.ghostFrameCounter = this.ghostFrameMax;
-		}
-
-		public setGhostFrameMax(frameMax: number) {
-			this.ghostFrameMax = frameMax;
-			this.ghostFrameCounter = frameMax;
-		}
-
-		public step(): void {
-			if (this.isGhostTime()) {
-				++this.ghostFrameCounter;
-			}
-		}
-
-		public isAlive(): boolean { return 0 < this.hp; }
-		public isDead(): boolean { return !this.isAlive(); }
-		/** 無敵時間. */
-		public isGhostTime(): boolean { return this.ghostFrameCounter < this.ghostFrameMax; }
-		public canAddDamage(): boolean { return this.isAlive() && !this.isGhostTime(); }
-
-		public damage(v: number): void {
-			this.hp -= v;
-			this.ghostFrameCounter = 0;
-			if (this.damageListener) {
-				this.damageListener();
-			}
-		}
-		
-		public recover(): void {
-			this.hp = this.hpMax;
-			this.ghostFrameCounter = this.ghostFrameMax;
-		}
-	}
-	
-	export class MapCharaManager {
-		scene: any;
-		sleeps: any[] = [];
-		actives: any[] = [];
-		deads: any[] = [];
-		
-		constructor(scene: any) {
-			this.scene = scene;
-		}
-
-		public isAllDead(): boolean {
-			if (0 < this.sleeps.length) {
-				return false;
-			}
-			return this.getAliveCount() === 0;
-		}
-
-		public clear(): void {
-			var arr = this.actives;
-			for (var i = arr.length - 1; 0 <= i; --i) {
-				var chara = arr.pop();
-				if (chara.parentNode) {
-					chara.parentNode.removeChild(chara);
-				}
-			}
-			this.actives.length = 0;
-			this.deads.length = 0;
-			this.sleeps.length = 0;
-		}
-
-		public addSleep(sleep: any): void {
-			this.sleeps.push(sleep);
-		}
-
-		public step(): void {
-			this.checkSpawn();
-			this.checkSleep();
-		}
-
-		public getAliveCount(): number {
-			var count = this.sleeps.length
-			for (var i = this.actives.length - 1; 0 <= i; --i) {
-				if (this.actives[i].life.isAlive()) {
-					++count;
-				}
-			}
-			return count;
-		}
-
-		// 画面内に入ったキャラを発生させる。
-		private checkSpawn(): void {
-			var scene = this.scene;
-			var camera = this.scene.camera;
-			var arr = this.sleeps;
-			for (var i = arr.length - 1; 0 <= i; --i) {
-				var chara = arr[i];
-				if (!camera.isIntersectSpawnRect(chara)) {
-					continue;
-				}
-				arr.splice(i, 1);
-				this.actives.push(chara);
-
-				scene.world.addChild(chara);
-			}
-		}
-
-		// 画面外に出たキャラを休ませるか棺送りにする。
-		private checkSleep(): void {
-			var scene = this.scene;
-			var camera = this.scene.camera;
-			var arr = this.actives;
-			for (var i = arr.length - 1; 0 <= i; --i) {
-				var chara = arr[i];
-
-				if (chara.isDead()) {
-					arr.splice(i, 1);
-					this.deads.push(chara);
-					scene.world.removeChild(chara);
-					continue;
-				}
-
-				if (!camera.isOutsideSleepRect(chara)) {
-					continue;
-				}
-				arr.splice(i, 1);
-				this.sleeps.push(chara);
-				scene.world.removeChild(chara);
-			}
-		}
-	}
-
-	export var Title: any = Class.create(Scene, {
+	export var Game: any = enchant.Class.create(enchant.Scene, {
 		initialize: function () {
-			Scene.call(this);
-			
-			var scene = this;
-			var mapIds = [];
-			for (var key in DF.MAP_OPTIONS) {
-				mapIds.push(parseInt(key));
-			}
-
-			var mapIdsIdx = 0;
-			
-			//
-			var title = (() => {
-				var spr = new enchant.Label("KIMIKO'S NIGHTMARE");
-				spr.font = DF.FONT_L;
-				spr.color = "rgb(255, 255, 255)";
-				spr.width = DF.SC_W;
-				spr.height =24;
-				spr.textAlign = "center";
-				spr.x = 0;
-				spr.y = 8;
-				return spr;
-			})();
-
-			var player = (() => {
-				var spr = new enchant.Sprite();
-				spr.anim.sequence = app.getAnimFrames(DF.ANIM_ID_CHARA001_WALK);
-				spr.center.x = DF.SC_W / 2;
-				spr.y = 240;
-				var ax = spr.x;
-				var ay = spr.y;
-				spr.addEventListener(Event.TOUCH_END, function () {
-					if (0 < spr.tl.queue.length) {
-						// 演出終わってないのでカエル.
-						return;
-					}
-					spr.tl.
-						clear().
-						moveTo(ax, ay - 32, app.secToFrame(0.1), Easing.CUBIC_EASEOUT).
-						moveTo(ax, ay,      app.secToFrame(0.1), Easing.CUBIC_EASEIN);
-				});
-				return spr;
-			})();
-		
-			var author = (() => {
-				var spr = new enchant.Label("created by @osakana4242");
-				spr.font = DF.FONT_M;
-				spr.color = "rgb(255, 255, 255)";
-				spr.width = DF.SC_W;
-				spr.height = 12;
-				spr.textAlign = "center";
-				spr.x = 0;
-				spr.y = 300;
-				return spr;
-			})();
-
-			var mapLabel = (() => {
-				var spr = new enchant.Label();
-				spr.font = DF.FONT_L;
-				spr.color = "rgb(255, 255, 255)";
-				spr.width = DF.SC_W;
-				spr.height = 24;
-				spr.textAlign = "center";
-				spr.x = 0;
-				spr.y = 70;
-				return spr;
-			})();
-			
-			var mapLabel2 = (() => {
-				var spr = new enchant.Label();
-				spr.font = DF.FONT_L;
-				spr.color = "rgb(255, 255, 255)";
-				spr.width = DF.SC_W;
-				spr.height = 24;
-				spr.textAlign = "center";
-				spr.x = 0;
-				spr.y = 94;
-				return spr;
-			})();
-
-			function updateMapLabel() {
-				var mapId = mapIds[mapIdsIdx];
-				mapLabel.text = "MAP " + mapId;
-				mapLabel2.text = DF.MAP_OPTIONS[mapId].title;
-			}
-			updateMapLabel();
-
-			var leftBtn = (() => {
-				var spr = new enchant.Label("<-");
-				spr.font = DF.FONT_L;
-				spr.backgroundColor = "rgb(64, 64, 64)";
-				spr.color = "rgb(255, 255, 0)";
-				spr.textAlign = "center";
-				spr.width = 56;
-				spr.height = 48;
-				spr.x = DF.SC_W / 3 * 0 + (spr.width / 2);
-				spr.y = 80;
-				spr.addEventListener(Event.TOUCH_END, prevMap);
-				return spr;
-			})();
-
-			var rightBtn = (() => {
-				var spr = new enchant.Label("->");
-				spr.font = DF.FONT_L;
-				spr.backgroundColor = "rgb(64, 64, 64)";
-				spr.color = "rgb(255, 255, 0)";
-				spr.textAlign = "center";
-				spr.width = 56;
-				spr.height = 48;
-				spr.x = DF.SC_W / 3 * 2 + (spr.width / 2);
-				spr.y = 80;
-				spr.addEventListener(Event.TOUCH_END, nextMap);
-				return spr;
-			})();
-		
-			var startBtn = (() => {
-				var spr = new enchant.Label("START");
-				spr.font = DF.FONT_L;
-				spr.color = "rgb(255, 255, 0)";
-				spr.backgroundColor = "rgb(64, 64, 64)";
-				spr.width = DF.SC_W / 2;
-				spr.height = 48;
-				spr.textAlign = "center";
-				spr.x = (DF.SC_W - spr.width) / 2;
-				spr.y = 140;
-				spr.addEventListener(Event.TOUCH_END, gotoGameStart);
-				return spr;
-			})();
-
-			//
-			scene.backgroundColor = "rgb( 32, 32, 32)";
-			scene.addChild(player);
-			scene.addChild(title);
-			scene.addChild(author);
-			scene.addChild(mapLabel);
-			scene.addChild(mapLabel2);
-			scene.addChild(leftBtn);
-			scene.addChild(rightBtn);
-			scene.addChild(startBtn);
-			//
-			scene.addEventListener(Event.A_BUTTON_UP, gotoGameStart);
-			scene.addEventListener(Event.LEFT_BUTTON_UP, prevMap);
-			scene.addEventListener(Event.RIGHT_BUTTON_UP, nextMap);
-	
-			//
-			var fader = new Fader(this);
-			fader.setBlack(true);
-			fader.fadeIn(app.secToFrame(0.5));
-	
-			function nextMap() {
-				mapIdsIdx = (mapIdsIdx + mapIds.length + 1) % mapIds.length;
-				updateMapLabel();
-			}
-
-			function prevMap() {
-				mapIdsIdx = (mapIdsIdx + mapIds.length - 1) % mapIds.length;
-				updateMapLabel();
-			}
-
-			function gotoGameStart() {
-				var pd = app.playerData;
-				pd.reset();
-				pd.mapId = mapIds[mapIdsIdx];
-				fader.fadeOut(app.secToFrame(0.3), () => {
-					app.core.replaceScene(new scenes.GameStart());
-				});
-			};
-		},
-
-	});
-
-
-	export var GameStart: any = Class.create(Scene, {
-		initialize: function () {
-			Scene.call(this);
-			
-			var scene = this;
-			//
-			var bg1 = new enchant.Sprite(DF.SC1_W, DF.SC1_H);
-			((sprite: any) => {
-				sprite.x = 0;
-				sprite.y = 0;
-				sprite.image = app.core.assets[Assets.IMAGE_GAME_START_BG];
-			})(bg1);
-			//
-			var label1 = new enchant.Label("GOOD NIGHT...");
-			((label: any) => {
-				label.font = DF.FONT_M;
-				label.width = DF.SC_W;
-				label.height = 12;
-				label.color = "rgb(255, 255, 255)";
-				label.textAlign = "center";
-				var ax = (DF.SC1_W - label.width) / 2;
-				var ay = (DF.SC1_H - label.height) / 2;
-				label.x = ax;
-				label.y = ay;
-				label.tl.
-					moveTo(ax + 0, ay + 8, app.secToFrame(1.0), Easing.SIN_EASEINOUT).
-					moveTo(ax + 0, ay - 8, app.secToFrame(1.0), Easing.SIN_EASEINOUT).
-					loop();
-			})(label1);
-			//
-			var fader = new Fader(this);
-			//
-			var layer1 = new enchant.Group();
-			layer1.addChild(bg1);
-			layer1.addChild(label1); 
-			//
-			scene.backgroundColor = "rgb(0, 0, 0)";
-			scene.addChild(layer1);
-			(() => {
-				var next = () => {
-					fader.fadeOut2(app.secToFrame(1.0), new utils.Vector2D(242, 156), () => {
-						app.core.replaceScene(app.gameScene);
-					});
-				};
-				fader.setBlack(true);
-				scene.tl.
-					then(() => { fader.fadeIn(app.secToFrame(0.5)); }).
-					delay(app.secToFrame(0.5)).
-					delay(app.secToFrame(2.0)).
-					then(next);
-					scene.addEventListener(Event.TOUCH_END, next);
-					scene.addEventListener(Event.A_BUTTON_UP, next);
-			})();
-		},
-
-	});
-	
-	export var Pause: any = Class.create(Scene, {
-		initialize: function () {
-			Scene.call(this);
-			
-			var scene = this;
-			//
-			var bg = (() => {
-				var spr = new enchant.Sprite(DF.SC_W, DF.SC_H);
-				spr.backgroundColor = "#000";
-				spr.opacity = 0.5;
-				return spr;
-			})();
-
-			var label1 = (() => {
-				var label = new enchant.Label("PAUSE");
-				label.font = DF.FONT_M;
-				label.width = DF.SC_W;
-				label.height = 12;
-				label.color = "rgb(255, 255, 255)";
-				label.textAlign = "center";
-				label.x = 0;
-				label.y = 60;
-				label.tl.
-					moveBy(0, -8, app.secToFrame(1.0), Easing.SIN_EASEINOUT).
-					moveBy(0,  8, app.secToFrame(1.0), Easing.SIN_EASEINOUT).
-					loop();
-				return label;
-			})();
-			//
-			var label2 = (() => {
-				var label = new enchant.Label("GOTO TITLE");
-				label.font = DF.FONT_M;
-				label.width = DF.SC_W / 2;
-				label.height = 48;
-				label.backgroundColor = "#444";
-				label.color = "#ff0";
-				label.textAlign = "center";
-				label.x = (DF.SC_W - label.width) / 2;
-				label.y = 90;
-				label.addEventListener(Event.TOUCH_END, () => {
-					app.gameScene.state = app.gameScene.stateGameStart;
-					app.core.replaceScene(new scenes.Title());
-				});
-				return label;
-			})();
-
-			var label3 = (() => {
-				var label = new enchant.Label("CONTINUE");
-				label.font = DF.FONT_M;
-				label.width = DF.SC_W / 2;
-				label.height = 48;
-				label.backgroundColor = "#444";
-				label.color = "#ff0";
-				label.textAlign = "center";
-				label.x = (DF.SC_W - label.width) / 2;
-				label.y = 180;
-				label.addEventListener(Event.TOUCH_END, () => {
-					app.core.popScene();
-				});
-				return label;
-			})();
-
-			scene.addChild(bg);
-			scene.addChild(label1); 
-			scene.addChild(label2); 
-			scene.addChild(label3);
-		}
-	});
-
-	export var GameOver: any = Class.create(Scene, {
-		initialize: function () {
-			Scene.call(this);
-			
-			var scene = this;
-			//
-			var label1 = new enchant.Label("GAME OVER");
-			((label: any) => {
-				label.font = DF.FONT_M;
-				label.width = DF.SC_W;
-				label.height = 12;
-				label.color = "rgb(255, 255, 255)";
-				label.textAlign = "center";
-				var ax = (DF.SC1_W - label.width) / 2;
-				var ay = (DF.SC1_H - label.height) / 2;
-				label.x = ax;
-				label.y = ay;
-				label.tl.
-					moveTo(ax + 0, ay + 8, app.secToFrame(1.0), Easing.SIN_EASEINOUT).
-					moveTo(ax + 0, ay - 8, app.secToFrame(1.0), Easing.SIN_EASEINOUT).
-					loop();
-			})(label1);
-			//
-			var layer1 = new enchant.Group();
-			layer1.addChild(label1); 
-			//
-			scene.addChild(layer1);
-			//
-			scene.addEventListener(Event.TOUCH_END, () => {
-				app.core.popScene();
-			});
-		}
-	});
-
-	/**
-		 GAME CLEAR!
-		REST TIME 999
-		SCORE 999
-		[SEND] | [RETRY]
-
-		残り時間はスコアに換算する.
-		残りライフもスコアに換算する.
-	*/
-	export var GameClear: any = Class.create(Scene, {
-		initialize: function () {
-			Scene.call(this);
-			
-			var scene = this;
-			var pd = app.playerData;
-			//
-			var label1 = new enchant.Label("GAME CLEAR!");
-			((label: any) => {
-				label.font = DF.FONT_M;
-				label.width = DF.SC_W;
-				label.height = 12;
-				label.color = "rgb(255, 255, 255)";
-				label.textAlign = "center";
-				var ax = (DF.SC1_W - label.width) / 2;
-				var ay = 32 + 24 * 1;
-				label.x = ax;
-				label.y = ay - 8;
-				label.tl.
-					hide().
-					delay(app.secToFrame(0.5)).
-					show().
-					moveTo(ax, ay, app.secToFrame(0.5), Easing.SIN_EASEOUT);
-			})(label1);
-			//
-			var label2 = new enchant.Label("REST TIME " + Math.floor(app.frameToSec(pd.restTimeCounter)));
-			((label: any) => {
-				label.font = DF.FONT_M;
-				label.width = DF.SC_W;
-				label.height = 12;
-				label.color = "rgb(255, 255, 255)";
-				label.textAlign = "center";
-				var ax = (DF.SC1_W - label.width) / 2;
-				var ay = 32 + 24 * 2;
-				label.x = ax;
-				label.y = ay - 8;
-				label.tl.
-					hide().
-					delay(app.secToFrame(1.0)).
-					show().
-					moveTo(ax, ay, app.secToFrame(0.5), Easing.SIN_EASEOUT);
-			})(label2);
-
-			var label3 = new enchant.Label("SCORE " + pd.score);
-			((label: any) => {
-				label.font = DF.FONT_M;
-				label.width = DF.SC_W;
-				label.height = 12;
-				label.color = "rgb(255, 255, 255)";
-				label.textAlign = "center";
-				var ax = (DF.SC1_W - label.width) / 2;
-				var ay = 32 + 24 * 3;
-				label.x = ax;
-				label.y = ay - 8;
-				label.tl.
-					hide().
-					delay(app.secToFrame(1.5)).
-					show().
-					moveTo(ax, ay, app.secToFrame(0.5), Easing.SIN_EASEOUT);
-			})(label3);
-
-			//
-			var layer1 = new enchant.Group();
-			layer1.addChild(label1); 
-			layer1.addChild(label2);
-			layer1.addChild(label3);
-			//
-			scene.addChild(layer1);
-			//
-			scene.tl.
-				delay(app.secToFrame(3.0)).
-				waitUntil(() => {
-					if (pd.restTimeCounter < app.secToFrame(1)) {
-						return true;
-					}
-					pd.restTimeCounter -= app.secToFrame(1);
-					pd.score += Math.floor(10);
-					label2.text = "REST TIME " + Math.floor(app.frameToSec(pd.restTimeCounter));
-					label3.text = "SCORE " + pd.score;
-					return false;
-				});
-			//
-			scene.addEventListener(Event.TOUCH_END, () => {
-				app.core.popScene();
-				app.core.replaceScene(new Title());
-			});
-		}
-	});
-
-	export var Game: any = Class.create(Scene, {
-		initialize: function () {
-			Scene.call(this);
+			enchant.Scene.call(this);
 
 			var scene = this;
 
@@ -634,7 +64,7 @@ module jp.osakana4242.kimiko.scenes {
 			world.addChild(camera);
 
 			this.player = (() => {
-				var sprite = new Player();
+				var sprite = new game.Player();
 				sprite.name = "player";
 				sprite.x = 0;
 				sprite.y = this.map.height - sprite.height;
@@ -660,7 +90,7 @@ module jp.osakana4242.kimiko.scenes {
 				this.labels = [];
 				var texts: string[][] = this.statusTexts;
 				for (var i: number = 0, iNum: number = texts.length; i < iNum; ++i) {
-					sprite = new Label("");
+					sprite = new enchant.Label("");
 					this.labels.push(sprite);
 					sprite.font = DF.FONT_M;
 					sprite.color = "#fff";
@@ -677,7 +107,7 @@ module jp.osakana4242.kimiko.scenes {
 					spr.textAlign = "center";
 					spr.x = DF.SC2_W - 56;
 					spr.y = DF.SC2_H - 56;
-					spr.addEventListener(Event.TOUCH_END, () => {
+					spr.addEventListener(enchant.Event.TOUCH_END, () => {
 						app.core.pushScene(app.pauseScene);
 					});
 					return spr;
@@ -698,13 +128,13 @@ module jp.osakana4242.kimiko.scenes {
 			})();
 
 			this.ownBulletPool = new utils.SpritePool(DF.PLAYER_BULLET_NUM, (idx: number) => {
-				var spr = new OwnBullet();
+				var spr = new game.OwnBullet();
 				spr.name = "OwnBullet" + idx;
 				return spr;
 			});
 			
 			this.enemyBulletPool = new utils.SpritePool(32, (idx: number) => {
-				var spr = new EnemyBullet();
+				var spr = new game.EnemyBullet();
 				spr.name = "EnemyBullet" + idx;
 				return spr;
 			});
@@ -719,7 +149,7 @@ module jp.osakana4242.kimiko.scenes {
 				return spr;
 			});
 			
-			this.mapCharaMgr = new MapCharaManager(this);
+			this.mapCharaMgr = new game.MapCharaManager(this);
 			this.touch = new utils.Touch();
 
 			this.fader = new Fader(this);
@@ -830,7 +260,7 @@ module jp.osakana4242.kimiko.scenes {
 		stateNormal: function () {
 			var player = this.player;
 			//
-			var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
+			var mapCharaMgr: game.MapCharaManager = this.mapCharaMgr;
 			mapCharaMgr.step();
 			//
 			this.checkCollision();
@@ -860,6 +290,9 @@ module jp.osakana4242.kimiko.scenes {
 			this.state = this.stateGameStart;
 		},
 
+		/**
+			
+		*/
 		stateGameClear: function () {
 			var pd = app.playerData;
 			pd.hp = this.player.life.hp;
@@ -945,7 +378,7 @@ module jp.osakana4242.kimiko.scenes {
 
 			// 敵, スタート地点.
 			(() => {
-				var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
+				var mapCharaMgr: game.MapCharaManager = this.mapCharaMgr;
 				var layer = mapData.layers[1];
 				var enemyIdx = 0;
 				eachTiles(layer.tiles, (charaId, x, y, tiles) => {
@@ -961,8 +394,8 @@ module jp.osakana4242.kimiko.scenes {
 						player.y = top + (DF.MAP_TILE_H - player.height);
 					} else if (DF.MAP_TILE_CHARA_MIN <= charaId) {
 						var enemyId = charaId - DF.MAP_TILE_CHARA_MIN;
-						var data = EnemyData[enemyId]
-						var enemy = new EnemyA();
+						var data = game.EnemyData[enemyId]
+						var enemy = new game.Enemy();
 						enemy.tl.unloop().clear();
 						enemy.enemyId = enemyId;
 						enemy.life.hpMax = data.hpMax;
@@ -1045,27 +478,7 @@ module jp.osakana4242.kimiko.scenes {
 
 		onPlayerDead: function () {
 			var scene = this;
-			var player = this.player;
-			var sx = player.x;
-			var sy = player.y;
-			var t1x = sx + (- player.dirX * 96);
-			var t1y = sy - 64;
-			var dx = - player.dirX;
-			player.tl.
-				moveBy(dx * 96 * 0.25, -96 * 0.8, app.secToFrame(0.2), Easing.LINEAR).
-				moveBy(dx * 96 * 0.25, -96 * 0.2, app.secToFrame(0.2), Easing.LINEAR).
-				moveBy(dx * 96 * 0.25,  32 * 0.2, app.secToFrame(0.3), Easing.LINEAR).
-				moveBy(dx * 96 * 0.25,  32 * 0.8, app.secToFrame(0.3), Easing.LINEAR).
-				hide();
 
-			/*
-			player.tl.
-				moveTo(sx + (t1x - sx) * 0.5, sy + (t1y - sy) * 0.5 - 8, app.secToFrame(0.2), Easing.LINEAR).
-				moveTo(sx + (t1x - sx) * 1.0, sy + (t1y - sy) * 1.0,     app.secToFrame(0.3), Easing.LINEAR).
-				moveBy(- player.dirX * 48,   32,  app.secToFrame(0.5), Easing.LINEAR).
-				hide();
-			*/
-			
 			// ゲームオーバーカウント開始.
 			scene.gameOverFrameMax = app.secToFrame(1.0);
 			scene.gameOverFrameCounter = 0;
@@ -1092,14 +505,14 @@ module jp.osakana4242.kimiko.scenes {
 		},
 		
 		getNearEnemy: function (sprite, searchRect: utils.IRect) {
-			var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
+			var mapCharaMgr: game.MapCharaManager = this.mapCharaMgr;
 			var enemys = mapCharaMgr.actives;
 			
 			var near = null;
 			var nearSqrDistance = 0;
 			for (var i = 0, iNum = enemys.length; i < iNum; ++i) {
 				var enemy = enemys[i];
-				if (enemy.isDead()) {
+				if (enemy.life.isDead) {
 					continue;
 				}
 				if (!utils.Rect.intersect(searchRect, enemy)) {
@@ -1163,7 +576,7 @@ module jp.osakana4242.kimiko.scenes {
 			var scene = this;
 			var player = this.player;
 			var pd = app.playerData;
-			var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
+			var mapCharaMgr: game.MapCharaManager = this.mapCharaMgr;
 			var texts: string[][] = this.statusTexts;
 			var lifeText = app.stringUtil.mul("o", player.life.hp) + utils.StringUtil.mul("_", player.life.hpMax - player.life.hp);
 			texts[0][0] = "SC " + app.playerData.score + " " +
@@ -1251,7 +664,7 @@ module jp.osakana4242.kimiko.scenes {
 
 		checkCollision: function () {
 			var scene = this;
-			var mapCharaMgr: MapCharaManager = this.mapCharaMgr;
+			var mapCharaMgr: game.MapCharaManager = this.mapCharaMgr;
 			var player = this.player;
 			var enemys = mapCharaMgr.actives;
 
@@ -1260,11 +673,11 @@ module jp.osakana4242.kimiko.scenes {
 			for (var i = bullets.length - 1; 0 <= i; --i) {
 				var bullet = bullets[i];
 				if (bullet.visible &&
-					player.life.canAddDamage() &&
+					player.life.canAddDamage &&
 					player.collider.intersect(bullet.collider)) {
 					//
-					player.damage(bullet);
-					if (player.life.isDead()) {
+					player.life.addDamage(1);
+					if (player.life.isDead) {
 						this.onPlayerDead();
 					}
 					this.addEffect(DF.ANIM_ID_DAMAGE, bullet.center);
@@ -1275,11 +688,11 @@ module jp.osakana4242.kimiko.scenes {
 			// ダメージを受けるのはプレイヤーだけ.
 			for (var i = enemys.length - 1; 0 <= i; --i) {
 				var enemy = enemys[i];
-				if (player.life.canAddDamage() &&
+				if (player.life.canAddDamage &&
 					player.collider.intersect(enemy.collider)) {
 					//
-					player.damage(enemy);
-					if (player.life.isDead()) {
+					player.life.addDamage(1);
+					if (player.life.isDead) {
 						this.onPlayerDead();
 					}
 					this.addEffect(DF.ANIM_ID_DAMAGE, player.center);
@@ -1292,18 +705,18 @@ module jp.osakana4242.kimiko.scenes {
 				for (var j = bullets.length - 1; 0 <= j; --j) {
 					var bullet = bullets[j];
 					if (bullet.visible &&
-						enemy.life.canAddDamage() &&
+						enemy.life.canAddDamage &&
 						enemy.collider.intersect(bullet.collider)) {
-						enemy.damage(bullet);
+						enemy.life.addDamage(1);
 						app.playerData.score += 10;
-						if (enemy.life.isDead()) {
-							var ed: IEnemyData = enemy.enemyData;
+						if (enemy.life.isDead) {
+							var ed: game.IEnemyData = enemy.enemyData;
 							app.playerData.score += ed.score;
 							if (mapCharaMgr.isAllDead()) {
 								scene.onAllEnemyDead();
 							}
 						}
-						if (!enemy.life.isDead()) {
+						if (!enemy.life.isDead) {
 							this.addEffect(DF.ANIM_ID_DAMAGE, bullet.center);
 						}
 						bullet.free();

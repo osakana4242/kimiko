@@ -1,14 +1,9 @@
-﻿/// <reference path="act.ts" />
+﻿/// <reference path="../kimiko.ts" />
 
 declare var enchant: any;
 
-module jp.osakana4242.kimiko.scenes {
+module jp.osakana4242.kimiko.game {
 
-	var Class = enchant.Class;
-	var Core = enchant.Core;
-	var Scene = enchant.Scene;
-	var Label = enchant.Label;
-	var Event = enchant.Event;
 	var Easing = enchant.Easing;
 
 	export module EnemyBodys {
@@ -72,7 +67,7 @@ module jp.osakana4242.kimiko.scenes {
 					sprite.tl.
 						moveBy(dir.x, dir.y, frame).
 						then(function () {
-							sprite.dead();
+							sprite.life.kill();
 						});
 
 					utils.Vector2D.free(dir);
@@ -248,7 +243,7 @@ module jp.osakana4242.kimiko.scenes {
 					sprite.tl.
 						moveBy(dir.x, dir.y, frame).
 						then(function () {
-							sprite.dead();
+							sprite.life.kill();
 						});
 
 					utils.Vector2D.free(dir);
@@ -554,4 +549,53 @@ module jp.osakana4242.kimiko.scenes {
 		},
 	};
 
+	export var Enemy = enchant.Class.create(enchant.Sprite, {
+		initialize: function () {
+			enchant.Sprite.call(this);
+
+			this.enemyId = -1;
+			this.weapons = [];
+			for (var i = 0, iNum = 8; i < iNum; ++i) {
+				this.weapons[i] = new jp.osakana4242.kimiko.game.WeaponA(this);
+			}
+			this.weaponNum = 1;
+			this.anchor = new utils.Vector2D();
+			this.collider = new utils.Collider();
+			this.collider.parent = this;
+			this.life = new game.Life(this);
+			// ゴースト状態無し.
+			this.life.setGhostFrameMax(app.secToFrame(0.0));
+
+		},
+
+		onenterframe: function () {
+			this.life.step();
+			for (var i = this.weaponNum - 1; 0 <= i; --i) {
+				this.weapons[i].step();
+			}
+		},
+		
+		weapon: { get: function () {
+				return this.weapons[0];
+		}, },
+		
+		enemyData: { get: function () {
+			return game.EnemyData[this.enemyId];
+		}, },
+
+		isBoss: function () { return this.enemyId === DF.ENEMY_ID_BOSS; },
+
+		onDead: function () {
+			// 死亡エフェクト追加.
+			var effect = this.scene.addEffect(DF.ANIM_ID_DEAD, this.center);
+			effect.scaleX = 2.0;
+			effect.scaleY = 2.0;
+
+			//
+			this.visible = false;
+		},
+
+	});
+
 }
+

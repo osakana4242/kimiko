@@ -1,4 +1,4 @@
-// references
+﻿// references
 /// <reference path="kimiko.ts" />
 //
 

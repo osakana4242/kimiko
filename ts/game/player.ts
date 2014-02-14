@@ -1,21 +1,21 @@
-
+﻿
 /// <reference path="../kimiko.ts" />
 
-module jp.osakana4242.kimiko.scenes {
-	var Class = enchant.Class;
-	var Event = enchant.Event;
-	var Easing = enchant.Easing;
+module jp.osakana4242.kimiko.game {
 
-	/*
+	var app = jp.osakana4242.kimiko.app;
 
+	/**
 		force 自然な力
 		ctrlForce 意図的な力
-
 	*/
-	export var Player: any = Class.create(Attacker, {
+	export var Player: any = enchant.Class.create(enchant.Sprite, {
 
 			initialize: function () {
-				Attacker.call(this);
+				enchant.Sprite.call(this);
+
+				this.force = new utils.Vector2D();
+				this.dirX = 1;
 				
 				this.bodyStyles = (() => {
 					var animWalk = app.getAnimFrames(DF.ANIM_ID_CHARA001_WALK);
@@ -67,13 +67,10 @@ module jp.osakana4242.kimiko.scenes {
 
 				this.bodyStyle = this.bodyStyles.stand;
 
+				this.life = new game.Life(this);
 				this.life.hpMax = DF.PLAYER_HP;
 				this.life.hp = this.life.hpMax;
 				this.life.setGhostFrameMax(app.secToFrame(1.5));
-				this.life.damageListener = () => {
-					if (this.life.isDead()) {
-					}
-				};
 
 				this.gravityHoldCounter = 0;
 				this.touchStartAnchor = new utils.Vector2D();
@@ -87,35 +84,38 @@ module jp.osakana4242.kimiko.scenes {
 				/** 入力された移動距離. */
 				this.inputForce = new utils.Vector2D();
 
-				this.addEventListener(Event.ENTER_FRAME, () => {
-					var scene = this.scene;
-					if (this.isPause) {
-						return;
+			},
+
+			onenterframe: function () {
+				var scene = this.scene;
+				if (this.isPause) {
+					return;
+				}
+				this.life.step();
+
+				var isAlive = this.life.isAlive;
+				if (isAlive) {
+					this.checkInput();
+				}
+				this.updateBodyStyle();
+				if (isAlive) {
+					this.stepMove();
+					this.searchEnemy();
+				}
+				// viewpoint.
+				var viewpoint = this.viewpoint;
+				viewpoint.x = this.x;
+				viewpoint.y = this.y;
+				viewpoint.x += (this.dirX * 16);
+				// 指で操作する関係で下方向に余裕を持たせる.
+				viewpoint.y += 24;
+				if (this.isBodyStyleSquat) {
+					if (this.scaleY < 0) {
+						viewpoint.y -= 16;
+					} else {
+						viewpoint.y += 16;
 					}
-					var isAlive = !this.life.isDead();
-					if (isAlive) {
-						this.checkInput();
-					}
-					this.updateBodyStyle();
-					if (isAlive) {
-						this.stepMove();
-						this.searchEnemy();
-					}
-					// viewpoint.
-					var viewpoint = this.viewpoint;
-					viewpoint.x = this.x;
-					viewpoint.y = this.y;
-					viewpoint.x += (this.dirX * 16);
-					// 指で操作する関係で下方向に余裕を持たせる.
-					viewpoint.y += 24;
-					if (this.isBodyStyleSquat) {
-						if (this.scaleY < 0) {
-							viewpoint.y -= 16;
-						} else {
-							viewpoint.y += 16;
-						}
-					}
-				});
+				}
 			},
 			
 			bodyStyle: {
@@ -147,7 +147,7 @@ module jp.osakana4242.kimiko.scenes {
 				if (this.targetEnemy === null) {
 					//
 				} else {
-					if (this.targetEnemy.life.isDead()) {
+					if (this.targetEnemy.life.isDead) {
 						// 敵が死んでたら解除.
 						this.targetEnemy = null;
 					}
@@ -179,8 +179,7 @@ module jp.osakana4242.kimiko.scenes {
 			},
 
 			stateToString: function () {
-				var str = Attacker.prototype.stateToString.call(this);
-				str += " hp:" + this.life.hp +
+				var str = " hp:" + this.life.hp +
 					" L:" + (this.targetEnemy !== null ? "o" : "x");
 				return str;
 			},
@@ -204,7 +203,7 @@ module jp.osakana4242.kimiko.scenes {
 				// body style
 				this.scaleY = 1;
 				var nextBodyStyle = this.bodyStyle;
-				if (this.life.isDead()) {
+				if (this.life.isDead) {
 					nextBodyStyle = this.bodyStyles.dead;
 				} else if (0 < this.wallPushDir.y) {
 					// しゃがみ判定.
@@ -333,7 +332,7 @@ module jp.osakana4242.kimiko.scenes {
 			
 			checkInput: function () {
 				utils.Vector2D.copyFrom(this.inputForce, utils.Vector2D.zero);
-				if (this.life.isDead()) {
+				if (this.life.isDead) {
 					return;
 				}
 				this.checkKeyInput();
@@ -390,6 +389,22 @@ module jp.osakana4242.kimiko.scenes {
 					}
 					this.gravityHoldCounter = app.secToFrame(DF.GRAVITY_HOLD_SEC);
 				}
+			},
+
+			onDead: function () {
+				// プレイヤーをふっとばす演出.
+				var player = this;
+				var sx = player.x;
+				var sy = player.y;
+				var t1x = sx + (- player.dirX * 96);
+				var t1y = sy - 64;
+				var dx = - player.dirX;
+				player.tl.
+					moveBy(dx * 96 * 0.25, -96 * 0.8, app.secToFrame(0.2), enchant.Easing.LINEAR).
+					moveBy(dx * 96 * 0.25, -96 * 0.2, app.secToFrame(0.2), enchant.Easing.LINEAR).
+					moveBy(dx * 96 * 0.25,  32 * 0.2, app.secToFrame(0.3), enchant.Easing.LINEAR).
+					moveBy(dx * 96 * 0.25,  32 * 0.8, app.secToFrame(0.3), enchant.Easing.LINEAR).
+					hide();
 			},
 
 		});

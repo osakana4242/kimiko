@@ -1,4 +1,4 @@
-
+﻿
 /// <reference path="utils.ts" />
 /// <reference path="defines.ts" />
 /// <reference path="player_data.ts" />

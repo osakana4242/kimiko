@@ -1,19 +1,20 @@
-
+﻿
 declare var enchant: any;
 
 module jp.osakana4242.utils {
 
 	export module NumberUtil {
 		export function trim(v: number, vMin: number, vMax: number) {
-			return Math.max(vMin, Math.min(vMax, v));
+			return (v <= vMin) ?
+				vMin : (vMax <= v) ?
+					vMax :
+					v;
 		}
 		
 		export function sign(v: number) {
-			if (0 <= v) {
-				return 1;
-			} else {
-				return -1;
-			}
+			return (0 <= v) ?
+				1 :
+				-1;
 		}
 	}
 		
