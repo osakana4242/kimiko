@@ -47,6 +47,7 @@ module jp.osakana4242.kimiko.scenes {
 				label.x = (DF.SC_W - label.width) / 2;
 				label.y = 90;
 				label.addEventListener(enchant.Event.TOUCH_END, () => {
+					app.sound.playSe(Assets.SOUND_SE_OK);
 					app.gameScene.state = app.gameScene.stateGameStart;
 					app.core.replaceScene(new scenes.Title());
 				});

@@ -3,6 +3,7 @@
 /// <reference path="defines.ts" />
 /// <reference path="player_data.ts" />
 /// <reference path="storage.ts" />
+/// <reference path="sound.ts" />
 
 declare var enchant: any;
 
@@ -34,8 +35,10 @@ module jp.osakana4242.kimiko {
 		numberUtil = utils.NumberUtil;
 		stringUtil = utils.StringUtil;
 
-		storage: Storage;
 		config: IConfig;
+		storage: Storage;
+		sound: Sound;
+
 		playerData: PlayerData;
 		gameScene: any;
 		pauseScene: any;
@@ -47,14 +50,15 @@ module jp.osakana4242.kimiko {
 				return;
 			}
 			app.isInited = true;
+			app.config = config;
 			app.storage = new Storage();
 			if (true) {
 				app.storage.clear();
 			}
 			app.storage.load();
 			app.storage.save();
-			app.config = config;
-			
+			app.sound = new Sound();
+
 			var core: any = new enchant.Core(DF.SC_W, DF.SC_H);
 			core.fps = config.fps || DF.BASE_FPS;
 			// preload
@@ -77,6 +81,30 @@ module jp.osakana4242.kimiko {
 				core.preload(newPath);
 			}
 			
+			// sound
+			(() => {
+				var SOUND_INFOS = [
+					{
+						"assetName": Assets.SOUND_BGM,
+						"playTime": 27.5,
+						"isLoop": true,
+					},
+					{
+						"assetName": Assets.SOUND_SE_OK,
+						"playTime": 1,
+						"isLoop": false,
+					},
+					{
+						"assetName": Assets.SOUND_SE_CURSOR,
+						"playTime": 0.5,
+						"isLoop": false,
+					},
+				];
+				for(var i = 0, iNum = SOUND_INFOS.length; i < iNum; ++i) {
+					app.sound.add(SOUND_INFOS[i]);
+				}
+			})();
+
 			// anim
 			(() => {
 				var r = (animId: number, imageName: string, frameWidth: number, frameHeight: number, frameSec: number, frames: number[]) => {
@@ -166,7 +194,8 @@ module jp.osakana4242.kimiko {
 		//dotPerSecToDotPerFrame
 	
 	}
-	
+
+
 	export var app: App = new App();
 
 	/** HTMLから呼ぶ. */

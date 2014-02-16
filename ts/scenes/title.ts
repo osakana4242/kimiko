@@ -12,6 +12,8 @@ module jp.osakana4242.kimiko.scenes {
 		initialize: function () {
 			enchant.Scene.call(this);
 			
+			app.sound.stopBgm();
+
 			var scene = this;
 			var mapIds = [];
 			for (var key in DF.MAP_OPTIONS) {
@@ -159,16 +161,19 @@ module jp.osakana4242.kimiko.scenes {
 			fader.fadeIn(app.secToFrame(0.5));
 	
 			function nextMap() {
+				app.sound.playSe(Assets.SOUND_SE_CURSOR);
 				mapIdsIdx = (mapIdsIdx + mapIds.length + 1) % mapIds.length;
 				updateMapLabel();
 			}
 
 			function prevMap() {
+				app.sound.playSe(Assets.SOUND_SE_CURSOR);
 				mapIdsIdx = (mapIdsIdx + mapIds.length - 1) % mapIds.length;
 				updateMapLabel();
 			}
 
 			function gotoGameStart() {
+				app.sound.playSe(Assets.SOUND_SE_OK);
 				var pd = app.playerData;
 				pd.reset();
 				pd.mapId = mapIds[mapIdsIdx];

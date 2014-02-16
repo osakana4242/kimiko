@@ -13,7 +13,9 @@ module jp.osakana4242.kimiko {
 		export var IMAGE_BULLET = "./images/bullet.png";
 		export var IMAGE_EFFECT = "./images/bullet.png";
 		export var IMAGE_COLLIDER = "./images/collider.png";
-		export var SOUND_BGM = "./sounds/bgm.mp3";
+		export var SOUND_BGM = "./sounds/bgm_02.mp3";
+		export var SOUND_SE_OK = "./sounds/se_ok.mp3";
+		export var SOUND_SE_CURSOR = "./sounds/se_cursor.mp3";
 	}
 
 	export module DF {

@@ -652,7 +652,9 @@ var jp;
                 Assets.IMAGE_BULLET = "./images/bullet.png";
                 Assets.IMAGE_EFFECT = "./images/bullet.png";
                 Assets.IMAGE_COLLIDER = "./images/collider.png";
-                Assets.SOUND_BGM = "./sounds/bgm.mp3";
+                Assets.SOUND_BGM = "./sounds/bgm_02.mp3";
+                Assets.SOUND_SE_OK = "./sounds/se_ok.mp3";
+                Assets.SOUND_SE_CURSOR = "./sounds/se_cursor.mp3";
             })(kimiko.Assets || (kimiko.Assets = {}));
             var Assets = kimiko.Assets;
 
@@ -956,10 +958,135 @@ var jp;
     })(jp.osakana4242 || (jp.osakana4242 = {}));
     var osakana4242 = jp.osakana4242;
 })(jp || (jp = {}));
+var jp;
+(function (jp) {
+    (function (osakana4242) {
+        (function (kimiko) {
+            var SoundChannel = (function () {
+                function SoundChannel() {
+                    var _this = this;
+                    this.isPlaying = false;
+                    this.timeoutId = null;
+                    this.__play = function () {
+                        _this._play();
+                    };
+                }
+                SoundChannel.prototype.play = function (soundInfo, enchantSound) {
+                    this.soundInfo = soundInfo;
+                    this.enchantSound = enchantSound;
+                    this.isPlaying = true;
+                    this._play();
+                };
+
+                SoundChannel.prototype.clearTimeout = function () {
+                    if (this.timeoutId != null) {
+                        window.clearTimeout(this.timeoutId);
+                        this.timeoutId = null;
+                    }
+                };
+
+                SoundChannel.prototype.stop = function () {
+                    this.isPlaying = false;
+                    this.clearTimeout();
+                    this._stop();
+                };
+
+                SoundChannel.prototype._play = function () {
+                    this.timeoutId = null;
+                    this.clearTimeout();
+                    this._stop();
+                    if (this.isPlaying) {
+                        this.enchantSound.play();
+                        if (this.soundInfo.isLoop) {
+                            var time = Math.floor(this.soundInfo.playTime * 1000);
+                            this.timeoutId = window.setTimeout(this.__play, time);
+                        }
+                    }
+                };
+
+                SoundChannel.prototype._stop = function () {
+                    if (!this.enchantSound) {
+                        return;
+                    }
+                    try  {
+                        this.enchantSound.stop();
+                    } catch (e) {
+                        if (e.message == "DOM Exception: INVALID_STATE_ERR (11)") {
+                            // IE で発生するけど、無視してもだいじょぶそう。。。
+                        } else {
+                            throw e;
+                        }
+                    }
+                };
+                return SoundChannel;
+            })();
+            kimiko.SoundChannel = SoundChannel;
+            ;
+
+            var Sound = (function () {
+                function Sound() {
+                    this.channels = {
+                        "bgm": new SoundChannel(),
+                        "se": new SoundChannel()
+                    };
+                    this.assetCache = {};
+                    this.soundInfos = {};
+                }
+                Sound.prototype.playBgm = function (assetName, isReplay) {
+                    var channel = this.channels["bgm"];
+                    if (isReplay || !channel.isPlaying || channel.soundInfo.assetName !== assetName) {
+                        this.play("bgm", assetName);
+                    }
+                };
+
+                Sound.prototype.stopBgm = function () {
+                    this.stop("bgm");
+                };
+
+                Sound.prototype.playSe = function (assetName) {
+                    this.play("se", assetName);
+                };
+
+                Sound.prototype.play = function (channelName, assetName) {
+                    if (!jp.osakana4242.kimiko.app.config.isSoundEnabled) {
+                        return;
+                    }
+
+                    var soundInfo = this.soundInfos[assetName];
+                    var asset = this.assetCache[soundInfo.assetName];
+                    if (!asset) {
+                        asset = this.assetCache[soundInfo.assetName] = enchant.Core.instance.assets[soundInfo.assetName];
+                    }
+
+                    this.stop(channelName);
+                    var channel = this.channels[channelName];
+                    channel.play(soundInfo, asset);
+                };
+
+                Sound.prototype.stop = function (channelName) {
+                    if (!jp.osakana4242.kimiko.app.config.isSoundEnabled) {
+                        return;
+                    }
+
+                    var channel = this.channels[channelName];
+                    channel.stop();
+                };
+                Sound.prototype.add = function (soundInfo) {
+                    this.soundInfos[soundInfo.assetName] = soundInfo;
+                };
+                return Sound;
+            })();
+            kimiko.Sound = Sound;
+        })(osakana4242.kimiko || (osakana4242.kimiko = {}));
+        var kimiko = osakana4242.kimiko;
+    })(jp.osakana4242 || (jp.osakana4242 = {}));
+    var osakana4242 = jp.osakana4242;
+})(jp || (jp = {}));
 /// <reference path="utils.ts" />
 /// <reference path="defines.ts" />
 /// <reference path="player_data.ts" />
 /// <reference path="storage.ts" />
+/// <reference path="sound.ts" />
 
 var jp;
 (function (jp) {
@@ -980,13 +1107,14 @@ var jp;
                         return;
                     }
                     kimiko.app.isInited = true;
+                    kimiko.app.config = config;
                     kimiko.app.storage = new jp.osakana4242.kimiko.Storage();
                     if (true) {
                         kimiko.app.storage.clear();
                     }
                     kimiko.app.storage.load();
                     kimiko.app.storage.save();
-                    kimiko.app.config = config;
+                    kimiko.app.sound = new jp.osakana4242.kimiko.Sound();
 
                     var core = new enchant.Core(DF.SC_W, DF.SC_H);
                     core.fps = config.fps || DF.BASE_FPS;
@@ -1010,6 +1138,30 @@ var jp;
                         }
                         core.preload(newPath);
                     }
+
+                    // sound
+                    (function () {
+                        var SOUND_INFOS = [
+                            {
+                                "assetName": Assets.SOUND_BGM,
+                                "playTime": 27.5,
+                                "isLoop": true
+                            },
+                            {
+                                "assetName": Assets.SOUND_SE_OK,
+                                "playTime": 1,
+                                "isLoop": false
+                            },
+                            {
+                                "assetName": Assets.SOUND_SE_CURSOR,
+                                "playTime": 0.5,
+                                "isLoop": false
+                            }
+                        ];
+                        for (var i = 0, iNum = SOUND_INFOS.length; i < iNum; ++i) {
+                            kimiko.app.sound.add(SOUND_INFOS[i]);
+                        }
+                    })();
 
                     // anim
                     (function () {
@@ -3029,6 +3181,7 @@ var jp;
                                 spr.x = DF.SC2_W - 56;
                                 spr.y = DF.SC2_H - 56;
                                 spr.addEventListener(enchant.Event.TOUCH_END, function () {
+                                    app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_OK);
                                     app.core.pushScene(app.pauseScene);
                                 });
                                 return spr;
@@ -3155,18 +3308,7 @@ var jp;
                         scene.state = scene.stateNormal;
 
                         // scene.state = scene.stateGameClear;
-                        if (app.config.isSoundEnabled) {
-                            var sound = app.core.assets[jp.osakana4242.kimiko.Assets.SOUND_BGM];
-                            var soundSec = 15.922 + 0.5;
-                            var replay = function () {
-                                sound.play();
-                                if (!scene.state === scene.stateNormal) {
-                                    return;
-                                }
-                                window.setTimeout(replay, Math.floor(soundSec * 1000));
-                            };
-                            replay();
-                        }
+                        app.sound.playBgm(jp.osakana4242.kimiko.Assets.SOUND_BGM, false);
                     },
                     stateNormal: function () {
                         var player = this.player;
@@ -3895,6 +4037,7 @@ var jp;
                             label.x = (jp.osakana4242.kimiko.DF.SC_W - label.width) / 2;
                             label.y = 90;
                             label.addEventListener(enchant.Event.TOUCH_END, function () {
+                                app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_OK);
                                 app.gameScene.state = app.gameScene.stateGameStart;
                                 app.core.replaceScene(new jp.osakana4242.kimiko.scenes.Title());
                             });
@@ -3943,6 +4086,8 @@ var jp;
                 scenes.Title = enchant.Class.create(enchant.Scene, {
                     initialize: function () {
                         enchant.Scene.call(this);
+
+                        app.sound.stopBgm();
 
                         var scene = this;
                         var mapIds = [];
@@ -4089,16 +4234,19 @@ var jp;
                         fader.fadeIn(app.secToFrame(0.5));
 
                         function nextMap() {
+                            app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_CURSOR);
                             mapIdsIdx = (mapIdsIdx + mapIds.length + 1) % mapIds.length;
                             updateMapLabel();
                         }
 
                         function prevMap() {
+                            app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_CURSOR);
                             mapIdsIdx = (mapIdsIdx + mapIds.length - 1) % mapIds.length;
                             updateMapLabel();
                         }
 
                         function gotoGameStart() {
+                            app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_OK);
                             var pd = app.playerData;
                             pd.reset();
                             pd.mapId = mapIds[mapIdsIdx];

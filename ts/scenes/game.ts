@@ -108,6 +108,7 @@ module jp.osakana4242.kimiko.scenes {
 					spr.x = DF.SC2_W - 56;
 					spr.y = DF.SC2_H - 56;
 					spr.addEventListener(enchant.Event.TOUCH_END, () => {
+						app.sound.playSe(Assets.SOUND_SE_OK);
 						app.core.pushScene(app.pauseScene);
 					});
 					return spr;
@@ -244,18 +245,7 @@ module jp.osakana4242.kimiko.scenes {
 			scene.state = scene.stateNormal;
 			// scene.state = scene.stateGameClear;
 
-			if (app.config.isSoundEnabled) {
-				var sound = app.core.assets[Assets.SOUND_BGM];
-				var soundSec = 15.922 + 0.5;
-				var replay = () => {
-					sound.play();
-					if (!scene.state === scene.stateNormal) {
-						return;
-					}
-					window.setTimeout(replay, Math.floor(soundSec * 1000));
-				};	
-				replay();
-			}
+			app.sound.playBgm(Assets.SOUND_BGM, false);
 		},
 					
 		stateNormal: function () {
