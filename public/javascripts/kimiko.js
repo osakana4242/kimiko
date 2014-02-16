@@ -3189,9 +3189,8 @@ var jp;
                             if (this.clearFrameMax <= this.clearFrameCounter) {
                                 this.state = this.stateGameClear;
                             }
-                        } else if (this.countTimeLimit()) {
-                            // タイムオーバー.
-                            this.state = this.stateGameOver;
+                        } else {
+                            this.countTimeLimit();
                         }
                     },
                     stateGameOver: function () {
@@ -3478,10 +3477,9 @@ var jp;
                     countTimeLimit: function () {
                         var pd = app.playerData;
                         if (pd.restTimeCounter <= 0) {
-                            return true;
+                            return;
                         }
                         --pd.restTimeCounter;
-                        return pd.restTimeCounter <= 0;
                     },
                     updateStatusText: function () {
                         var scene = this;

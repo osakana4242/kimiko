@@ -276,9 +276,8 @@ module jp.osakana4242.kimiko.scenes {
 				if (this.clearFrameMax <= this.clearFrameCounter) {
 					this.state = this.stateGameClear;
 				}
-			} else if (this.countTimeLimit()) {
-				// タイムオーバー.
-				this.state = this.stateGameOver;
+			} else {
+				this.countTimeLimit();
 			}
 		},
 
@@ -574,10 +573,9 @@ module jp.osakana4242.kimiko.scenes {
 		countTimeLimit: function () {
 			var pd = app.playerData;
 			if (pd.restTimeCounter <= 0) {
-				return true;
+				return;
 			}
 			--pd.restTimeCounter;
-			return pd.restTimeCounter <= 0;
 		},
 
 
