@@ -86,6 +86,9 @@ module jp.osakana4242.kimiko.game {
 
 			},
 
+			reset: function () {
+			},
+
 			onenterframe: function () {
 				var scene = this.scene;
 				if (this.isPause) {

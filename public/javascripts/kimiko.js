@@ -893,9 +893,73 @@ var jp;
     })(jp.osakana4242 || (jp.osakana4242 = {}));
     var osakana4242 = jp.osakana4242;
 })(jp || (jp = {}));
+/// <reference path="kimiko.ts" />
+
+var jp;
+(function (jp) {
+    (function (osakana4242) {
+        (function (kimiko) {
+            var DF = jp.osakana4242.kimiko.DF;
+
+            var Storage = (function () {
+                function Storage() {
+                    this.root = null;
+                }
+                Storage.prototype.load = function () {
+                    var orig = null;
+                    var jsonString = localStorage.getItem(Storage.storageKey);
+                    console.log("Storage.load: " + jsonString);
+                    if (jsonString) {
+                        var orig = JSON.parse(jsonString);
+                        if (orig.version === Storage.storageVersion) {
+                            this.root = orig;
+                        }
+                    }
+                    if (orig === null) {
+                        this.root = {
+                            "version": Storage.storageVersion,
+                            "user": {},
+                            "userMaps": {}
+                        };
+                    }
+                };
+
+                Storage.prototype.save = function () {
+                    var jsonString = JSON.stringify(this.root);
+                    console.log("Storage.save: " + jsonString);
+                    localStorage.setItem(Storage.storageKey, jsonString);
+                };
+
+                Storage.prototype.clear = function () {
+                    localStorage.setItem(Storage.storageKey, "");
+                };
+
+                Storage.prototype.getUserMapForUpdate = function (mapId) {
+                    var userMap = this.root.userMaps[mapId];
+                    if (!userMap) {
+                        userMap = {
+                            "mapId": mapId,
+                            "score": 0,
+                            "playCount": 0
+                        };
+                        this.root.userMaps[mapId] = userMap;
+                    }
+                    return userMap;
+                };
+                Storage.storageVersion = 1;
+                Storage.storageKey = "jp.osakana4242.kimiko.v" + Storage.storageVersion;
+                return Storage;
+            })();
+            kimiko.Storage = Storage;
+        })(osakana4242.kimiko || (osakana4242.kimiko = {}));
+        var kimiko = osakana4242.kimiko;
+    })(jp.osakana4242 || (jp.osakana4242 = {}));
+    var osakana4242 = jp.osakana4242;
+})(jp || (jp = {}));
 /// <reference path="utils.ts" />
 /// <reference path="defines.ts" />
 /// <reference path="player_data.ts" />
+/// <reference path="storage.ts" />
 
 var jp;
 (function (jp) {
@@ -916,6 +980,12 @@ var jp;
                         return;
                     }
                     kimiko.app.isInited = true;
+                    kimiko.app.storage = new jp.osakana4242.kimiko.Storage();
+                    if (true) {
+                        kimiko.app.storage.clear();
+                    }
+                    kimiko.app.storage.load();
+                    kimiko.app.storage.save();
                     kimiko.app.config = config;
 
                     var core = new enchant.Core(DF.SC_W, DF.SC_H);
@@ -1855,6 +1925,8 @@ var jp;
 
                         /** 入力された移動距離. */
                         this.inputForce = new jp.osakana4242.utils.Vector2D();
+                    },
+                    reset: function () {
                     },
                     onenterframe: function () {
                         var scene = this.scene;
@@ -3010,8 +3082,9 @@ var jp;
                         var scene = this;
                         var pd = app.playerData;
                         var player = this.player;
-                        player.life.recover();
+                        player.reset();
                         player.life.hpMax = pd.hpMax;
+                        player.life.recover();
                         player.life.hp = pd.hp;
                         player.visible = true;
                         player.opacity = 1.0;
@@ -3122,8 +3195,14 @@ var jp;
                         }
                     },
                     stateGameOver: function () {
-                        //
                         var pd = app.playerData;
+
+                        //
+                        var userMap = app.storage.getUserMapForUpdate(pd.mapId);
+                        userMap.playCount += 1;
+                        app.storage.save();
+
+                        //
                         pd.reset();
 
                         //
@@ -3136,6 +3215,13 @@ var jp;
                     stateGameClear: function () {
                         var _this = this;
                         var pd = app.playerData;
+
+                        //
+                        var userMap = app.storage.getUserMapForUpdate(pd.mapId);
+                        userMap.playCount += 1;
+                        app.storage.save();
+
+                        //
                         pd.hp = this.player.life.hp;
                         var mapOption = this.mapOption;
                         if (mapOption.nextMapId === 0) {
@@ -3389,7 +3475,6 @@ var jp;
                         }
                         return false;
                     },
-                    /** タイムオーバーになったらtrue. */
                     countTimeLimit: function () {
                         var pd = app.playerData;
                         if (pd.restTimeCounter <= 0) {

@@ -2,6 +2,7 @@
 /// <reference path="utils.ts" />
 /// <reference path="defines.ts" />
 /// <reference path="player_data.ts" />
+/// <reference path="storage.ts" />
 
 declare var enchant: any;
 
@@ -33,18 +34,25 @@ module jp.osakana4242.kimiko {
 		numberUtil = utils.NumberUtil;
 		stringUtil = utils.StringUtil;
 
+		storage: Storage;
 		config: IConfig;
 		playerData: PlayerData;
 		gameScene: any;
 		pauseScene: any;
 
 		isInited: boolean = false;
-		
+
 		public init(config: IConfig) {
 			if (app.isInited) {
 				return;
 			}
 			app.isInited = true;
+			app.storage = new Storage();
+			if (true) {
+				app.storage.clear();
+			}
+			app.storage.load();
+			app.storage.save();
 			app.config = config;
 			
 			var core: any = new enchant.Core(DF.SC_W, DF.SC_H);

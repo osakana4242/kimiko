@@ -164,8 +164,9 @@ module jp.osakana4242.kimiko.scenes {
 			var scene = this;
 			var pd = app.playerData;
 			var player = this.player;
-			player.life.recover();
+			player.reset();
 			player.life.hpMax = pd.hpMax;
+			player.life.recover();
 			player.life.hp = pd.hp;
 			player.visible = true;
 			player.opacity = 1.0;
@@ -282,8 +283,12 @@ module jp.osakana4242.kimiko.scenes {
 		},
 
 		stateGameOver: function () {
-			//
 			var pd = app.playerData;
+			//
+			var userMap = app.storage.getUserMapForUpdate(pd.mapId);
+			userMap.playCount += 1;
+			app.storage.save();
+			//
 			pd.reset();
 			//
 			app.core.pushScene(new GameOver());
@@ -295,6 +300,11 @@ module jp.osakana4242.kimiko.scenes {
 		*/
 		stateGameClear: function () {
 			var pd = app.playerData;
+			//
+			var userMap = app.storage.getUserMapForUpdate(pd.mapId);
+			userMap.playCount += 1;
+			app.storage.save();
+			//
 			pd.hp = this.player.life.hp;
 			var mapOption: IMapOption = this.mapOption;
 			if (mapOption.nextMapId === 0) {
@@ -561,7 +571,6 @@ module jp.osakana4242.kimiko.scenes {
 			return false;
 		},
 		
-		/** タイムオーバーになったらtrue. */
 		countTimeLimit: function () {
 			var pd = app.playerData;
 			if (pd.restTimeCounter <= 0) {
