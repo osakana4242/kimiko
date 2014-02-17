@@ -88,16 +88,37 @@ module jp.osakana4242.kimiko {
 						"assetName": Assets.SOUND_BGM,
 						"playTime": 27.5,
 						"isLoop": true,
+						"priority": 0,
 					},
 					{
 						"assetName": Assets.SOUND_SE_OK,
 						"playTime": 1,
 						"isLoop": false,
+						"priority": 10,
 					},
 					{
 						"assetName": Assets.SOUND_SE_CURSOR,
 						"playTime": 0.5,
 						"isLoop": false,
+						"priority": 10,
+					},
+					{
+						"assetName": Assets.SOUND_SE_HIT,
+						"playTime": 0.5,
+						"isLoop": false,
+						"priority": 2,
+					},
+					{
+						"assetName": Assets.SOUND_SE_KILL,
+						"playTime": 1.0,
+						"isLoop": false,
+						"priority": 3,
+					},
+					{
+						"assetName": Assets.SOUND_SE_SHOT,
+						"playTime": 0.3,
+						"isLoop": false,
+						"priority": 1,
 					},
 				];
 				for(var i = 0, iNum = SOUND_INFOS.length; i < iNum; ++i) {

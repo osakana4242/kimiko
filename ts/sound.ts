@@ -6,6 +6,7 @@ module jp.osakana4242.kimiko {
 		assetName: string;
 		playTime: number;
 		isLoop: boolean;
+		priority: number;
 	}
 
 	export class SoundChannel {
@@ -14,10 +15,10 @@ module jp.osakana4242.kimiko {
 		isPlaying = false;
 		timeoutId = null;
 		/** for setTimeout */
-		__play: () => void;
+		_onOneLoop: () => void;
 
 		constructor() {
-			this.__play = () => { this._play(); };
+			this._onOneLoop = () => { this.onOneLoop(); };
 		}
 
 		public play(soundInfo: ISoundInfo, enchantSound: any) {
@@ -46,13 +47,19 @@ module jp.osakana4242.kimiko {
 			this._stop();
 			if (this.isPlaying) {
 				this.enchantSound.play();
-				if (this.soundInfo.isLoop) {
-					var time = Math.floor(this.soundInfo.playTime * 1000);
-					this.timeoutId = window.setTimeout(this.__play, time);
-				}
+				var time = Math.floor(this.soundInfo.playTime * 1000);
+				this.timeoutId = window.setTimeout(this._onOneLoop, time);
 			}
 		}
 		
+		private onOneLoop() {
+			if (this.soundInfo.isLoop) {
+				this._play();
+			} else {
+				this.isPlaying = false;
+			}
+		}
+
 		private _stop() {
 			if (!this.enchantSound) {
 				return;
@@ -103,9 +110,13 @@ module jp.osakana4242.kimiko {
 			if (!asset) {
 				asset = this.assetCache[soundInfo.assetName] = enchant.Core.instance.assets[soundInfo.assetName];
 			}
-			
-			this.stop(channelName);
+
 			var channel = this.channels[channelName];
+
+			if (channel.isPlaying && soundInfo.priority < channel.soundInfo.priority) {
+				return;
+			}
+			this.stop(channelName);
 			channel.play(soundInfo, asset);
 		}
 

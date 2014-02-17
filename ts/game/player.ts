@@ -195,6 +195,7 @@ module jp.osakana4242.kimiko.game {
 				if (bullet === null) {
 					return;
 				}
+				app.sound.playSe(Assets.SOUND_SE_SHOT);
 				bullet.scaleX = this.scaleX;
 				bullet.force.x = this.dirX * app.dpsToDpf(6 * 60);
 				bullet.force.y = 0;

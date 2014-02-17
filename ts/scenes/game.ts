@@ -677,6 +677,7 @@ module jp.osakana4242.kimiko.scenes {
 					if (player.life.isDead) {
 						this.onPlayerDead();
 					}
+					app.sound.playSe(Assets.SOUND_SE_HIT);
 					this.addEffect(DF.ANIM_ID_DAMAGE, bullet.center);
 					bullet.free();
 				}
@@ -692,6 +693,7 @@ module jp.osakana4242.kimiko.scenes {
 					if (player.life.isDead) {
 						this.onPlayerDead();
 					}
+					app.sound.playSe(Assets.SOUND_SE_HIT);
 					this.addEffect(DF.ANIM_ID_DAMAGE, player.center);
 				}
 			}
@@ -714,7 +716,10 @@ module jp.osakana4242.kimiko.scenes {
 							}
 						}
 						if (!enemy.life.isDead) {
+							app.sound.playSe(Assets.SOUND_SE_HIT);
 							this.addEffect(DF.ANIM_ID_DAMAGE, bullet.center);
+						} else {
+							app.sound.playSe(Assets.SOUND_SE_KILL);
 						}
 						bullet.free();
 					}

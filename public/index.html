@@ -59,7 +59,7 @@
 
 				var config = {};
 				config.version = "201309292005";
-				config.fps = isPc ? 20 : 20;
+				config.fps = isPc ? 60 : 20;
 				config.isDamageEnabled = true;
 				config.isFireEnabled = true;
 				//config.fps = 20;
@@ -68,8 +68,8 @@
 					"x": isTouchEnabled ? 1.25 : 1.50,
 					"y": isTouchEnabled ? 1.50 : 1.75
 				};
-				//config.isSoundEnabled = isPc;
-				config.isSoundEnabled = false;
+				config.isSoundEnabled = isPc;
+				//config.isSoundEnabled = false;
 
 				//
 				jp.osakana4242.kimiko.start(config);

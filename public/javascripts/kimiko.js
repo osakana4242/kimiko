@@ -655,6 +655,9 @@ var jp;
                 Assets.SOUND_BGM = "./sounds/bgm_02.mp3";
                 Assets.SOUND_SE_OK = "./sounds/se_ok.mp3";
                 Assets.SOUND_SE_CURSOR = "./sounds/se_cursor.mp3";
+                Assets.SOUND_SE_HIT = "./sounds/se_hit.mp3";
+                Assets.SOUND_SE_KILL = "./sounds/se_kill.mp3";
+                Assets.SOUND_SE_SHOT = "./sounds/se_shot.mp3";
             })(kimiko.Assets || (kimiko.Assets = {}));
             var Assets = kimiko.Assets;
 
@@ -967,8 +970,8 @@ var jp;
                     var _this = this;
                     this.isPlaying = false;
                     this.timeoutId = null;
-                    this.__play = function () {
-                        _this._play();
+                    this._onOneLoop = function () {
+                        _this.onOneLoop();
                     };
                 }
                 SoundChannel.prototype.play = function (soundInfo, enchantSound) {
@@ -997,10 +1000,16 @@ var jp;
                     this._stop();
                     if (this.isPlaying) {
                         this.enchantSound.play();
-                        if (this.soundInfo.isLoop) {
-                            var time = Math.floor(this.soundInfo.playTime * 1000);
-                            this.timeoutId = window.setTimeout(this.__play, time);
-                        }
+                        var time = Math.floor(this.soundInfo.playTime * 1000);
+                        this.timeoutId = window.setTimeout(this._onOneLoop, time);
+                    }
+                };
+
+                SoundChannel.prototype.onOneLoop = function () {
+                    if (this.soundInfo.isLoop) {
+                        this._play();
+                    } else {
+                        this.isPlaying = false;
                     }
                 };
 
@@ -1058,8 +1067,12 @@ var jp;
                         asset = this.assetCache[soundInfo.assetName] = enchant.Core.instance.assets[soundInfo.assetName];
                     }
 
-                    this.stop(channelName);
                     var channel = this.channels[channelName];
+
+                    if (channel.isPlaying && soundInfo.priority < channel.soundInfo.priority) {
+                        return;
+                    }
+                    this.stop(channelName);
                     channel.play(soundInfo, asset);
                 };
 
@@ -1145,17 +1158,38 @@ var jp;
                             {
                                 "assetName": Assets.SOUND_BGM,
                                 "playTime": 27.5,
-                                "isLoop": true
+                                "isLoop": true,
+                                "priority": 0
                             },
                             {
                                 "assetName": Assets.SOUND_SE_OK,
                                 "playTime": 1,
-                                "isLoop": false
+                                "isLoop": false,
+                                "priority": 10
                             },
                             {
                                 "assetName": Assets.SOUND_SE_CURSOR,
                                 "playTime": 0.5,
-                                "isLoop": false
+                                "isLoop": false,
+                                "priority": 10
+                            },
+                            {
+                                "assetName": Assets.SOUND_SE_HIT,
+                                "playTime": 0.5,
+                                "isLoop": false,
+                                "priority": 2
+                            },
+                            {
+                                "assetName": Assets.SOUND_SE_KILL,
+                                "playTime": 1.0,
+                                "isLoop": false,
+                                "priority": 3
+                            },
+                            {
+                                "assetName": Assets.SOUND_SE_SHOT,
+                                "playTime": 0.3,
+                                "isLoop": false,
+                                "priority": 1
                             }
                         ];
                         for (var i = 0, iNum = SOUND_INFOS.length; i < iNum; ++i) {
@@ -2185,6 +2219,7 @@ var jp;
                         if (bullet === null) {
                             return;
                         }
+                        app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_SHOT);
                         bullet.scaleX = this.scaleX;
                         bullet.force.x = this.dirX * app.dpsToDpf(6 * 60);
                         bullet.force.y = 0;
@@ -3716,6 +3751,7 @@ var jp;
                                 if (player.life.isDead) {
                                     this.onPlayerDead();
                                 }
+                                app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_HIT);
                                 this.addEffect(DF.ANIM_ID_DAMAGE, bullet.center);
                                 bullet.free();
                             }
@@ -3729,6 +3765,7 @@ var jp;
                                 if (player.life.isDead) {
                                     this.onPlayerDead();
                                 }
+                                app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_HIT);
                                 this.addEffect(DF.ANIM_ID_DAMAGE, player.center);
                             }
                         }
@@ -3749,7 +3786,10 @@ var jp;
                                         }
                                     }
                                     if (!enemy.life.isDead) {
+                                        app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_HIT);
                                         this.addEffect(DF.ANIM_ID_DAMAGE, bullet.center);
+                                    } else {
+                                        app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_KILL);
                                     }
                                     bullet.free();
                                 }

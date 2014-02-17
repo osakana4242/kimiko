@@ -16,6 +16,9 @@ module jp.osakana4242.kimiko {
 		export var SOUND_BGM = "./sounds/bgm_02.mp3";
 		export var SOUND_SE_OK = "./sounds/se_ok.mp3";
 		export var SOUND_SE_CURSOR = "./sounds/se_cursor.mp3";
+		export var SOUND_SE_HIT = "./sounds/se_hit.mp3";
+		export var SOUND_SE_KILL = "./sounds/se_kill.mp3";
+		export var SOUND_SE_SHOT = "./sounds/se_shot.mp3";
 	}
 
 	export module DF {
