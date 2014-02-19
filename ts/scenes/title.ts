@@ -39,7 +39,7 @@ module jp.osakana4242.kimiko.scenes {
 				var spr = new enchant.Sprite();
 				spr.anim.sequence = app.getAnimFrames(DF.ANIM_ID_CHARA001_WALK);
 				spr.center.x = DF.SC_W / 2;
-				spr.y = 240;
+				spr.y = 256;
 				var ax = spr.x;
 				var ay = spr.y;
 				spr.addEventListener(enchant.Event.TOUCH_END, function () {
@@ -140,6 +140,20 @@ module jp.osakana4242.kimiko.scenes {
 				return spr;
 			})();
 
+			var configBtn = (() => {
+				var spr = new enchant.Label("CONFIG");
+				spr.font = DF.FONT_L;
+				spr.color = "rgb(255, 255, 0)";
+				spr.backgroundColor = "rgb(64, 64, 64)";
+				spr.width = DF.SC_W / 2;
+				spr.height = 48;
+				spr.textAlign = "center";
+				spr.x = (DF.SC_W - spr.width) / 2;
+				spr.y = 200;
+				spr.addEventListener(enchant.Event.TOUCH_END, gotoConfig);
+				return spr;
+			})();
+
 			//
 			scene.backgroundColor = "rgb( 32, 32, 32)";
 			scene.addChild(player);
@@ -150,6 +164,7 @@ module jp.osakana4242.kimiko.scenes {
 			scene.addChild(leftBtn);
 			scene.addChild(rightBtn);
 			scene.addChild(startBtn);
+			scene.addChild(configBtn);
 			//
 			scene.addEventListener(enchant.Event.A_BUTTON_UP, gotoGameStart);
 			scene.addEventListener(enchant.Event.LEFT_BUTTON_UP, prevMap);
@@ -158,7 +173,7 @@ module jp.osakana4242.kimiko.scenes {
 			//
 			var fader = new Fader(this);
 			fader.setBlack(true);
-			fader.fadeIn(app.secToFrame(0.5));
+			fader.fadeIn(app.secToFrame(0.2));
 	
 			function nextMap() {
 				app.sound.playSe(Assets.SOUND_SE_CURSOR);
@@ -171,6 +186,13 @@ module jp.osakana4242.kimiko.scenes {
 				mapIdsIdx = (mapIdsIdx + mapIds.length - 1) % mapIds.length;
 				updateMapLabel();
 			}
+
+			function gotoConfig() {
+				app.sound.playSe(Assets.SOUND_SE_OK);
+				fader.fadeOut(app.secToFrame(0.1), () => {
+					app.core.replaceScene(new scenes.Config());
+				});
+			};
 
 			function gotoGameStart() {
 				app.sound.playSe(Assets.SOUND_SE_OK);

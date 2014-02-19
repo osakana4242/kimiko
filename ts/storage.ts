@@ -11,11 +11,15 @@ module jp.osakana4242.kimiko {
 
 		export interface IRoot {
 			version: number;
-			user: IUser;
+			userConfig: IUserConfig;
 			userMaps: { [index: number]: IUserMap; };
 		}
 
-		export interface IUser {
+		export interface IUserConfig {
+			isSeEnabled: boolean;
+			isBgmEnabled: boolean;
+			fps: number;
+			isFpsVisible: boolean;
 		}
 
 		export interface IUserMap {
@@ -33,23 +37,43 @@ module jp.osakana4242.kimiko {
 		public static storageKey = "jp.osakana4242.kimiko.v" + Storage.storageVersion;
 
 		public root: storage.IRoot = null;
+		private defaultRoot: storage.IRoot = null;
+
+		constructor() {
+			this.defaultRoot = {
+				"version": Storage.storageVersion,
+				"userConfig": {
+					"isSeEnabled":  app.env.isPc,
+					"isBgmEnabled": app.env.isPc,
+					"fps":          app.config.fps || app.env.isPc ? 60 : 20,
+					"isFpsVisible": true,
+				},
+				"userMaps": {},
+			};
+			this.root = this.defaultRoot;
+		}
 
 		public load() {
-			var orig: storage.IRoot = null;
-			var jsonString = localStorage.getItem(Storage.storageKey);
-			console.log( "Storage.load: " + jsonString);
-			if (jsonString) {
-				var orig: storage.IRoot = JSON.parse(jsonString);
-				if (orig.version === Storage.storageVersion) {
-					this.root = orig;
+			var fromStorage: storage.IRoot = null;
+			/** ロードしたデータが有効なものか. */
+			var isValid = false;
+			try {
+				var jsonString = localStorage.getItem(Storage.storageKey);
+				console.log( "Storage.load: " + jsonString);
+				if (jsonString) {
+					var fromStorage: storage.IRoot = JSON.parse(jsonString);
+					isValid = this.isValid(fromStorage);
 				}
+			} catch (ex) {
+				console.log( "ex: " + ex);
 			}
-			if (orig === null) {
-				this.root = {
-					"version": Storage.storageVersion,
-					"user": {},
-					"userMaps": {},
-				};
+
+			if (isValid) {
+				// ロード成功.
+				this.root = fromStorage;
+			} else {
+				// ロード失敗.
+				console.log("load failed.");
 			}
 		}
 
@@ -74,6 +98,19 @@ module jp.osakana4242.kimiko {
 				this.root.userMaps[mapId] = userMap;
 			}
 			return userMap;
+		}
+
+		/** 正しいロードデータか? */
+		private isValid(fromStorage: storage.IRoot): boolean {
+			if (fromStorage.version !== this.defaultRoot.version) {
+				return false;
+			}
+			for (var key in this.defaultRoot) {
+				if (!(key in fromStorage)) {
+					return false;
+				}
+			}
+			return true;
 		}
 
 	}

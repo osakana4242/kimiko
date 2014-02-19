@@ -868,6 +868,30 @@ var jp;
     })(jp.osakana4242 || (jp.osakana4242 = {}));
     var osakana4242 = jp.osakana4242;
 })(jp || (jp = {}));
+var jp;
+(function (jp) {
+    (function (osakana4242) {
+        (function (kimiko) {
+            var Env = (function () {
+                function Env() {
+                    var ua = navigator.userAgent;
+                    this.userAgent = ua;
+                    this.isIos = ((ua.indexOf('iPhone') > 0 && ua.indexOf('iPad') === -1) || ua.indexOf('iPod') > 0);
+                    this.isAndroid = (ua.indexOf('Android') > 0);
+                    this.isSp = this.isIos || this.isAndroid;
+                    this.isPc = !this.isSp;
+                    this.isTouchEnabled = this.isSp;
+                    this.isSoundEnabled = this.isPc;
+                    console.log("Env: " + JSON.stringify(this));
+                }
+                return Env;
+            })();
+            kimiko.Env = Env;
+        })(osakana4242.kimiko || (osakana4242.kimiko = {}));
+        var kimiko = osakana4242.kimiko;
+    })(jp.osakana4242 || (jp.osakana4242 = {}));
+    var osakana4242 = jp.osakana4242;
+})(jp || (jp = {}));
 /// <reference path="kimiko.ts" />
 
 var jp;
@@ -909,23 +933,41 @@ var jp;
             var Storage = (function () {
                 function Storage() {
                     this.root = null;
+                    this.defaultRoot = null;
+                    this.defaultRoot = {
+                        "version": Storage.storageVersion,
+                        "userConfig": {
+                            "isSeEnabled": jp.osakana4242.kimiko.app.env.isPc,
+                            "isBgmEnabled": jp.osakana4242.kimiko.app.env.isPc,
+                            "fps": jp.osakana4242.kimiko.app.config.fps || jp.osakana4242.kimiko.app.env.isPc ? 60 : 20,
+                            "isFpsVisible": true
+                        },
+                        "userMaps": {}
+                    };
+                    this.root = this.defaultRoot;
                 }
                 Storage.prototype.load = function () {
-                    var orig = null;
-                    var jsonString = localStorage.getItem(Storage.storageKey);
-                    console.log("Storage.load: " + jsonString);
-                    if (jsonString) {
-                        var orig = JSON.parse(jsonString);
-                        if (orig.version === Storage.storageVersion) {
-                            this.root = orig;
+                    var fromStorage = null;
+
+                    /** ロードしたデータが有効なものか. */
+                    var isValid = false;
+                    try  {
+                        var jsonString = localStorage.getItem(Storage.storageKey);
+                        console.log("Storage.load: " + jsonString);
+                        if (jsonString) {
+                            var fromStorage = JSON.parse(jsonString);
+                            isValid = this.isValid(fromStorage);
                         }
+                    } catch (ex) {
+                        console.log("ex: " + ex);
                     }
-                    if (orig === null) {
-                        this.root = {
-                            "version": Storage.storageVersion,
-                            "user": {},
-                            "userMaps": {}
-                        };
+
+                    if (isValid) {
+                        // ロード成功.
+                        this.root = fromStorage;
+                    } else {
+                        // ロード失敗.
+                        console.log("load failed.");
                     }
                 };
 
@@ -951,6 +993,19 @@ var jp;
                     }
                     return userMap;
                 };
+
+                /** 正しいロードデータか? */
+                Storage.prototype.isValid = function (fromStorage) {
+                    if (fromStorage.version !== this.defaultRoot.version) {
+                        return false;
+                    }
+                    for (var key in this.defaultRoot) {
+                        if (!(key in fromStorage)) {
+                            return false;
+                        }
+                    }
+                    return true;
+                };
                 Storage.storageVersion = 1;
                 Storage.storageKey = "jp.osakana4242.kimiko.v" + Storage.storageVersion;
                 return Storage;
@@ -970,11 +1025,30 @@ var jp;
                     var _this = this;
                     this.isPlaying = false;
                     this.timeoutId = null;
+                    this._isEnabled = true;
                     this._onOneLoop = function () {
                         _this.onOneLoop();
                     };
                 }
+                Object.defineProperty(SoundChannel.prototype, "isEnabled", {
+                    get: function () {
+                        return this._isEnabled;
+                    },
+                    set: function (value) {
+                        this._isEnabled = value;
+                        if (!this._isEnabled) {
+                            this.stop();
+                        }
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+
+
                 SoundChannel.prototype.play = function (soundInfo, enchantSound) {
+                    if (!this.isEnabled) {
+                        return;
+                    }
                     this.soundInfo = soundInfo;
                     this.enchantSound = enchantSound;
                     this.isPlaying = true;
@@ -1056,8 +1130,16 @@ var jp;
                     this.play("se", assetName);
                 };
 
+                Sound.prototype.setBgmEnabled = function (value) {
+                    this.channels["bgm"].isEnabled = value;
+                };
+
+                Sound.prototype.setSeEnabled = function (value) {
+                    this.channels["se"].isEnabled = value;
+                };
+
                 Sound.prototype.play = function (channelName, assetName) {
-                    if (!jp.osakana4242.kimiko.app.config.isSoundEnabled) {
+                    if (!jp.osakana4242.kimiko.app.env.isSoundEnabled) {
                         return;
                     }
 
@@ -1077,7 +1159,7 @@ var jp;
                 };
 
                 Sound.prototype.stop = function (channelName) {
-                    if (!jp.osakana4242.kimiko.app.config.isSoundEnabled) {
+                    if (!jp.osakana4242.kimiko.app.env.isSoundEnabled) {
                         return;
                     }
 
@@ -1095,6 +1177,7 @@ var jp;
     })(jp.osakana4242 || (jp.osakana4242 = {}));
     var osakana4242 = jp.osakana4242;
 })(jp || (jp = {}));
+/// <reference path="env.ts" />
 /// <reference path="utils.ts" />
 /// <reference path="defines.ts" />
 /// <reference path="player_data.ts" />
@@ -1105,15 +1188,31 @@ var jp;
 (function (jp) {
     (function (osakana4242) {
         (function (kimiko) {
+            (function () {
+                // for enhant-0.5.x
+                if (!enchant.Core) {
+                    enchant.Core = enchant.Game;
+                }
+            })();
+
             var DF = jp.osakana4242.kimiko.DF;
             var Assets = jp.osakana4242.kimiko.Assets;
 
+            /**
+            
+            設定系の初期化順番.
+            1. env
+            2. config
+            3. storage
+            */
             var App = (function () {
                 function App() {
                     this.numberUtil = jp.osakana4242.utils.NumberUtil;
                     this.stringUtil = jp.osakana4242.utils.StringUtil;
                     this.isInited = false;
                     this.animFrames = {};
+                    var app = this;
+                    app.env = new jp.osakana4242.kimiko.Env();
                 }
                 App.prototype.init = function (config) {
                     if (kimiko.app.isInited) {
@@ -1122,15 +1221,17 @@ var jp;
                     kimiko.app.isInited = true;
                     kimiko.app.config = config;
                     kimiko.app.storage = new jp.osakana4242.kimiko.Storage();
-                    if (true) {
+                    if (kimiko.app.config.isClearStorage) {
                         kimiko.app.storage.clear();
                     }
                     kimiko.app.storage.load();
                     kimiko.app.storage.save();
                     kimiko.app.sound = new jp.osakana4242.kimiko.Sound();
+                    kimiko.app.sound.setBgmEnabled(kimiko.app.storage.root.userConfig.isBgmEnabled);
+                    kimiko.app.sound.setSeEnabled(kimiko.app.storage.root.userConfig.isSeEnabled);
 
                     var core = new enchant.Core(DF.SC_W, DF.SC_H);
-                    core.fps = config.fps || DF.BASE_FPS;
+                    core.fps = kimiko.app.storage.root.userConfig.fps;
 
                     for (var key in Assets) {
                         if (!Assets.hasOwnProperty(key)) {
@@ -1146,7 +1247,7 @@ var jp;
 
                         //
                         var isSound = ext === ".mp3";
-                        if (!config.isSoundEnabled && isSound) {
+                        if (!kimiko.app.env.isSoundEnabled && isSound) {
                             continue;
                         }
                         core.preload(newPath);
@@ -1288,6 +1389,7 @@ var jp;
             })();
             kimiko.App = App;
 
+            /** この時点で app.evn は参照可能. */
             kimiko.app = new App();
 
             /** HTMLから呼ぶ. */
@@ -1651,6 +1753,522 @@ var jp;
                 });
             })(kimiko.scenes || (kimiko.scenes = {}));
             var scenes = kimiko.scenes;
+        })(osakana4242.kimiko || (osakana4242.kimiko = {}));
+        var kimiko = osakana4242.kimiko;
+    })(jp.osakana4242 || (jp.osakana4242 = {}));
+    var osakana4242 = jp.osakana4242;
+})(jp || (jp = {}));
+/// <reference path="../kimiko.ts" />
+
+var jp;
+(function (jp) {
+    (function (osakana4242) {
+        (function (kimiko) {
+            (function (game) {
+                var Easing = enchant.Easing;
+
+                (function (EnemyBodys) {
+                    function body1(sprite) {
+                        sprite.width = 32;
+                        sprite.height = 32;
+                        sprite.anim.sequence = jp.osakana4242.kimiko.app.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA002_WALK);
+                        jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerBottom(sprite, 28, 28));
+                    }
+                    EnemyBodys.body1 = body1;
+
+                    /** クネクネカラス */
+                    function body2(sprite) {
+                        sprite.width = 64;
+                        sprite.height = 64;
+                        sprite.anim.sequence = jp.osakana4242.kimiko.app.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA003_WALK);
+                        jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerMiddle(sprite, 56, 56));
+                        sprite.weaponNum = 3;
+                    }
+                    EnemyBodys.body2 = body2;
+
+                    /** 飛行キャラ:小 */
+                    function body3(sprite) {
+                        sprite.width = 32;
+                        sprite.height = 16;
+
+                        //sprite.anim.sequence = app.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
+                        sprite.backgroundColor = "rgb(255,48,48)";
+                        jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerMiddle(sprite, 28, 12));
+                    }
+                    EnemyBodys.body3 = body3;
+
+                    /** 中キャラ */
+                    function body4(sprite) {
+                        sprite.width = 48;
+                        sprite.height = 48;
+
+                        //sprite.anim.sequence = app.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
+                        sprite.backgroundColor = "rgb(255,48,48)";
+                        jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerBottom(sprite, 32, 40));
+                    }
+                    EnemyBodys.body4 = body4;
+                })(game.EnemyBodys || (game.EnemyBodys = {}));
+                var EnemyBodys = game.EnemyBodys;
+
+                (function (EnemyBrains) {
+                    /** 突進. */
+                    function brain1(sprite) {
+                        var anchor = sprite.anchor;
+
+                        sprite.tl.delay(jp.osakana4242.kimiko.app.secToFrame(0.5)).then(function () {
+                            var player = sprite.scene.player;
+                            var dir = jp.osakana4242.utils.Vector2D.alloc(player.center.x - sprite.center.x, player.center.y - sprite.center.y);
+                            var mag = jp.osakana4242.utils.Vector2D.magnitude(dir);
+                            var dist = 480;
+                            var speed = jp.osakana4242.kimiko.app.dpsToDpf(2 * jp.osakana4242.kimiko.DF.BASE_FPS);
+                            dir.x = dir.x * dist / mag;
+                            dir.y = dir.y * dist / mag;
+                            var frame = Math.floor(dist / speed);
+
+                            sprite.tl.moveBy(dir.x, dir.y, frame).then(function () {
+                                sprite.life.kill();
+                            });
+
+                            jp.osakana4242.utils.Vector2D.free(dir);
+                        });
+                    }
+                    EnemyBrains.brain1 = brain1;
+
+                    /** 追跡. */
+                    function brain2(sprite) {
+                        var anchor = sprite.anchor;
+                        sprite.weapon.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireA;
+
+                        var xMin = anchor.x + (32 * -8);
+                        var xMax = anchor.x + (32 * 8);
+                        var yMin = anchor.y + (32 * -8);
+                        var yMax = anchor.y + (32 * 8);
+                        var cnt = 0;
+                        function f1(e) {
+                            if (e) {
+                                return false;
+                            }
+                            var isNext = false;
+                            var player = sprite.scene.player;
+                            var dir = jp.osakana4242.utils.Vector2D.alloc(jp.osakana4242.kimiko.app.numberUtil.trim(player.center.x, xMin, xMax) - sprite.center.x, jp.osakana4242.kimiko.app.numberUtil.trim(player.center.y, yMin, yMax) - sprite.center.y);
+                            var mag = jp.osakana4242.utils.Vector2D.magnitude(dir);
+
+                            // var dist = mag;
+                            var dist = 32 * 4;
+                            if (dist < 4) {
+                                // 移動の必要ナシ.
+                                isNext = false;
+                            } else {
+                                var speed = jp.osakana4242.kimiko.app.dpsToDpf(2 * jp.osakana4242.kimiko.DF.BASE_FPS);
+                                dir.x = dir.x * dist / mag;
+                                dir.y = dir.y * dist / mag;
+                                var frame = (speed === 0) ? 1 : Math.max(Math.floor(dist / speed), 1);
+
+                                sprite.tl.moveTo(sprite.x + dir.x, sprite.y + dir.y, frame).then(function () {
+                                    if (2 <= sprite.enemyData.level) {
+                                        sprite.weapon.lookAtPlayer();
+                                        sprite.weapon.startFire();
+                                    }
+                                }).delay(jp.osakana4242.kimiko.app.secToFrame(0.5)).waitUntil(f1);
+                                isNext = true;
+                            }
+                            jp.osakana4242.utils.Vector2D.free(dir);
+                            return isNext;
+                        }
+                        sprite.tl.waitUntil(f1);
+                    }
+                    EnemyBrains.brain2 = brain2;
+
+                    /** 地上ジャンプ.*/
+                    function brain3(sprite) {
+                        var anchor = sprite.anchor;
+                        sprite.weapon.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireA;
+
+                        sprite.tl.moveBy(-32 * 4 * 0.5, -32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).moveBy(-32 * 4 * 0.5, 32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).delay(jp.osakana4242.kimiko.app.secToFrame(0.25)).then(function () {
+                            if (2 <= sprite.enemyData.level) {
+                                sprite.weapon.lookAtPlayer();
+                                sprite.weapon.startFire();
+                            }
+                        }).moveBy(32 * 4 * 0.5, -32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).moveBy(32 * 4 * 0.5, 32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).delay(jp.osakana4242.kimiko.app.secToFrame(0.25)).loop();
+                    }
+                    EnemyBrains.brain3 = brain3;
+
+                    /** 天井ジャンプ. */
+                    function brain4(sprite) {
+                        sprite.scaleY = -1;
+                        var anchor = sprite.anchor;
+                        sprite.weapon.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireA;
+
+                        sprite.tl.moveBy(-32 * 4 * 0.5, 32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).moveBy(-32 * 4 * 0.5, -32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).delay(jp.osakana4242.kimiko.app.secToFrame(0.25)).then(function () {
+                            if (2 <= sprite.enemyData.level) {
+                                sprite.weapon.lookAtPlayer();
+                                sprite.weapon.startFire();
+                            }
+                        }).moveBy(32 * 4 * 0.5, 32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).moveBy(32 * 4 * 0.5, -32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).delay(jp.osakana4242.kimiko.app.secToFrame(0.25)).loop();
+                    }
+                    EnemyBrains.brain4 = brain4;
+
+                    /** うろつき. */
+                    function brain5(sprite) {
+                        var anchor = sprite.anchor;
+                        var totalFrame = jp.osakana4242.kimiko.app.secToFrame(8.0);
+                        sprite.tl.moveTo(anchor.x - 32 * 3 + sprite.width / 2, anchor.y, totalFrame * 0.5, Easing.LINEAR).moveTo(anchor.x + 0 + sprite.width / 2, anchor.y, totalFrame * 0.5, Easing.LINEAR).loop();
+                    }
+                    EnemyBrains.brain5 = brain5;
+
+                    /** ブンブン.*/
+                    function brain6(sprite) {
+                        var anchor = sprite.anchor;
+                        sprite.weapon.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireA;
+
+                        var fire = function () {
+                            if (2 <= sprite.enemyData.level) {
+                                sprite.weapon.lookAtPlayer();
+                                sprite.weapon.startFire();
+                            }
+                        };
+
+                        sprite.tl.moveTo(anchor.x + 32 * -0.5, anchor.y + 32 * -0.5, jp.osakana4242.kimiko.app.secToFrame(0.5)).moveTo(anchor.x + 32 * 0.5, anchor.y + 32 * -0.5, jp.osakana4242.kimiko.app.secToFrame(0.5)).moveTo(anchor.x + 32 * -0.5, anchor.y + 32 * 0.5, jp.osakana4242.kimiko.app.secToFrame(0.5)).moveTo(anchor.x + 32 * 0.0, anchor.y + 32 * 0.0, jp.osakana4242.kimiko.app.secToFrame(0.5)).then(fire).moveTo(anchor.x + 32 * 0.5, anchor.y + 32 * 0.5, jp.osakana4242.kimiko.app.secToFrame(0.5)).loop();
+                    }
+                    EnemyBrains.brain6 = brain6;
+
+                    /** ホバリング.*/
+                    function brain7(sprite) {
+                        var anchor = sprite.anchor;
+                        sprite.weapon.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireA;
+
+                        var fire = function () {
+                            if (2 <= sprite.enemyData.level) {
+                                sprite.weapon.lookAtPlayer();
+                                sprite.weapon.startFire();
+                            }
+                        };
+
+                        var totalFrame = jp.osakana4242.kimiko.app.secToFrame(2.0);
+                        sprite.tl.moveTo(anchor.x, anchor.y + 32 * 1, totalFrame * 0.5, Easing.LINEAR).then(fire).moveTo(anchor.x, anchor.y + 32 * -1, totalFrame * 0.5, Easing.LINEAR).then(fire).loop();
+                    }
+                    EnemyBrains.brain7 = brain7;
+
+                    /** 水平突進.*/
+                    function brain8(sprite) {
+                        var anchor = sprite.anchor;
+
+                        sprite.tl.delay(jp.osakana4242.kimiko.app.secToFrame(0.5)).then(function () {
+                            var player = sprite.scene.player;
+                            var dir = jp.osakana4242.utils.Vector2D.alloc(player.center.x - sprite.center.x, player.center.y - sprite.center.y);
+                            var mag = jp.osakana4242.utils.Vector2D.magnitude(dir);
+                            var dist = 480;
+                            var speed = jp.osakana4242.kimiko.app.dpsToDpf(2 * jp.osakana4242.kimiko.DF.BASE_FPS);
+                            dir.x = dir.x * dist / mag;
+                            dir.y = 0;
+                            var frame = Math.floor(dist / speed);
+
+                            sprite.tl.moveBy(dir.x, dir.y, frame).then(function () {
+                                sprite.life.kill();
+                            });
+
+                            jp.osakana4242.utils.Vector2D.free(dir);
+                        });
+                    }
+                    EnemyBrains.brain8 = brain8;
+
+                    /** 水平追跡.*/
+                    function brain9(sprite) {
+                        var anchor = sprite.anchor;
+                        var xMin = anchor.x + (32 * -2) + sprite.width / 2;
+                        var xMax = anchor.x + (32 * 2) + sprite.width / 2;
+                        var cnt = 0;
+                        function f1(e) {
+                            if (e) {
+                                return false;
+                            }
+                            var isNext = false;
+                            var player = sprite.scene.player;
+                            var dir = jp.osakana4242.utils.Vector2D.alloc(jp.osakana4242.kimiko.app.numberUtil.trim(player.center.x, xMin, xMax) - sprite.center.x, 0);
+                            var mag = jp.osakana4242.utils.Vector2D.magnitude(dir);
+                            if (mag < 4) {
+                                // 移動の必要ナシ.
+                                isNext = false;
+                            } else {
+                                var dist = mag;
+                                var speed = jp.osakana4242.kimiko.app.dpsToDpf(1 * jp.osakana4242.kimiko.DF.BASE_FPS);
+                                dir.x = dir.x * dist / mag;
+                                dir.y = dir.y * dist / mag;
+                                var frame = (speed === 0) ? 1 : Math.max(Math.floor(dist / speed), 1);
+                                sprite.tl.moveTo(sprite.x + dir.x, sprite.y + dir.y, frame).delay(jp.osakana4242.kimiko.app.secToFrame(0.2)).waitUntil(f1);
+                                isNext = true;
+                            }
+                            jp.osakana4242.utils.Vector2D.free(dir);
+                            return isNext;
+                        }
+                        sprite.tl.waitUntil(f1);
+                    }
+                    EnemyBrains.brain9 = brain9;
+
+                    // BOSS.
+                    function brainBoss(sprite) {
+                        var anchor = sprite.anchor;
+
+                        var waitFire = function () {
+                            return !sprite.weapon.isStateFire();
+                        };
+
+                        // 発砲の予備動作.
+                        function runup() {
+                            return sprite.tl.moveBy(0, -24, jp.osakana4242.kimiko.app.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, 24, jp.osakana4242.kimiko.app.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, -8, jp.osakana4242.kimiko.app.secToFrame(0.1), Easing.CUBIC_EASEOUT).moveBy(0, 8, jp.osakana4242.kimiko.app.secToFrame(0.1), Easing.CUBIC_EASEOUT).delay(jp.osakana4242.kimiko.app.secToFrame(0.5));
+                        }
+
+                        function fireToPlayer() {
+                            var wp = sprite.weapons[0];
+                            wp.fireCount = 5;
+                            wp.wayNum = 4;
+                            wp.fireInterval = jp.osakana4242.kimiko.app.secToFrame(0.5);
+                            wp.speed = jp.osakana4242.kimiko.app.dpsToDpf(3 * jp.osakana4242.kimiko.DF.BASE_FPS);
+                            wp.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireC;
+                            wp.isTracePlayer = true;
+                            wp.lookAtPlayer();
+                            wp.startFire();
+
+                            wp = sprite.weapons[1];
+                            wp.fireCount = 3;
+                            wp.wayNum = 1;
+                            wp.fireInterval = jp.osakana4242.kimiko.app.secToFrame(0.75);
+                            wp.speed = jp.osakana4242.kimiko.app.dpsToDpf(2 * jp.osakana4242.kimiko.DF.BASE_FPS);
+                            wp.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireA;
+                            wp.isTracePlayer = true;
+                            wp.startFire();
+                        }
+
+                        function fireToPlayer2() {
+                            var wp = sprite.weapon;
+                            wp.fireCount = 9;
+                            wp.wayNum = 1;
+                            wp.fireInterval = jp.osakana4242.kimiko.app.secToFrame(0.5);
+                            wp.speed = jp.osakana4242.kimiko.app.dpsToDpf(3 * jp.osakana4242.kimiko.DF.BASE_FPS);
+                            wp.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireB;
+                            wp.isTracePlayer = true;
+                            wp.lookAtPlayer();
+                            wp.startFire();
+
+                            wp = sprite.weapons[1];
+                            wp.fireCount = 1;
+                            wp.wayNum = 1;
+                            wp.fireInterval = jp.osakana4242.kimiko.app.secToFrame(1.5);
+                            wp.speed = jp.osakana4242.kimiko.app.dpsToDpf(1 * jp.osakana4242.kimiko.DF.BASE_FPS);
+                            wp.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireA;
+                            wp.isTracePlayer = true;
+                            wp.startFire();
+                        }
+
+                        function fireToPlayer3() {
+                            var wp = sprite.weapons[0];
+                            wp.fireCount = 1;
+                            wp.wayNum = 6;
+                            wp.fireInterval = jp.osakana4242.kimiko.app.secToFrame(0.5);
+                            wp.speed = jp.osakana4242.kimiko.app.dpsToDpf(1 * jp.osakana4242.kimiko.DF.BASE_FPS);
+                            wp.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireA;
+                            wp.isTracePlayer = false;
+                            wp.lookAtPlayer();
+                            wp.startFire();
+
+                            wp = sprite.weapons[1];
+                            wp.fireCount = 2;
+                            wp.wayNum = 1;
+                            wp.fireInterval = jp.osakana4242.kimiko.app.secToFrame(0.2);
+                            wp.speed = jp.osakana4242.kimiko.app.dpsToDpf(3 * jp.osakana4242.kimiko.DF.BASE_FPS);
+                            wp.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireA;
+                            wp.isTracePlayer = true;
+                            wp.startFire();
+                        }
+
+                        function fire1() {
+                            return runup().then(fireToPlayer).moveBy(8, 0, jp.osakana4242.kimiko.app.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(jp.osakana4242.kimiko.app.secToFrame(0.5)).waitUntil(waitFire);
+                        }
+
+                        function fire2() {
+                            return runup().then(fireToPlayer2).waitUntil(waitFire);
+                        }
+
+                        function fire3() {
+                            return runup().then(fireToPlayer3).moveBy(8, 0, jp.osakana4242.kimiko.app.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(jp.osakana4242.kimiko.app.secToFrame(0.5)).waitUntil(waitFire);
+                        }
+
+                        var top = sprite.anchor.y - 96;
+                        var bottom = sprite.anchor.y;
+                        var left = sprite.anchor.x - 200;
+                        var right = sprite.anchor.x + 0;
+                        sprite.x = right;
+                        sprite.y = top;
+                        sprite.tl.delay(jp.osakana4242.kimiko.app.secToFrame(1.0)).moveTo(right, bottom, jp.osakana4242.kimiko.app.secToFrame(2.0)).scaleTo(-1.0, 1.0, 1).delay(jp.osakana4242.kimiko.app.secToFrame(0.5)).then(function () {
+                            sprite.tl.moveTo(left, bottom, jp.osakana4242.kimiko.app.secToFrame(0.5), Easing.CUBIC_EASEIN).scaleTo(1.0, 1.0, 1);
+                            fire2().moveTo(left, top, jp.osakana4242.kimiko.app.secToFrame(1.0));
+                            fire1().moveTo(right, top, jp.osakana4242.kimiko.app.secToFrame(0.5), Easing.CUBIC_EASEIN).scaleTo(-1.0, 1.0, 1);
+                            fire2().moveTo(right, bottom, jp.osakana4242.kimiko.app.secToFrame(1.0));
+                            fire1().moveTo(left, top, jp.osakana4242.kimiko.app.secToFrame(2.0));
+                            fire3().moveTo(right, top, jp.osakana4242.kimiko.app.secToFrame(0.5), Easing.CUBIC_EASEIN);
+                            fire3().moveTo(left, top, jp.osakana4242.kimiko.app.secToFrame(0.5), Easing.CUBIC_EASEIN);
+                            fire3().moveTo(right, top, jp.osakana4242.kimiko.app.secToFrame(0.5));
+                            fire3().delay(jp.osakana4242.kimiko.app.secToFrame(1.0)).moveTo(right, bottom, jp.osakana4242.kimiko.app.secToFrame(2.0)).loop();
+                        });
+                    }
+                    EnemyBrains.brainBoss = brainBoss;
+                })(game.EnemyBrains || (game.EnemyBrains = {}));
+                var EnemyBrains = game.EnemyBrains;
+
+                game.EnemyData = {
+                    0x0: {
+                        hpMax: 2,
+                        level: 1,
+                        body: EnemyBodys.body1,
+                        brain: EnemyBrains.brain1,
+                        score: 100,
+                        align: "center middle"
+                    },
+                    0x1: {
+                        hpMax: 2,
+                        level: 1,
+                        body: EnemyBodys.body1,
+                        brain: EnemyBrains.brain1,
+                        score: 100,
+                        align: "center middle"
+                    },
+                    0x2: {
+                        hpMax: 2,
+                        level: 1,
+                        body: EnemyBodys.body1,
+                        brain: EnemyBrains.brain2,
+                        score: 100,
+                        align: "center middle"
+                    },
+                    0x3: {
+                        hpMax: 2,
+                        level: 1,
+                        body: EnemyBodys.body1,
+                        brain: EnemyBrains.brain3,
+                        score: 100,
+                        align: "center bottom"
+                    },
+                    0x4: {
+                        hpMax: 2,
+                        level: 1,
+                        body: EnemyBodys.body1,
+                        brain: EnemyBrains.brain4,
+                        score: 100,
+                        align: "center top"
+                    },
+                    0x5: {
+                        hpMax: 16,
+                        level: 1,
+                        body: EnemyBodys.body4,
+                        brain: EnemyBrains.brain5,
+                        score: 100,
+                        align: "center bottom"
+                    },
+                    0x6: {
+                        hpMax: 2,
+                        level: 1,
+                        body: EnemyBodys.body1,
+                        brain: EnemyBrains.brain6,
+                        score: 100,
+                        align: "center middle"
+                    },
+                    0x7: {
+                        hpMax: 2,
+                        level: 1,
+                        body: EnemyBodys.body1,
+                        brain: EnemyBrains.brain7,
+                        score: 100,
+                        align: "center middle"
+                    },
+                    0x8: {
+                        hpMax: 2,
+                        level: 1,
+                        body: EnemyBodys.body1,
+                        brain: EnemyBrains.brain8,
+                        score: 100,
+                        align: "center middle"
+                    },
+                    0x9: {
+                        hpMax: 2,
+                        level: 1,
+                        body: EnemyBodys.body1,
+                        brain: EnemyBrains.brain9,
+                        score: 100,
+                        align: "center middle"
+                    },
+                    0xa: {
+                        hpMax: 2,
+                        level: 2,
+                        body: EnemyBodys.body1,
+                        brain: EnemyBrains.brain6,
+                        score: 100,
+                        align: "center middle"
+                    },
+                    0xb: {
+                        hpMax: 2,
+                        level: 2,
+                        body: EnemyBodys.body1,
+                        brain: EnemyBrains.brain7,
+                        score: 100,
+                        align: "center middle"
+                    },
+                    // boss.
+                    // boss.
+                    0xf: {
+                        hpMax: 100,
+                        level: 1,
+                        body: EnemyBodys.body2,
+                        brain: EnemyBrains.brainBoss,
+                        score: 1000,
+                        align: "center bottom"
+                    }
+                };
+
+                game.Enemy = enchant.Class.create(enchant.Sprite, {
+                    initialize: function () {
+                        enchant.Sprite.call(this);
+
+                        this.enemyId = -1;
+                        this.weapons = [];
+                        for (var i = 0, iNum = 8; i < iNum; ++i) {
+                            this.weapons[i] = new jp.osakana4242.kimiko.game.WeaponA(this);
+                        }
+                        this.weaponNum = 1;
+                        this.anchor = new jp.osakana4242.utils.Vector2D();
+                        this.collider = new jp.osakana4242.utils.Collider();
+                        this.collider.parent = this;
+                        this.life = new jp.osakana4242.kimiko.game.Life(this);
+
+                        // ゴースト状態無し.
+                        this.life.setGhostFrameMax(jp.osakana4242.kimiko.app.secToFrame(0.0));
+                    },
+                    onenterframe: function () {
+                        this.life.step();
+                        for (var i = this.weaponNum - 1; 0 <= i; --i) {
+                            this.weapons[i].step();
+                        }
+                    },
+                    weapon: { get: function () {
+                            return this.weapons[0];
+                        } },
+                    enemyData: { get: function () {
+                            return game.EnemyData[this.enemyId];
+                        } },
+                    isBoss: function () {
+                        return this.enemyId === jp.osakana4242.kimiko.DF.ENEMY_ID_BOSS;
+                    },
+                    onDead: function () {
+                        // 死亡エフェクト追加.
+                        var effect = this.scene.addEffect(jp.osakana4242.kimiko.DF.ANIM_ID_DEAD, this.center);
+                        effect.scaleX = 2.0;
+                        effect.scaleY = 2.0;
+
+                        //
+                        this.visible = false;
+                    }
+                });
+            })(kimiko.game || (kimiko.game = {}));
+            var game = kimiko.game;
         })(osakana4242.kimiko || (osakana4242.kimiko = {}));
         var kimiko = osakana4242.kimiko;
     })(jp.osakana4242 || (jp.osakana4242 = {}));
@@ -2592,511 +3210,205 @@ var jp;
 (function (jp) {
     (function (osakana4242) {
         (function (kimiko) {
-            (function (game) {
-                var Easing = enchant.Easing;
+            (function (scenes) {
+                var app = jp.osakana4242.kimiko.app;
+                var DF = jp.osakana4242.kimiko.DF;
 
-                (function (EnemyBodys) {
-                    function body1(sprite) {
-                        sprite.width = 32;
-                        sprite.height = 32;
-                        sprite.anim.sequence = jp.osakana4242.kimiko.app.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA002_WALK);
-                        jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerBottom(sprite, 28, 28));
-                    }
-                    EnemyBodys.body1 = body1;
-
-                    /** クネクネカラス */
-                    function body2(sprite) {
-                        sprite.width = 64;
-                        sprite.height = 64;
-                        sprite.anim.sequence = jp.osakana4242.kimiko.app.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA003_WALK);
-                        jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerMiddle(sprite, 56, 56));
-                        sprite.weaponNum = 3;
-                    }
-                    EnemyBodys.body2 = body2;
-
-                    /** 飛行キャラ:小 */
-                    function body3(sprite) {
-                        sprite.width = 32;
-                        sprite.height = 16;
-
-                        //sprite.anim.sequence = app.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
-                        sprite.backgroundColor = "rgb(255,48,48)";
-                        jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerMiddle(sprite, 28, 12));
-                    }
-                    EnemyBodys.body3 = body3;
-
-                    /** 中キャラ */
-                    function body4(sprite) {
-                        sprite.width = 48;
-                        sprite.height = 48;
-
-                        //sprite.anim.sequence = app.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
-                        sprite.backgroundColor = "rgb(255,48,48)";
-                        jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerBottom(sprite, 32, 40));
-                    }
-                    EnemyBodys.body4 = body4;
-                })(game.EnemyBodys || (game.EnemyBodys = {}));
-                var EnemyBodys = game.EnemyBodys;
-
-                (function (EnemyBrains) {
-                    /** 突進. */
-                    function brain1(sprite) {
-                        var anchor = sprite.anchor;
-
-                        sprite.tl.delay(jp.osakana4242.kimiko.app.secToFrame(0.5)).then(function () {
-                            var player = sprite.scene.player;
-                            var dir = jp.osakana4242.utils.Vector2D.alloc(player.center.x - sprite.center.x, player.center.y - sprite.center.y);
-                            var mag = jp.osakana4242.utils.Vector2D.magnitude(dir);
-                            var dist = 480;
-                            var speed = jp.osakana4242.kimiko.app.dpsToDpf(2 * jp.osakana4242.kimiko.DF.BASE_FPS);
-                            dir.x = dir.x * dist / mag;
-                            dir.y = dir.y * dist / mag;
-                            var frame = Math.floor(dist / speed);
-
-                            sprite.tl.moveBy(dir.x, dir.y, frame).then(function () {
-                                sprite.life.kill();
-                            });
-
-                            jp.osakana4242.utils.Vector2D.free(dir);
-                        });
-                    }
-                    EnemyBrains.brain1 = brain1;
-
-                    /** 追跡. */
-                    function brain2(sprite) {
-                        var anchor = sprite.anchor;
-                        sprite.weapon.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireA;
-
-                        var xMin = anchor.x + (32 * -8);
-                        var xMax = anchor.x + (32 * 8);
-                        var yMin = anchor.y + (32 * -8);
-                        var yMax = anchor.y + (32 * 8);
-                        var cnt = 0;
-                        function f1(e) {
-                            if (e) {
-                                return false;
-                            }
-                            var isNext = false;
-                            var player = sprite.scene.player;
-                            var dir = jp.osakana4242.utils.Vector2D.alloc(jp.osakana4242.kimiko.app.numberUtil.trim(player.center.x, xMin, xMax) - sprite.center.x, jp.osakana4242.kimiko.app.numberUtil.trim(player.center.y, yMin, yMax) - sprite.center.y);
-                            var mag = jp.osakana4242.utils.Vector2D.magnitude(dir);
-
-                            // var dist = mag;
-                            var dist = 32 * 4;
-                            if (dist < 4) {
-                                // 移動の必要ナシ.
-                                isNext = false;
-                            } else {
-                                var speed = jp.osakana4242.kimiko.app.dpsToDpf(2 * jp.osakana4242.kimiko.DF.BASE_FPS);
-                                dir.x = dir.x * dist / mag;
-                                dir.y = dir.y * dist / mag;
-                                var frame = (speed === 0) ? 1 : Math.max(Math.floor(dist / speed), 1);
-
-                                sprite.tl.moveTo(sprite.x + dir.x, sprite.y + dir.y, frame).then(function () {
-                                    if (2 <= sprite.enemyData.level) {
-                                        sprite.weapon.lookAtPlayer();
-                                        sprite.weapon.startFire();
-                                    }
-                                }).delay(jp.osakana4242.kimiko.app.secToFrame(0.5)).waitUntil(f1);
-                                isNext = true;
-                            }
-                            jp.osakana4242.utils.Vector2D.free(dir);
-                            return isNext;
-                        }
-                        sprite.tl.waitUntil(f1);
-                    }
-                    EnemyBrains.brain2 = brain2;
-
-                    /** 地上ジャンプ.*/
-                    function brain3(sprite) {
-                        var anchor = sprite.anchor;
-                        sprite.weapon.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireA;
-
-                        sprite.tl.moveBy(-32 * 4 * 0.5, -32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).moveBy(-32 * 4 * 0.5, 32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).delay(jp.osakana4242.kimiko.app.secToFrame(0.25)).then(function () {
-                            if (2 <= sprite.enemyData.level) {
-                                sprite.weapon.lookAtPlayer();
-                                sprite.weapon.startFire();
-                            }
-                        }).moveBy(32 * 4 * 0.5, -32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).moveBy(32 * 4 * 0.5, 32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).delay(jp.osakana4242.kimiko.app.secToFrame(0.25)).loop();
-                    }
-                    EnemyBrains.brain3 = brain3;
-
-                    /** 天井ジャンプ. */
-                    function brain4(sprite) {
-                        sprite.scaleY = -1;
-                        var anchor = sprite.anchor;
-                        sprite.weapon.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireA;
-
-                        sprite.tl.moveBy(-32 * 4 * 0.5, 32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).moveBy(-32 * 4 * 0.5, -32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).delay(jp.osakana4242.kimiko.app.secToFrame(0.25)).then(function () {
-                            if (2 <= sprite.enemyData.level) {
-                                sprite.weapon.lookAtPlayer();
-                                sprite.weapon.startFire();
-                            }
-                        }).moveBy(32 * 4 * 0.5, 32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).moveBy(32 * 4 * 0.5, -32 * 3, jp.osakana4242.kimiko.app.secToFrame(0.5)).delay(jp.osakana4242.kimiko.app.secToFrame(0.25)).loop();
-                    }
-                    EnemyBrains.brain4 = brain4;
-
-                    /** うろつき. */
-                    function brain5(sprite) {
-                        var anchor = sprite.anchor;
-                        var totalFrame = jp.osakana4242.kimiko.app.secToFrame(8.0);
-                        sprite.tl.moveTo(anchor.x - 32 * 3 + sprite.width / 2, anchor.y, totalFrame * 0.5, Easing.LINEAR).moveTo(anchor.x + 0 + sprite.width / 2, anchor.y, totalFrame * 0.5, Easing.LINEAR).loop();
-                    }
-                    EnemyBrains.brain5 = brain5;
-
-                    /** ブンブン.*/
-                    function brain6(sprite) {
-                        var anchor = sprite.anchor;
-                        sprite.weapon.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireA;
-
-                        var fire = function () {
-                            if (2 <= sprite.enemyData.level) {
-                                sprite.weapon.lookAtPlayer();
-                                sprite.weapon.startFire();
-                            }
-                        };
-
-                        sprite.tl.moveTo(anchor.x + 32 * -0.5, anchor.y + 32 * -0.5, jp.osakana4242.kimiko.app.secToFrame(0.5)).moveTo(anchor.x + 32 * 0.5, anchor.y + 32 * -0.5, jp.osakana4242.kimiko.app.secToFrame(0.5)).moveTo(anchor.x + 32 * -0.5, anchor.y + 32 * 0.5, jp.osakana4242.kimiko.app.secToFrame(0.5)).moveTo(anchor.x + 32 * 0.0, anchor.y + 32 * 0.0, jp.osakana4242.kimiko.app.secToFrame(0.5)).then(fire).moveTo(anchor.x + 32 * 0.5, anchor.y + 32 * 0.5, jp.osakana4242.kimiko.app.secToFrame(0.5)).loop();
-                    }
-                    EnemyBrains.brain6 = brain6;
-
-                    /** ホバリング.*/
-                    function brain7(sprite) {
-                        var anchor = sprite.anchor;
-                        sprite.weapon.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireA;
-
-                        var fire = function () {
-                            if (2 <= sprite.enemyData.level) {
-                                sprite.weapon.lookAtPlayer();
-                                sprite.weapon.startFire();
-                            }
-                        };
-
-                        var totalFrame = jp.osakana4242.kimiko.app.secToFrame(2.0);
-                        sprite.tl.moveTo(anchor.x, anchor.y + 32 * 1, totalFrame * 0.5, Easing.LINEAR).then(fire).moveTo(anchor.x, anchor.y + 32 * -1, totalFrame * 0.5, Easing.LINEAR).then(fire).loop();
-                    }
-                    EnemyBrains.brain7 = brain7;
-
-                    /** 水平突進.*/
-                    function brain8(sprite) {
-                        var anchor = sprite.anchor;
-
-                        sprite.tl.delay(jp.osakana4242.kimiko.app.secToFrame(0.5)).then(function () {
-                            var player = sprite.scene.player;
-                            var dir = jp.osakana4242.utils.Vector2D.alloc(player.center.x - sprite.center.x, player.center.y - sprite.center.y);
-                            var mag = jp.osakana4242.utils.Vector2D.magnitude(dir);
-                            var dist = 480;
-                            var speed = jp.osakana4242.kimiko.app.dpsToDpf(2 * jp.osakana4242.kimiko.DF.BASE_FPS);
-                            dir.x = dir.x * dist / mag;
-                            dir.y = 0;
-                            var frame = Math.floor(dist / speed);
-
-                            sprite.tl.moveBy(dir.x, dir.y, frame).then(function () {
-                                sprite.life.kill();
-                            });
-
-                            jp.osakana4242.utils.Vector2D.free(dir);
-                        });
-                    }
-                    EnemyBrains.brain8 = brain8;
-
-                    /** 水平追跡.*/
-                    function brain9(sprite) {
-                        var anchor = sprite.anchor;
-                        var xMin = anchor.x + (32 * -2) + sprite.width / 2;
-                        var xMax = anchor.x + (32 * 2) + sprite.width / 2;
-                        var cnt = 0;
-                        function f1(e) {
-                            if (e) {
-                                return false;
-                            }
-                            var isNext = false;
-                            var player = sprite.scene.player;
-                            var dir = jp.osakana4242.utils.Vector2D.alloc(jp.osakana4242.kimiko.app.numberUtil.trim(player.center.x, xMin, xMax) - sprite.center.x, 0);
-                            var mag = jp.osakana4242.utils.Vector2D.magnitude(dir);
-                            if (mag < 4) {
-                                // 移動の必要ナシ.
-                                isNext = false;
-                            } else {
-                                var dist = mag;
-                                var speed = jp.osakana4242.kimiko.app.dpsToDpf(1 * jp.osakana4242.kimiko.DF.BASE_FPS);
-                                dir.x = dir.x * dist / mag;
-                                dir.y = dir.y * dist / mag;
-                                var frame = (speed === 0) ? 1 : Math.max(Math.floor(dist / speed), 1);
-                                sprite.tl.moveTo(sprite.x + dir.x, sprite.y + dir.y, frame).delay(jp.osakana4242.kimiko.app.secToFrame(0.2)).waitUntil(f1);
-                                isNext = true;
-                            }
-                            jp.osakana4242.utils.Vector2D.free(dir);
-                            return isNext;
-                        }
-                        sprite.tl.waitUntil(f1);
-                    }
-                    EnemyBrains.brain9 = brain9;
-
-                    // BOSS.
-                    function brainBoss(sprite) {
-                        var anchor = sprite.anchor;
-
-                        var waitFire = function () {
-                            return !sprite.weapon.isStateFire();
-                        };
-
-                        // 発砲の予備動作.
-                        function runup() {
-                            return sprite.tl.moveBy(0, -24, jp.osakana4242.kimiko.app.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, 24, jp.osakana4242.kimiko.app.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, -8, jp.osakana4242.kimiko.app.secToFrame(0.1), Easing.CUBIC_EASEOUT).moveBy(0, 8, jp.osakana4242.kimiko.app.secToFrame(0.1), Easing.CUBIC_EASEOUT).delay(jp.osakana4242.kimiko.app.secToFrame(0.5));
-                        }
-
-                        function fireToPlayer() {
-                            var wp = sprite.weapons[0];
-                            wp.fireCount = 5;
-                            wp.wayNum = 4;
-                            wp.fireInterval = jp.osakana4242.kimiko.app.secToFrame(0.5);
-                            wp.speed = jp.osakana4242.kimiko.app.dpsToDpf(3 * jp.osakana4242.kimiko.DF.BASE_FPS);
-                            wp.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireC;
-                            wp.isTracePlayer = true;
-                            wp.lookAtPlayer();
-                            wp.startFire();
-
-                            wp = sprite.weapons[1];
-                            wp.fireCount = 3;
-                            wp.wayNum = 1;
-                            wp.fireInterval = jp.osakana4242.kimiko.app.secToFrame(0.75);
-                            wp.speed = jp.osakana4242.kimiko.app.dpsToDpf(2 * jp.osakana4242.kimiko.DF.BASE_FPS);
-                            wp.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireA;
-                            wp.isTracePlayer = true;
-                            wp.startFire();
-                        }
-
-                        function fireToPlayer2() {
-                            var wp = sprite.weapon;
-                            wp.fireCount = 9;
-                            wp.wayNum = 1;
-                            wp.fireInterval = jp.osakana4242.kimiko.app.secToFrame(0.5);
-                            wp.speed = jp.osakana4242.kimiko.app.dpsToDpf(3 * jp.osakana4242.kimiko.DF.BASE_FPS);
-                            wp.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireB;
-                            wp.isTracePlayer = true;
-                            wp.lookAtPlayer();
-                            wp.startFire();
-
-                            wp = sprite.weapons[1];
-                            wp.fireCount = 1;
-                            wp.wayNum = 1;
-                            wp.fireInterval = jp.osakana4242.kimiko.app.secToFrame(1.5);
-                            wp.speed = jp.osakana4242.kimiko.app.dpsToDpf(1 * jp.osakana4242.kimiko.DF.BASE_FPS);
-                            wp.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireA;
-                            wp.isTracePlayer = true;
-                            wp.startFire();
-                        }
-
-                        function fireToPlayer3() {
-                            var wp = sprite.weapons[0];
-                            wp.fireCount = 1;
-                            wp.wayNum = 6;
-                            wp.fireInterval = jp.osakana4242.kimiko.app.secToFrame(0.5);
-                            wp.speed = jp.osakana4242.kimiko.app.dpsToDpf(1 * jp.osakana4242.kimiko.DF.BASE_FPS);
-                            wp.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireA;
-                            wp.isTracePlayer = false;
-                            wp.lookAtPlayer();
-                            wp.startFire();
-
-                            wp = sprite.weapons[1];
-                            wp.fireCount = 2;
-                            wp.wayNum = 1;
-                            wp.fireInterval = jp.osakana4242.kimiko.app.secToFrame(0.2);
-                            wp.speed = jp.osakana4242.kimiko.app.dpsToDpf(3 * jp.osakana4242.kimiko.DF.BASE_FPS);
-                            wp.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireA;
-                            wp.isTracePlayer = true;
-                            wp.startFire();
-                        }
-
-                        function fire1() {
-                            return runup().then(fireToPlayer).moveBy(8, 0, jp.osakana4242.kimiko.app.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(jp.osakana4242.kimiko.app.secToFrame(0.5)).waitUntil(waitFire);
-                        }
-
-                        function fire2() {
-                            return runup().then(fireToPlayer2).waitUntil(waitFire);
-                        }
-
-                        function fire3() {
-                            return runup().then(fireToPlayer3).moveBy(8, 0, jp.osakana4242.kimiko.app.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(jp.osakana4242.kimiko.app.secToFrame(0.5)).waitUntil(waitFire);
-                        }
-
-                        var top = sprite.anchor.y - 96;
-                        var bottom = sprite.anchor.y;
-                        var left = sprite.anchor.x - 200;
-                        var right = sprite.anchor.x + 0;
-                        sprite.x = right;
-                        sprite.y = top;
-                        sprite.tl.delay(jp.osakana4242.kimiko.app.secToFrame(1.0)).moveTo(right, bottom, jp.osakana4242.kimiko.app.secToFrame(2.0)).scaleTo(-1.0, 1.0, 1).delay(jp.osakana4242.kimiko.app.secToFrame(0.5)).then(function () {
-                            sprite.tl.moveTo(left, bottom, jp.osakana4242.kimiko.app.secToFrame(0.5), Easing.CUBIC_EASEIN).scaleTo(1.0, 1.0, 1);
-                            fire2().moveTo(left, top, jp.osakana4242.kimiko.app.secToFrame(1.0));
-                            fire1().moveTo(right, top, jp.osakana4242.kimiko.app.secToFrame(0.5), Easing.CUBIC_EASEIN).scaleTo(-1.0, 1.0, 1);
-                            fire2().moveTo(right, bottom, jp.osakana4242.kimiko.app.secToFrame(1.0));
-                            fire1().moveTo(left, top, jp.osakana4242.kimiko.app.secToFrame(2.0));
-                            fire3().moveTo(right, top, jp.osakana4242.kimiko.app.secToFrame(0.5), Easing.CUBIC_EASEIN);
-                            fire3().moveTo(left, top, jp.osakana4242.kimiko.app.secToFrame(0.5), Easing.CUBIC_EASEIN);
-                            fire3().moveTo(right, top, jp.osakana4242.kimiko.app.secToFrame(0.5));
-                            fire3().delay(jp.osakana4242.kimiko.app.secToFrame(1.0)).moveTo(right, bottom, jp.osakana4242.kimiko.app.secToFrame(2.0)).loop();
-                        });
-                    }
-                    EnemyBrains.brainBoss = brainBoss;
-                })(game.EnemyBrains || (game.EnemyBrains = {}));
-                var EnemyBrains = game.EnemyBrains;
-
-                game.EnemyData = {
-                    0x0: {
-                        hpMax: 2,
-                        level: 1,
-                        body: EnemyBodys.body1,
-                        brain: EnemyBrains.brain1,
-                        score: 100,
-                        align: "center middle"
-                    },
-                    0x1: {
-                        hpMax: 2,
-                        level: 1,
-                        body: EnemyBodys.body1,
-                        brain: EnemyBrains.brain1,
-                        score: 100,
-                        align: "center middle"
-                    },
-                    0x2: {
-                        hpMax: 2,
-                        level: 1,
-                        body: EnemyBodys.body1,
-                        brain: EnemyBrains.brain2,
-                        score: 100,
-                        align: "center middle"
-                    },
-                    0x3: {
-                        hpMax: 2,
-                        level: 1,
-                        body: EnemyBodys.body1,
-                        brain: EnemyBrains.brain3,
-                        score: 100,
-                        align: "center bottom"
-                    },
-                    0x4: {
-                        hpMax: 2,
-                        level: 1,
-                        body: EnemyBodys.body1,
-                        brain: EnemyBrains.brain4,
-                        score: 100,
-                        align: "center top"
-                    },
-                    0x5: {
-                        hpMax: 16,
-                        level: 1,
-                        body: EnemyBodys.body4,
-                        brain: EnemyBrains.brain5,
-                        score: 100,
-                        align: "center bottom"
-                    },
-                    0x6: {
-                        hpMax: 2,
-                        level: 1,
-                        body: EnemyBodys.body1,
-                        brain: EnemyBrains.brain6,
-                        score: 100,
-                        align: "center middle"
-                    },
-                    0x7: {
-                        hpMax: 2,
-                        level: 1,
-                        body: EnemyBodys.body1,
-                        brain: EnemyBrains.brain7,
-                        score: 100,
-                        align: "center middle"
-                    },
-                    0x8: {
-                        hpMax: 2,
-                        level: 1,
-                        body: EnemyBodys.body1,
-                        brain: EnemyBrains.brain8,
-                        score: 100,
-                        align: "center middle"
-                    },
-                    0x9: {
-                        hpMax: 2,
-                        level: 1,
-                        body: EnemyBodys.body1,
-                        brain: EnemyBrains.brain9,
-                        score: 100,
-                        align: "center middle"
-                    },
-                    0xa: {
-                        hpMax: 2,
-                        level: 2,
-                        body: EnemyBodys.body1,
-                        brain: EnemyBrains.brain6,
-                        score: 100,
-                        align: "center middle"
-                    },
-                    0xb: {
-                        hpMax: 2,
-                        level: 2,
-                        body: EnemyBodys.body1,
-                        brain: EnemyBrains.brain7,
-                        score: 100,
-                        align: "center middle"
-                    },
-                    // boss.
-                    // boss.
-                    0xf: {
-                        hpMax: 100,
-                        level: 1,
-                        body: EnemyBodys.body2,
-                        brain: EnemyBrains.brainBoss,
-                        score: 1000,
-                        align: "center bottom"
-                    }
-                };
-
-                game.Enemy = enchant.Class.create(enchant.Sprite, {
+                scenes.Config = enchant.Class.create(enchant.Scene, {
                     initialize: function () {
-                        enchant.Sprite.call(this);
+                        enchant.Scene.call(this);
 
-                        this.enemyId = -1;
-                        this.weapons = [];
-                        for (var i = 0, iNum = 8; i < iNum; ++i) {
-                            this.weapons[i] = new jp.osakana4242.kimiko.game.WeaponA(this);
-                        }
-                        this.weaponNum = 1;
-                        this.anchor = new jp.osakana4242.utils.Vector2D();
-                        this.collider = new jp.osakana4242.utils.Collider();
-                        this.collider.parent = this;
-                        this.life = new jp.osakana4242.kimiko.game.Life(this);
+                        app.sound.stopBgm();
 
-                        // ゴースト状態無し.
-                        this.life.setGhostFrameMax(jp.osakana4242.kimiko.app.secToFrame(0.0));
-                    },
-                    onenterframe: function () {
-                        this.life.step();
-                        for (var i = this.weaponNum - 1; 0 <= i; --i) {
-                            this.weapons[i].step();
-                        }
-                    },
-                    weapon: { get: function () {
-                            return this.weapons[0];
-                        } },
-                    enemyData: { get: function () {
-                            return game.EnemyData[this.enemyId];
-                        } },
-                    isBoss: function () {
-                        return this.enemyId === jp.osakana4242.kimiko.DF.ENEMY_ID_BOSS;
-                    },
-                    onDead: function () {
-                        // 死亡エフェクト追加.
-                        var effect = this.scene.addEffect(jp.osakana4242.kimiko.DF.ANIM_ID_DEAD, this.center);
-                        effect.scaleX = 2.0;
-                        effect.scaleY = 2.0;
+                        var scene = this;
+
+                        var btnHeight = 48;
+                        var tmpY = 8;
+
+                        var items = {};
+
+                        // サウンドをサポートしてるときのみ表示.
+                        addItem("isBgmEnabled", "BGM");
+                        tmpY += 56;
+                        addItem("isSeEnabled", "SE");
+                        tmpY += 56;
+                        addItem("fps", "FPS");
+                        tmpY += 56;
+
+                        var backBtn = (function () {
+                            var spr = new enchant.Label("TO TITLE");
+                            spr.font = DF.FONT_L;
+                            spr.color = "rgb(255, 255, 0)";
+                            spr.backgroundColor = "rgb(64, 64, 64)";
+                            spr.width = DF.SC_W / 2;
+                            spr.height = 48;
+                            spr.textAlign = "center";
+                            spr.x = (DF.SC_W - spr.width) / 2;
+                            spr.y = tmpY;
+                            spr.addEventListener(enchant.Event.TOUCH_END, gotoTitle);
+                            return spr;
+                        })();
+                        tmpY += 56;
 
                         //
-                        this.visible = false;
+                        scene.backgroundColor = "rgb( 32, 32, 32)";
+                        scene.addChild(backBtn);
+                        for (var key in items) {
+                            var item = items[key];
+                            var isAdd = true;
+                            switch (key) {
+                                case "isBgmEnabled":
+                                case "isSeEnabled":
+                                    if (!app.env.isSoundEnabled) {
+                                        isAdd = false;
+                                    }
+                                    break;
+                            }
+                            if (isAdd) {
+                                scene.addChild(item.titleLabel);
+                                scene.addChild(item.valueLabel);
+                                scene.addChild(item.leftBtn);
+                                scene.addChild(item.rightBtn);
+                            }
+                        }
+
+                        //
+                        //
+                        var fader = new jp.osakana4242.kimiko.scenes.Fader(this);
+                        fader.setBlack(true);
+                        fader.fadeIn(app.secToFrame(0.1));
+
+                        var userConfig = app.storage.root.userConfig;
+
+                        var oldUserConfig = {};
+                        for (var key in userConfig) {
+                            oldUserConfig[key] = userConfig[key];
+                        }
+
+                        function addItem(key, title) {
+                            var item = {
+                                "titleLabel": (function () {
+                                    var spr = new enchant.Label(title);
+                                    spr.font = DF.FONT_M;
+                                    spr.color = "rgb(255, 255, 255)";
+                                    spr.width = DF.SC_W;
+                                    spr.height = btnHeight;
+                                    spr.textAlign = "center";
+                                    spr.x = 0;
+                                    spr.y = tmpY;
+                                    return spr;
+                                })(),
+                                "valueLabel": (function () {
+                                    var spr = new enchant.Label("");
+                                    spr.font = DF.FONT_M;
+                                    spr.color = "rgb(255, 255, 255)";
+                                    spr.width = DF.SC_W;
+                                    spr.height = btnHeight;
+                                    spr.textAlign = "center";
+                                    spr.x = 0;
+                                    spr.y = tmpY + 24;
+                                    return spr;
+                                })(),
+                                "leftBtn": (function () {
+                                    var spr = new enchant.Label("<-");
+                                    spr.font = DF.FONT_L;
+                                    spr.backgroundColor = "rgb(64, 64, 64)";
+                                    spr.color = "rgb(255, 255, 0)";
+                                    spr.textAlign = "center";
+                                    spr.width = 56;
+                                    spr.height = btnHeight;
+                                    spr.x = DF.SC_W / 3 * 0 + (spr.width / 2);
+                                    spr.y = tmpY;
+                                    spr.addEventListener(enchant.Event.TOUCH_END, onAddValue(key, -1));
+                                    return spr;
+                                })(),
+                                "rightBtn": (function () {
+                                    var spr = new enchant.Label("->");
+                                    spr.font = DF.FONT_L;
+                                    spr.backgroundColor = "rgb(64, 64, 64)";
+                                    spr.color = "rgb(255, 255, 0)";
+                                    spr.textAlign = "center";
+                                    spr.width = 56;
+                                    spr.height = btnHeight;
+                                    spr.x = DF.SC_W / 3 * 2 + (spr.width / 2);
+                                    spr.y = tmpY;
+                                    spr.addEventListener(enchant.Event.TOUCH_END, onAddValue(key, 1));
+                                    return spr;
+                                })()
+                            };
+                            items[key] = item;
+                        }
+
+                        function onAddValue(key, diff) {
+                            return function () {
+                                switch (key) {
+                                    case "isSeEnabled":
+                                        userConfig.isSeEnabled = !userConfig.isSeEnabled;
+                                        app.sound.setSeEnabled(userConfig.isSeEnabled);
+                                        break;
+                                    case "isBgmEnabled":
+                                        userConfig.isBgmEnabled = !userConfig.isBgmEnabled;
+                                        app.sound.setBgmEnabled(userConfig.isBgmEnabled);
+                                        app.sound.playBgm(jp.osakana4242.kimiko.Assets.SOUND_BGM, false);
+                                        break;
+                                    case "fps":
+                                        userConfig.fps = app.numberUtil.trim(userConfig.fps + (diff * 20), 20, 60);
+                                        break;
+                                    default:
+                                        return;
+                                }
+                                if (labelUpdaters[key]) {
+                                    labelUpdaters[key]();
+                                }
+                                app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_CURSOR);
+                            };
+                        }
+
+                        var labelUpdaters = {
+                            "isSeEnabled": function () {
+                                items["isSeEnabled"].valueLabel.text = userConfig.isSeEnabled ? "ON" : "OFF";
+                            },
+                            "isBgmEnabled": function () {
+                                items["isBgmEnabled"].valueLabel.text = userConfig.isBgmEnabled ? "ON" : "OFF";
+                            },
+                            "fps": function () {
+                                items["fps"].valueLabel.text = userConfig.fps;
+                            }
+                        };
+
+                        function gotoTitle() {
+                            app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_OK);
+                            app.storage.save();
+
+                            var isReload = false;
+                            for (var key in userConfig) {
+                                switch (key) {
+                                    case "fps":
+                                        if (userConfig[key] !== oldUserConfig[key]) {
+                                            isReload = true;
+                                        }
+                                }
+                            }
+
+                            if (isReload) {
+                                fader.fadeOut(app.secToFrame(1.0), function () {
+                                    window.location.reload();
+                                });
+                            } else {
+                                fader.fadeOut(app.secToFrame(0.1), function () {
+                                    app.core.replaceScene(new jp.osakana4242.kimiko.scenes.Title());
+                                });
+                            }
+                        }
+                        ;
+
+                        for (var key in labelUpdaters) {
+                            labelUpdaters[key]();
+                        }
                     }
                 });
-            })(kimiko.game || (kimiko.game = {}));
-            var game = kimiko.game;
+            })(kimiko.scenes || (kimiko.scenes = {}));
+            var scenes = kimiko.scenes;
         })(osakana4242.kimiko || (osakana4242.kimiko = {}));
         var kimiko = osakana4242.kimiko;
     })(jp.osakana4242 || (jp.osakana4242 = {}));
@@ -4154,7 +4466,7 @@ var jp;
                             var spr = new enchant.Sprite();
                             spr.anim.sequence = app.getAnimFrames(DF.ANIM_ID_CHARA001_WALK);
                             spr.center.x = DF.SC_W / 2;
-                            spr.y = 240;
+                            spr.y = 256;
                             var ax = spr.x;
                             var ay = spr.y;
                             spr.addEventListener(enchant.Event.TOUCH_END, function () {
@@ -4252,6 +4564,20 @@ var jp;
                             return spr;
                         })();
 
+                        var configBtn = (function () {
+                            var spr = new enchant.Label("CONFIG");
+                            spr.font = DF.FONT_L;
+                            spr.color = "rgb(255, 255, 0)";
+                            spr.backgroundColor = "rgb(64, 64, 64)";
+                            spr.width = DF.SC_W / 2;
+                            spr.height = 48;
+                            spr.textAlign = "center";
+                            spr.x = (DF.SC_W - spr.width) / 2;
+                            spr.y = 200;
+                            spr.addEventListener(enchant.Event.TOUCH_END, gotoConfig);
+                            return spr;
+                        })();
+
                         //
                         scene.backgroundColor = "rgb( 32, 32, 32)";
                         scene.addChild(player);
@@ -4262,6 +4588,7 @@ var jp;
                         scene.addChild(leftBtn);
                         scene.addChild(rightBtn);
                         scene.addChild(startBtn);
+                        scene.addChild(configBtn);
 
                         //
                         scene.addEventListener(enchant.Event.A_BUTTON_UP, gotoGameStart);
@@ -4271,7 +4598,7 @@ var jp;
                         //
                         var fader = new jp.osakana4242.kimiko.scenes.Fader(this);
                         fader.setBlack(true);
-                        fader.fadeIn(app.secToFrame(0.5));
+                        fader.fadeIn(app.secToFrame(0.2));
 
                         function nextMap() {
                             app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_CURSOR);
@@ -4284,6 +4611,14 @@ var jp;
                             mapIdsIdx = (mapIdsIdx + mapIds.length - 1) % mapIds.length;
                             updateMapLabel();
                         }
+
+                        function gotoConfig() {
+                            app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_OK);
+                            fader.fadeOut(app.secToFrame(0.1), function () {
+                                app.core.replaceScene(new jp.osakana4242.kimiko.scenes.Config());
+                            });
+                        }
+                        ;
 
                         function gotoGameStart() {
                             app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_OK);

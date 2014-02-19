@@ -1,4 +1,5 @@
 ﻿
+/// <reference path="env.ts" />
 /// <reference path="utils.ts" />
 /// <reference path="defines.ts" />
 /// <reference path="player_data.ts" />
@@ -9,10 +10,18 @@ declare var enchant: any;
 
 module jp.osakana4242.kimiko {
 	
+	(() => {
+		// for enhant-0.5.x
+		if (!enchant.Core) {
+			enchant.Core = enchant.Game;
+		}
+	})();
+
 	var DF = jp.osakana4242.kimiko.DF;
 	var Assets = jp.osakana4242.kimiko.Assets;
 
 	export interface IConfig {
+		isClearStorage: boolean;
 		fps: number;
 		isSoundEnabled: boolean;
 		/** プレイヤーが発砲するか. */
@@ -30,11 +39,19 @@ module jp.osakana4242.kimiko {
 		nextMapId: number;
 	}
 
+	/**
+		
+		設定系の初期化順番.
+		1. env
+		2. config
+		3. storage
+	*/
 	export class App {
 		
 		numberUtil = utils.NumberUtil;
 		stringUtil = utils.StringUtil;
 
+		env: Env;
 		config: IConfig;
 		storage: Storage;
 		sound: Sound;
@@ -45,6 +62,11 @@ module jp.osakana4242.kimiko {
 
 		isInited: boolean = false;
 
+		constructor() {
+			var app = this;
+			app.env = new Env();
+		}
+
 		public init(config: IConfig) {
 			if (app.isInited) {
 				return;
@@ -52,15 +74,17 @@ module jp.osakana4242.kimiko {
 			app.isInited = true;
 			app.config = config;
 			app.storage = new Storage();
-			if (true) {
+			if (app.config.isClearStorage) {
 				app.storage.clear();
 			}
 			app.storage.load();
 			app.storage.save();
 			app.sound = new Sound();
+			app.sound.setBgmEnabled(app.storage.root.userConfig.isBgmEnabled);
+			app.sound.setSeEnabled(app.storage.root.userConfig.isSeEnabled);
 
 			var core: any = new enchant.Core(DF.SC_W, DF.SC_H);
-			core.fps = config.fps || DF.BASE_FPS;
+			core.fps = app.storage.root.userConfig.fps;
 			// preload
 			for (var key in Assets) {
 				if (!Assets.hasOwnProperty(key)) {
@@ -74,7 +98,7 @@ module jp.osakana4242.kimiko {
 				Assets[key] = newPath;
 				//
 				var isSound = ext === ".mp3";
-				if (!config.isSoundEnabled && isSound) {
+				if (!app.env.isSoundEnabled && isSound) {
 					// 音鳴らさないので読み込みをスキップ.
 					continue;
 				}
@@ -216,7 +240,7 @@ module jp.osakana4242.kimiko {
 	
 	}
 
-
+	/** この時点で app.evn は参照可能. */
 	export var app: App = new App();
 
 	/** HTMLから呼ぶ. */
@@ -225,3 +249,4 @@ module jp.osakana4242.kimiko {
 		app.core.start();
 	}
 }
+

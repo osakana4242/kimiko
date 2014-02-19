@@ -16,12 +16,27 @@ module jp.osakana4242.kimiko {
 		timeoutId = null;
 		/** for setTimeout */
 		_onOneLoop: () => void;
-
+		_isEnabled: boolean = true;
+		
 		constructor() {
 			this._onOneLoop = () => { this.onOneLoop(); };
 		}
 
+		public get isEnabled(): boolean {
+			return this._isEnabled;
+		}
+
+		public set isEnabled(value: boolean){
+ 			this._isEnabled = value;
+			if (!this._isEnabled) {
+				this.stop();
+			}
+		}
+
 		public play(soundInfo: ISoundInfo, enchantSound: any) {
+			if (!this.isEnabled) {
+				return;
+			}
 			this.soundInfo = soundInfo;
 			this.enchantSound = enchantSound;
 			this.isPlaying = true;
@@ -100,8 +115,16 @@ module jp.osakana4242.kimiko {
 			this.play("se", assetName);
 		}
 
+		public setBgmEnabled(value: boolean) {
+			this.channels["bgm"].isEnabled = value;
+		}
+
+		public setSeEnabled(value: boolean) {
+			this.channels["se"].isEnabled = value;
+		}
+
 		public play(channelName: string, assetName: string) {
-			if (!app.config.isSoundEnabled) {
+			if (!app.env.isSoundEnabled) {
 				return;
 			}
 
@@ -121,7 +144,7 @@ module jp.osakana4242.kimiko {
 		}
 
 		public stop(channelName: string) {
-			if (!app.config.isSoundEnabled) {
+			if (!app.env.isSoundEnabled) {
 				return;
 			}
 			
