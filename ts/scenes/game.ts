@@ -399,7 +399,12 @@ module jp.osakana4242.kimiko.scenes {
 						var enemy = new game.Enemy();
 						enemy.tl.unloop().clear();
 						enemy.enemyId = enemyId;
-						enemy.life.hpMax = data.hpMax;
+						var isEasy = app.storage.root.userConfig.difficulty <= 1;
+						if (isEasy) {
+							enemy.life.hpMax = Math.ceil(data.hpMax / 2);
+						} else {
+							enemy.life.hpMax = data.hpMax;
+						}
 						enemy.life.hp = enemy.life.hpMax;
 						data.body(enemy);
 						

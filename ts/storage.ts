@@ -20,6 +20,7 @@ module jp.osakana4242.kimiko {
 			isBgmEnabled: boolean;
 			fps: number;
 			isFpsVisible: boolean;
+			difficulty: number;
 		}
 
 		export interface IUserMap {
@@ -47,6 +48,7 @@ module jp.osakana4242.kimiko {
 					"isBgmEnabled": app.env.isPc,
 					"fps":          app.config.fps || app.env.isPc ? 60 : 20,
 					"isFpsVisible": true,
+					"difficulty": 1,
 				},
 				"userMaps": {},
 			};

@@ -940,7 +940,8 @@ var jp;
                             "isSeEnabled": jp.osakana4242.kimiko.app.env.isPc,
                             "isBgmEnabled": jp.osakana4242.kimiko.app.env.isPc,
                             "fps": jp.osakana4242.kimiko.app.config.fps || jp.osakana4242.kimiko.app.env.isPc ? 60 : 20,
-                            "isFpsVisible": true
+                            "isFpsVisible": true,
+                            "difficulty": 1
                         },
                         "userMaps": {}
                     };
@@ -3286,20 +3287,22 @@ var jp;
 
                         var scene = this;
 
-                        var btnHeight = 48;
+                        var btnHeight = 40;
+                        var margin = 4;
                         var tmpY = 24;
 
                         var items = {};
 
-                        // サウンドをサポートしてるときのみ表示.
+                        addItem("difficulty", "DIFFICULTY");
+                        tmpY += btnHeight + margin;
                         addItem("isBgmEnabled", "BGM");
-                        tmpY += 56;
+                        tmpY += btnHeight + margin;
                         addItem("isSeEnabled", "SE");
-                        tmpY += 56;
+                        tmpY += btnHeight + margin;
                         addItem("fps", "FPS");
-                        tmpY += 56;
+                        tmpY += btnHeight + margin;
                         addItem("isFpsVisible", "FPS VISIBLE");
-                        tmpY += 56;
+                        tmpY += btnHeight + margin;
 
                         var backBtn = (function () {
                             var spr = new enchant.Label("TO TITLE");
@@ -3409,6 +3412,9 @@ var jp;
                         function onAddValue(key, diff) {
                             return function () {
                                 switch (key) {
+                                    case "difficulty":
+                                        userConfig.difficulty = app.numberUtil.trim(userConfig.difficulty + diff, 1, 2);
+                                        break;
                                     case "isSeEnabled":
                                         userConfig.isSeEnabled = !userConfig.isSeEnabled;
                                         app.sound.setSeEnabled(userConfig.isSeEnabled);
@@ -3435,7 +3441,15 @@ var jp;
                             };
                         }
 
+                        var difficulties = {
+                            "1": "EASY",
+                            "2": "MEDIUM"
+                        };
+
                         var labelUpdaters = {
+                            "difficulty": function () {
+                                items["difficulty"].valueLabel.text = difficulties[userConfig.difficulty];
+                            },
                             "isSeEnabled": function () {
                                 items["isSeEnabled"].valueLabel.text = userConfig.isSeEnabled ? "ON" : "OFF";
                             },
@@ -3887,7 +3901,12 @@ var jp;
                                     var enemy = new jp.osakana4242.kimiko.game.Enemy();
                                     enemy.tl.unloop().clear();
                                     enemy.enemyId = enemyId;
-                                    enemy.life.hpMax = data.hpMax;
+                                    var isEasy = app.storage.root.userConfig.difficulty <= 1;
+                                    if (isEasy) {
+                                        enemy.life.hpMax = Math.ceil(data.hpMax / 2);
+                                    } else {
+                                        enemy.life.hpMax = data.hpMax;
+                                    }
                                     enemy.life.hp = enemy.life.hpMax;
                                     data.body(enemy);
 

@@ -16,7 +16,8 @@ module jp.osakana4242.kimiko.scenes {
 
 			var scene = this;
 
-			var btnHeight = 48;
+			var btnHeight = 40;
+			var margin = 4;
 			var tmpY = 24;
 
 	
@@ -27,15 +28,16 @@ module jp.osakana4242.kimiko.scenes {
 				rightBtn: any;
 			}} = {};
 
-			// サウンドをサポートしてるときのみ表示.
+			addItem("difficulty", "DIFFICULTY");
+			tmpY += btnHeight + margin;
 			addItem("isBgmEnabled", "BGM");
-			tmpY += 56;
+			tmpY += btnHeight + margin;
 			addItem("isSeEnabled", "SE");
-			tmpY += 56;
+			tmpY += btnHeight + margin;
 			addItem("fps", "FPS");
-			tmpY += 56;
+			tmpY += btnHeight + margin;
 			addItem("isFpsVisible", "FPS VISIBLE");
-			tmpY += 56;
+			tmpY += btnHeight + margin;
 
 			var backBtn = (() => {
 				var spr = new enchant.Label("TO TITLE");
@@ -148,6 +150,9 @@ module jp.osakana4242.kimiko.scenes {
 			function onAddValue(key: string, diff: number) {
 				return () => {
 					switch(key) {
+					case "difficulty":
+						userConfig.difficulty = app.numberUtil.trim(userConfig.difficulty + diff, 1, 2);
+						break;
 					case "isSeEnabled":
 						userConfig.isSeEnabled = !userConfig.isSeEnabled;
 						app.sound.setSeEnabled(userConfig.isSeEnabled);
@@ -174,7 +179,15 @@ module jp.osakana4242.kimiko.scenes {
 				};
 			}
 
+			var difficulties = {
+				"1": "EASY",
+				"2": "MEDIUM",
+			};
+
 			var labelUpdaters = {
+				"difficulty": () => {
+					items["difficulty"].valueLabel.text = difficulties[userConfig.difficulty];
+				},
 				"isSeEnabled": () => {
 					items["isSeEnabled"].valueLabel.text = userConfig.isSeEnabled ? "ON" : "OFF";
 				},
