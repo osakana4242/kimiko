@@ -5,14 +5,14 @@ declare var enchant: any;
 
 module jp.osakana4242.kimiko.scenes {
 	
-	var app = jp.osakana4242.kimiko.app;
+	var g_app = jp.osakana4242.kimiko.g_app;
 	var DF = jp.osakana4242.kimiko.DF;
 
 	export var Config: any = enchant.Class.create(enchant.Scene, {
 		initialize: function () {
 			enchant.Scene.call(this);
 			
-			app.sound.stopBgm();
+			g_app.sound.stopBgm();
 
 			var scene = this;
 
@@ -63,7 +63,7 @@ module jp.osakana4242.kimiko.scenes {
 				switch (key) {
 				case "isBgmEnabled":
 				case "isSeEnabled":
-					if (!app.env.isSoundEnabled) {
+					if (!g_app.env.isSoundEnabled) {
 						isAdd = false;
 					}
 					break;
@@ -75,15 +75,15 @@ module jp.osakana4242.kimiko.scenes {
 					scene.addChild(item.rightBtn);
 				}
 			}
-			app.addTestHudTo(this);
+			g_app.addTestHudTo(this);
 			//
 	
 			//
 			var fader = new Fader(this);
 			fader.setBlack(true);
-			fader.fadeIn(app.secToFrame(0.1));
+			fader.fadeIn(g_app.secToFrame(0.1));
 
-			var userConfig = app.storage.root.userConfig;
+			var userConfig = g_app.storage.root.userConfig;
 
 			var oldUserConfig = {};
 			for (var key in userConfig) {
@@ -151,23 +151,23 @@ module jp.osakana4242.kimiko.scenes {
 				return () => {
 					switch(key) {
 					case "difficulty":
-						userConfig.difficulty = app.numberUtil.trim(userConfig.difficulty + diff, 1, 2);
+						userConfig.difficulty = g_app.numberUtil.trim(userConfig.difficulty + diff, 1, 2);
 						break;
 					case "isSeEnabled":
 						userConfig.isSeEnabled = !userConfig.isSeEnabled;
-						app.sound.setSeEnabled(userConfig.isSeEnabled);
+						g_app.sound.setSeEnabled(userConfig.isSeEnabled);
 						break;
 					case "isBgmEnabled":
 						userConfig.isBgmEnabled = !userConfig.isBgmEnabled;
-						app.sound.setBgmEnabled(userConfig.isBgmEnabled);
-						app.sound.playBgm(Assets.SOUND_BGM, false);
+						g_app.sound.setBgmEnabled(userConfig.isBgmEnabled);
+						g_app.sound.playBgm(Assets.SOUND_BGM, false);
 						break;
 					case "fps":
-						userConfig.fps = app.numberUtil.trim(userConfig.fps + (diff * 20), 20, 60);
+						userConfig.fps = g_app.numberUtil.trim(userConfig.fps + (diff * 20), 20, 60);
 						break;
 					case "isFpsVisible":
 						userConfig.isFpsVisible = !userConfig.isFpsVisible;
-						app.addTestHudTo(scene);
+						g_app.addTestHudTo(scene);
 						break;
 					default:
 						return;
@@ -175,7 +175,7 @@ module jp.osakana4242.kimiko.scenes {
 					if (labelUpdaters[key]) {
 						labelUpdaters[key]();
 					}
-					app.sound.playSe(Assets.SOUND_SE_CURSOR);
+					g_app.sound.playSe(Assets.SOUND_SE_CURSOR);
 				};
 			}
 
@@ -203,8 +203,8 @@ module jp.osakana4242.kimiko.scenes {
 			};
 
 			function gotoTitle() {
-				app.sound.playSe(Assets.SOUND_SE_OK);
-				app.storage.save();
+				g_app.sound.playSe(Assets.SOUND_SE_OK);
+				g_app.storage.save();
 
 				var isReload = false;
 				for (var key in userConfig) {
@@ -217,12 +217,12 @@ module jp.osakana4242.kimiko.scenes {
 				}
 
 				if (isReload) {
-					fader.fadeOut(app.secToFrame(1.0), () => {
+					fader.fadeOut(g_app.secToFrame(1.0), () => {
 						window.location.reload();
 					});
 				} else {
-					fader.fadeOut(app.secToFrame(0.1), () => {
-						app.core.replaceScene(new scenes.Title());
+					fader.fadeOut(g_app.secToFrame(0.1), () => {
+						g_app.core.replaceScene(new scenes.Title());
 					});
 				}
 			};

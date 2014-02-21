@@ -44,9 +44,9 @@ module jp.osakana4242.kimiko {
 			this.defaultRoot = {
 				"version": Storage.storageVersion,
 				"userConfig": {
-					"isSeEnabled":  app.env.isPc,
-					"isBgmEnabled": app.env.isPc,
-					"fps":          app.config.fps || app.env.isPc ? 60 : 20,
+					"isSeEnabled":  g_app.env.isPc,
+					"isBgmEnabled": g_app.env.isPc,
+					"fps":          g_app.config.fps || g_app.env.isPc ? 60 : 20,
 					"isFpsVisible": true,
 					"difficulty": 1,
 				},

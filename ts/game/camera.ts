@@ -2,7 +2,7 @@
 
 module jp.osakana4242.kimiko.scenes {
 
-	var app = jp.osakana4242.kimiko.app;
+	var g_app = jp.osakana4242.kimiko.g_app;
 
 	export var Camera: any = enchant.Class.create(enchant.Node, {
 		initialize: function () {
@@ -71,7 +71,7 @@ module jp.osakana4242.kimiko.scenes {
 		onenterframe: function () {
 			var camera = this;
 			var tp = this.calcTargetPos();
-			var speed = app.dpsToDpf(3 * 60);
+			var speed = g_app.dpsToDpf(3 * 60);
 			var dv = utils.Vector2D.alloc(
 				tp.x - camera.x,
 				tp.y - camera.y

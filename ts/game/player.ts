@@ -3,7 +3,7 @@
 
 module jp.osakana4242.kimiko.game {
 
-	var app = jp.osakana4242.kimiko.app;
+	var g_app = jp.osakana4242.kimiko.g_app;
 
 	/**
 		force 自然な力
@@ -18,10 +18,10 @@ module jp.osakana4242.kimiko.game {
 				this.dirX = 1;
 				
 				this.bodyStyles = (() => {
-					var animWalk = app.getAnimFrames(DF.ANIM_ID_CHARA001_WALK);
-					var animStand = app.getAnimFrames(DF.ANIM_ID_CHARA001_STAND);
-					var animSquat = app.getAnimFrames(DF.ANIM_ID_CHARA001_SQUAT);
-					var animDead = app.getAnimFrames(DF.ANIM_ID_CHARA001_DEAD);
+					var animWalk = g_app.getAnimFrames(DF.ANIM_ID_CHARA001_WALK);
+					var animStand = g_app.getAnimFrames(DF.ANIM_ID_CHARA001_STAND);
+					var animSquat = g_app.getAnimFrames(DF.ANIM_ID_CHARA001_SQUAT);
+					var animDead = g_app.getAnimFrames(DF.ANIM_ID_CHARA001_DEAD);
 					this.anim.sequence = animWalk;
 	
 					var colliderA = utils.Collider.centerBottom(this, 12, 28);
@@ -70,7 +70,7 @@ module jp.osakana4242.kimiko.game {
 				this.life = new game.Life(this);
 				this.life.hpMax = DF.PLAYER_HP;
 				this.life.hp = this.life.hpMax;
-				this.life.setGhostFrameMax(app.secToFrame(1.5));
+				this.life.setGhostFrameMax(g_app.secToFrame(1.5));
 
 				this.gravityHoldCounter = 0;
 				this.touchStartAnchor = new utils.Vector2D();
@@ -132,7 +132,7 @@ module jp.osakana4242.kimiko.game {
 
 			searchEnemy: function () {
 				var scene = this.scene;
-				if ((this.age % app.secToFrame(0.2)) === 0) {
+				if ((this.age % g_app.secToFrame(0.2)) === 0) {
 					// TODO: ロックオン済みの敵がいる場合は索敵間隔を遅らせたほうがいいかも.
 					// 近い敵を探す.
 					var srect = utils.Rect.alloc();
@@ -162,9 +162,9 @@ module jp.osakana4242.kimiko.game {
 							this.targetEnemy = null;
 						} else {
 							// ロックオン状態. 常に敵を見る.
-							this.dirX = app.numberUtil.sign(this.targetEnemy.x - this.x);
+							this.dirX = g_app.numberUtil.sign(this.targetEnemy.x - this.x);
 							this.scaleX = this.dirX;
-							if ((this.age % app.secToFrame(0.2)) === 0) {
+							if ((this.age % g_app.secToFrame(0.2)) === 0) {
 								// TODO: 敵同様にweaponクラス化.
 								var srect = utils.Rect.alloc();
 								srect.width = DF.SC1_W;
@@ -188,16 +188,16 @@ module jp.osakana4242.kimiko.game {
 			},
 
 			attack: function () {
-				if (!app.config.isFireEnabled) {
+				if (!g_app.config.isFireEnabled) {
 					return;
 				}
 				var bullet = this.scene.newOwnBullet();
 				if (bullet === null) {
 					return;
 				}
-				app.sound.playSe(Assets.SOUND_SE_SHOT);
+				g_app.sound.playSe(Assets.SOUND_SE_SHOT);
 				bullet.scaleX = this.scaleX;
-				bullet.force.x = this.dirX * app.dpsToDpf(6 * 60);
+				bullet.force.x = this.dirX * g_app.dpsToDpf(6 * 60);
 				bullet.force.y = 0;
 				bullet.center.x = this.center.x + this.scaleX * (this.bodyStyle.muzzlePos.x - (this.width / 2));
 				bullet.center.y = this.center.y + this.scaleY * (this.bodyStyle.muzzlePos.y - (this.height / 2));
@@ -238,7 +238,7 @@ module jp.osakana4242.kimiko.game {
 
 				if (!this.targetEnemy) {
 					if (0 !== this.inputForce.x) {
-						this.dirX = app.numberUtil.sign(this.inputForce.x);
+						this.dirX = g_app.numberUtil.sign(this.inputForce.x);
 						this.scaleX = this.dirX;
 					}
 				}
@@ -253,8 +253,8 @@ module jp.osakana4242.kimiko.game {
 				if (0 < this.gravityHoldCounter) {
 					--this.gravityHoldCounter;
 				} else {
-					var gravityMax = app.dpsToDpf(60 * 8)
-					this.force.y = Math.min(this.force.y + app.dpsToDpf(DF.GRAVITY), gravityMax);
+					var gravityMax = g_app.dpsToDpf(60 * 8)
+					this.force.y = Math.min(this.force.y + g_app.dpsToDpf(DF.GRAVITY), gravityMax);
 				}
 	
 				var totalMx = this.force.x;
@@ -344,24 +344,24 @@ module jp.osakana4242.kimiko.game {
 			},
 
 			checkKeyInput: function () {
-				var input = app.core.input;
+				var input = g_app.core.input;
 				var flag =
 					((input.left  ? 1 : 0) << 0) |
 					((input.right ? 1 : 0) << 1) |
 					((input.up    ? 1 : 0) << 2) |
 					((input.down  ? 1 : 0) << 3);
-				this.isSlowMove = app.core.input.a;
+				this.isSlowMove = g_app.core.input.a;
 				if (flag !== 0) {
 					if (this.isSlowMove) {
-						this.inputForce.x = DF.DIR_FLAG_TO_VECTOR2D[flag].x * app.dpsToDpf(2 * 60);
-						this.inputForce.y = DF.DIR_FLAG_TO_VECTOR2D[flag].y * app.dpsToDpf(2 * 60);
+						this.inputForce.x = DF.DIR_FLAG_TO_VECTOR2D[flag].x * g_app.dpsToDpf(2 * 60);
+						this.inputForce.y = DF.DIR_FLAG_TO_VECTOR2D[flag].y * g_app.dpsToDpf(2 * 60);
 					} else {
-						this.inputForce.x = DF.DIR_FLAG_TO_VECTOR2D[flag].x * app.dpsToDpf(4 * 60);
-						this.inputForce.y = DF.DIR_FLAG_TO_VECTOR2D[flag].y * app.dpsToDpf(4 * 60);
+						this.inputForce.x = DF.DIR_FLAG_TO_VECTOR2D[flag].x * g_app.dpsToDpf(4 * 60);
+						this.inputForce.y = DF.DIR_FLAG_TO_VECTOR2D[flag].y * g_app.dpsToDpf(4 * 60);
 					}
 				}
 				if (this.isSlowMove || flag !== 0) {
-					this.gravityHoldCounter = app.secToFrame(DF.GRAVITY_HOLD_SEC);
+					this.gravityHoldCounter = g_app.secToFrame(DF.GRAVITY_HOLD_SEC);
 				}
 			},
 
@@ -371,7 +371,7 @@ module jp.osakana4242.kimiko.game {
 				var touch: utils.Touch = scene.touch;
 				if (touch.isTouching) {
 					var moveLimit = DF.TOUCH_TO_CHARA_MOVE_LIMIT;
-					var moveRate = app.config.swipeToMoveRate;
+					var moveRate = g_app.config.swipeToMoveRate;
 					if (DF.PLAYER_TOUCH_ANCHOR_ENABLE) {
 						var tv = utils.Vector2D.alloc(
 							player.touchStartAnchor.x + touch.totalDiff.x * moveRate.x,
@@ -388,10 +388,10 @@ module jp.osakana4242.kimiko.game {
 						utils.Vector2D.free(tv);
 						utils.Vector2D.free(v);
 					} else {
-						player.inputForce.x = app.numberUtil.trim(touch.diff.x * moveRate.x, -moveLimit, moveLimit);
-						player.inputForce.y = app.numberUtil.trim(touch.diff.y * moveRate.y, -moveLimit, moveLimit);
+						player.inputForce.x = g_app.numberUtil.trim(touch.diff.x * moveRate.x, -moveLimit, moveLimit);
+						player.inputForce.y = g_app.numberUtil.trim(touch.diff.y * moveRate.y, -moveLimit, moveLimit);
 					}
-					this.gravityHoldCounter = app.secToFrame(DF.GRAVITY_HOLD_SEC);
+					this.gravityHoldCounter = g_app.secToFrame(DF.GRAVITY_HOLD_SEC);
 				}
 			},
 
@@ -404,10 +404,10 @@ module jp.osakana4242.kimiko.game {
 				var t1y = sy - 64;
 				var dx = - player.dirX;
 				player.tl.
-					moveBy(dx * 96 * 0.25, -96 * 0.8, app.secToFrame(0.2), enchant.Easing.LINEAR).
-					moveBy(dx * 96 * 0.25, -96 * 0.2, app.secToFrame(0.2), enchant.Easing.LINEAR).
-					moveBy(dx * 96 * 0.25,  32 * 0.2, app.secToFrame(0.3), enchant.Easing.LINEAR).
-					moveBy(dx * 96 * 0.25,  32 * 0.8, app.secToFrame(0.3), enchant.Easing.LINEAR).
+					moveBy(dx * 96 * 0.25, -96 * 0.8, g_app.secToFrame(0.2), enchant.Easing.LINEAR).
+					moveBy(dx * 96 * 0.25, -96 * 0.2, g_app.secToFrame(0.2), enchant.Easing.LINEAR).
+					moveBy(dx * 96 * 0.25,  32 * 0.2, g_app.secToFrame(0.3), enchant.Easing.LINEAR).
+					moveBy(dx * 96 * 0.25,  32 * 0.8, g_app.secToFrame(0.3), enchant.Easing.LINEAR).
 					hide();
 			},
 

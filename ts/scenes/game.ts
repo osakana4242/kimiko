@@ -13,7 +13,7 @@ declare var enchant: any;
 
 module jp.osakana4242.kimiko.scenes {
 
-	var app = jp.osakana4242.kimiko.app;
+	var g_app = jp.osakana4242.kimiko.g_app;
 	var DF = jp.osakana4242.kimiko.DF;
 
 	export var Game: any = enchant.Class.create(enchant.Scene, {
@@ -46,7 +46,7 @@ module jp.osakana4242.kimiko.scenes {
 			this.map = map;
 			this.mapOption = {};
 			map.name = "map";
-			map.image = app.core.assets[Assets.IMAGE_MAP];
+			map.image = g_app.core.assets[Assets.IMAGE_MAP];
 			map.x = 0;
 			map.y = 0;
 			if (map._style) {
@@ -108,8 +108,8 @@ module jp.osakana4242.kimiko.scenes {
 					spr.x = DF.SC2_W - 56;
 					spr.y = DF.SC2_H - 56;
 					spr.addEventListener(enchant.Event.TOUCH_END, () => {
-						app.sound.playSe(Assets.SOUND_SE_OK);
-						app.core.pushScene(app.pauseScene);
+						g_app.sound.playSe(Assets.SOUND_SE_OK);
+						g_app.core.pushScene(g_app.pauseScene);
 					});
 					return spr;
 				})();
@@ -163,7 +163,7 @@ module jp.osakana4242.kimiko.scenes {
 		// スコアリセット、プレイヤーHP回復。
 		initPlayerStatus: function () {
 			var scene = this;
-			var pd = app.playerData;
+			var pd = g_app.playerData;
 			var player = this.player;
 			player.reset();
 			player.life.hpMax = pd.hpMax;
@@ -234,20 +234,20 @@ module jp.osakana4242.kimiko.scenes {
 			this.clear();
 			this.initPlayerStatus();
 			this.world.addChild(this.player);
-			this.loadMapData( jp.osakana4242.kimiko["mapData" + app.playerData.mapId] );
+			this.loadMapData( jp.osakana4242.kimiko["mapData" + g_app.playerData.mapId] );
 
 			scene.fader.setBlack(true);
-			//scene.fader.fadeIn(app.secToFrame(0.2));
+			//scene.fader.fadeIn(g_app.secToFrame(0.2));
 			var player = scene.player;
 			var camera = scene.camera;
-			scene.fader.fadeIn2(app.secToFrame(0.2), camera.getTargetPosOnCamera());
+			scene.fader.fadeIn2(g_app.secToFrame(0.2), camera.getTargetPosOnCamera());
 
 			scene.state = scene.stateNormal;
 			// scene.state = scene.stateGameClear;
 
-			app.sound.playBgm(Assets.SOUND_BGM, false);
+			g_app.sound.playBgm(Assets.SOUND_BGM, false);
 
-			app.addTestHudTo(this);
+			g_app.addTestHudTo(this);
 		},
 					
 		stateNormal: function () {
@@ -274,15 +274,15 @@ module jp.osakana4242.kimiko.scenes {
 		},
 
 		stateGameOver: function () {
-			var pd = app.playerData;
+			var pd = g_app.playerData;
 			//
-			var userMap = app.storage.getUserMapForUpdate(pd.mapId);
+			var userMap = g_app.storage.getUserMapForUpdate(pd.mapId);
 			userMap.playCount += 1;
-			app.storage.save();
+			g_app.storage.save();
 			//
 			pd.reset();
 			//
-			app.core.pushScene(new GameOver());
+			g_app.core.pushScene(new GameOver());
 			this.state = this.stateGameStart;
 		},
 
@@ -290,16 +290,16 @@ module jp.osakana4242.kimiko.scenes {
 			
 		*/
 		stateGameClear: function () {
-			var pd = app.playerData;
+			var pd = g_app.playerData;
 			//
-			var userMap = app.storage.getUserMapForUpdate(pd.mapId);
+			var userMap = g_app.storage.getUserMapForUpdate(pd.mapId);
 			userMap.playCount += 1;
-			app.storage.save();
+			g_app.storage.save();
 			//
 			pd.hp = this.player.life.hp;
 			var mapOption: IMapOption = this.mapOption;
 			if (mapOption.nextMapId === 0) {
-				app.core.pushScene(new GameClear());
+				g_app.core.pushScene(new GameClear());
 				this.state = this.stateGameStart;
 			} else {
 				pd.mapId = mapOption.nextMapId;
@@ -309,7 +309,7 @@ module jp.osakana4242.kimiko.scenes {
 
 				var player = this.player;
 				var camera = this.camera;
-				this.fader.fadeOut2(app.secToFrame(0.5), camera.getTargetPosOnCamera(), () => {
+				this.fader.fadeOut2(g_app.secToFrame(0.5), camera.getTargetPosOnCamera(), () => {
 					this.state = this.stateGameStart;
 				});
 			}
@@ -320,7 +320,7 @@ module jp.osakana4242.kimiko.scenes {
 		
 		loadMapData: function (mapData: utils.IMapData) {
 			var map = this.map;
-			var mapOption: IMapOption = DF.MAP_OPTIONS[app.playerData.mapId];
+			var mapOption: IMapOption = DF.MAP_OPTIONS[g_app.playerData.mapId];
 			for (var key in mapOption) {
 				this.mapOption[key] = mapOption[key];
 			}
@@ -399,7 +399,7 @@ module jp.osakana4242.kimiko.scenes {
 						var enemy = new game.Enemy();
 						enemy.tl.unloop().clear();
 						enemy.enemyId = enemyId;
-						var isEasy = app.storage.root.userConfig.difficulty <= 1;
+						var isEasy = g_app.storage.root.userConfig.difficulty <= 1;
 						if (isEasy) {
 							enemy.life.hpMax = Math.ceil(data.hpMax / 2);
 						} else {
@@ -474,7 +474,7 @@ module jp.osakana4242.kimiko.scenes {
 			if (effect === null) {
 				return;
 			}
-			effect.anim.sequence = app.getAnimFrames(animId);
+			effect.anim.sequence = g_app.getAnimFrames(animId);
 			effect.center.set(pos);
 			effect.x += -1 + Math.random() * 3;
 			effect.y += -1 + Math.random() * 3;
@@ -486,7 +486,7 @@ module jp.osakana4242.kimiko.scenes {
 			var scene = this;
 
 			// ゲームオーバーカウント開始.
-			scene.gameOverFrameMax = app.secToFrame(1.0);
+			scene.gameOverFrameMax = g_app.secToFrame(1.0);
 			scene.gameOverFrameCounter = 0;
 		},
 
@@ -501,7 +501,7 @@ module jp.osakana4242.kimiko.scenes {
 				break;
 			case "enemy_zero":
 				// ゲームクリアカウント開始.
-				scene.clearFrameMax = app.secToFrame(3.0);
+				scene.clearFrameMax = g_app.secToFrame(3.0);
 				scene.clearFrameCounter = 0;
 				break;
 			default:
@@ -542,7 +542,7 @@ module jp.osakana4242.kimiko.scenes {
 			if (!bullet) {
 				return null;
 			}
-			bullet.ageMax = app.secToFrame(5);
+			bullet.ageMax = g_app.secToFrame(5);
 			this.world.addChild(bullet);
 			return bullet;
 		},
@@ -552,7 +552,7 @@ module jp.osakana4242.kimiko.scenes {
 			if (!bullet) {
 				return null;
 			}
-			bullet.ageMax = app.secToFrame(0.4);
+			bullet.ageMax = g_app.secToFrame(0.4);
 			this.world.addChild(bullet);
 			return bullet;
 		},
@@ -568,7 +568,7 @@ module jp.osakana4242.kimiko.scenes {
 		},
 		
 		countTimeLimit: function () {
-			var pd = app.playerData;
+			var pd = g_app.playerData;
 			if (pd.restTimeCounter <= 0) {
 				return;
 			}
@@ -579,12 +579,12 @@ module jp.osakana4242.kimiko.scenes {
 		updateStatusText: function () {
 			var scene = this;
 			var player = this.player;
-			var pd = app.playerData;
+			var pd = g_app.playerData;
 			var mapCharaMgr: game.MapCharaManager = this.mapCharaMgr;
 			var texts: string[][] = this.statusTexts;
-			var lifeText = app.stringUtil.mul("o", player.life.hp) + utils.StringUtil.mul("_", player.life.hpMax - player.life.hp);
-			texts[0][0] = "SC " + app.playerData.score + " " +
-				"TIME " + Math.floor(app.frameToSec(pd.restTimeCounter));	
+			var lifeText = g_app.stringUtil.mul("o", player.life.hp) + utils.StringUtil.mul("_", player.life.hpMax - player.life.hp);
+			texts[0][0] = "SC " + g_app.playerData.score + " " +
+				"TIME " + Math.floor(g_app.frameToSec(pd.restTimeCounter));	
 			texts[1][0] = "LIFE " + lifeText + " " +
 				"WALL " + player.wallPushDir.x + "," + player.wallPushDir.y + " " +
 				(player.targetEnemy ? "LOCK" : "    ") + " " +
@@ -684,7 +684,7 @@ module jp.osakana4242.kimiko.scenes {
 					if (player.life.isDead) {
 						this.onPlayerDead();
 					}
-					app.sound.playSe(Assets.SOUND_SE_HIT);
+					g_app.sound.playSe(Assets.SOUND_SE_HIT);
 					this.addEffect(DF.ANIM_ID_DAMAGE, bullet.center);
 					bullet.free();
 				}
@@ -700,7 +700,7 @@ module jp.osakana4242.kimiko.scenes {
 					if (player.life.isDead) {
 						this.onPlayerDead();
 					}
-					app.sound.playSe(Assets.SOUND_SE_HIT);
+					g_app.sound.playSe(Assets.SOUND_SE_HIT);
 					this.addEffect(DF.ANIM_ID_DAMAGE, player.center);
 				}
 			}
@@ -714,19 +714,19 @@ module jp.osakana4242.kimiko.scenes {
 						enemy.life.canAddDamage &&
 						enemy.collider.intersect(bullet.collider)) {
 						enemy.life.addDamage(1);
-						app.playerData.score += 10;
+						g_app.playerData.score += 10;
 						if (enemy.life.isDead) {
 							var ed: game.IEnemyData = enemy.enemyData;
-							app.playerData.score += ed.score;
+							g_app.playerData.score += ed.score;
 							if (mapCharaMgr.isAllDead()) {
 								scene.onAllEnemyDead();
 							}
 						}
 						if (!enemy.life.isDead) {
-							app.sound.playSe(Assets.SOUND_SE_HIT);
+							g_app.sound.playSe(Assets.SOUND_SE_HIT);
 							this.addEffect(DF.ANIM_ID_DAMAGE, bullet.center);
 						} else {
-							app.sound.playSe(Assets.SOUND_SE_KILL);
+							g_app.sound.playSe(Assets.SOUND_SE_KILL);
 						}
 						bullet.free();
 					}

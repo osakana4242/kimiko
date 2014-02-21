@@ -64,28 +64,27 @@ module jp.osakana4242.kimiko {
 		isInited: boolean = false;
 
 		constructor() {
-			var app = this;
-			app.env = new Env();
+			this.env = new Env();
 		}
 
 		public init(config: IConfig) {
-			if (app.isInited) {
+			if (g_app.isInited) {
 				return;
 			}
-			app.isInited = true;
-			app.config = config;
-			app.storage = new Storage();
-			if (app.config.isClearStorage) {
-				app.storage.clear();
+			g_app.isInited = true;
+			g_app.config = config;
+			g_app.storage = new Storage();
+			if (g_app.config.isClearStorage) {
+				g_app.storage.clear();
 			}
-			app.storage.load();
-			app.storage.save();
-			app.sound = new Sound();
-			app.sound.setBgmEnabled(app.storage.root.userConfig.isBgmEnabled);
-			app.sound.setSeEnabled(app.storage.root.userConfig.isSeEnabled);
+			g_app.storage.load();
+			g_app.storage.save();
+			g_app.sound = new Sound();
+			g_app.sound.setBgmEnabled(g_app.storage.root.userConfig.isBgmEnabled);
+			g_app.sound.setSeEnabled(g_app.storage.root.userConfig.isSeEnabled);
 
 			var core: any = new enchant.Core(DF.SC_W, DF.SC_H);
-			core.fps = app.storage.root.userConfig.fps;
+			core.fps = g_app.storage.root.userConfig.fps;
 			// preload
 			for (var key in Assets) {
 				if (!Assets.hasOwnProperty(key)) {
@@ -99,7 +98,7 @@ module jp.osakana4242.kimiko {
 				Assets[key] = newPath;
 				//
 				var isSound = ext === ".mp3";
-				if (!app.env.isSoundEnabled && isSound) {
+				if (!g_app.env.isSoundEnabled && isSound) {
 					// 音鳴らさないので読み込みをスキップ.
 					continue;
 				}
@@ -147,7 +146,7 @@ module jp.osakana4242.kimiko {
 					},
 				];
 				for(var i = 0, iNum = SOUND_INFOS.length; i < iNum; ++i) {
-					app.sound.add(SOUND_INFOS[i]);
+					g_app.sound.add(SOUND_INFOS[i]);
 				}
 			})();
 
@@ -155,7 +154,7 @@ module jp.osakana4242.kimiko {
 			(() => {
 				var r = (animId: number, imageName: string, frameWidth: number, frameHeight: number, frameSec: number, frames: number[]) => {
 					var seq = new utils.AnimSequence(imageName, frameWidth, frameHeight, frameSec, frames);
-					app.registerAnimFrames(animId, seq);
+					g_app.registerAnimFrames(animId, seq);
 				}
 				r(DF.ANIM_ID_CHARA001_WALK,  Assets.IMAGE_CHARA001, 32, 32, 0.1, [0, 1, 0, 2]);
 				r(DF.ANIM_ID_CHARA001_STAND, Assets.IMAGE_CHARA001, 32, 32, 0.1, [0]);
@@ -184,39 +183,39 @@ module jp.osakana4242.kimiko {
 
 			//
 			core.onload = (() => {
-				app.playerData = new jp.osakana4242.kimiko.PlayerData();
+				g_app.playerData = new jp.osakana4242.kimiko.PlayerData();
 
-				app.testHud = new TestHud();
-				app.gameScene = new jp.osakana4242.kimiko.scenes.Game();
-				app.pauseScene = new jp.osakana4242.kimiko.scenes.Pause();
+				g_app.testHud = new TestHud();
+				g_app.gameScene = new jp.osakana4242.kimiko.scenes.Game();
+				g_app.pauseScene = new jp.osakana4242.kimiko.scenes.Pause();
 				if (true) {
 					var scene = new jp.osakana4242.kimiko.scenes.Title();
 					core.replaceScene(scene);
 				} else {
-					app.playerData.reset();
-					app.playerData.mapId = DF.MAP_ID_MAX;
-					core.replaceScene(app.gameScene);
+					g_app.playerData.reset();
+					g_app.playerData.mapId = DF.MAP_ID_MAX;
+					core.replaceScene(g_app.gameScene);
 				}
 			});
 		}
 
 		addTestHudTo(scene: any) {
-			if (app.testHud.parentNode) {
-				app.testHud.parentNode.removeChild(app.testHud);
+			if (g_app.testHud.parentNode) {
+				g_app.testHud.parentNode.removeChild(g_app.testHud);
 			}
-			if (app.storage.root.userConfig.isFpsVisible) {
-				scene.addChild(app.testHud);
+			if (g_app.storage.root.userConfig.isFpsVisible) {
+				scene.addChild(g_app.testHud);
 			}
 		}
 
 		animFrames: { [index: number]: utils.AnimSequence; } = <any>{};
 
 		registerAnimFrames(animId: number, seq: utils.AnimSequence) {
-			app.animFrames[animId] = seq;
+			g_app.animFrames[animId] = seq;
 		}
 
 		getAnimFrames(animId: number) {
-			return app.animFrames[animId];
+			return g_app.animFrames[animId];
 		}
 		
 		get core() {
@@ -224,10 +223,10 @@ module jp.osakana4242.kimiko {
 		}
 		
 		secToFrame(sec: number): number {
-			return app.core.fps * sec;
+			return g_app.core.fps * sec;
 		}
 
-		frameToSec(frame: number): number { return frame / app.core.fps; }
+		frameToSec(frame: number): number { return frame / g_app.core.fps; }
 		
 		/**
 			毎秒Xドット(DotPerSec) を 毎フレームXドット(DotPerFrame) に変換。 
@@ -237,7 +236,7 @@ module jp.osakana4242.kimiko {
 		 */
 		dpsToDpf(dotPerSec: number): number {
 			return dotPerSec
-				? dotPerSec / app.core.fps
+				? dotPerSec / g_app.core.fps
 				: 0;
 		}
 		
@@ -245,7 +244,7 @@ module jp.osakana4242.kimiko {
 			関数名が決まらない. ('A`)
 		*/
 		getFrameCountByHoge(distance: number, dps: number): number {
-			return distance / app.dpsToDpf(dps);
+			return distance / g_app.dpsToDpf(dps);
 		}
 
 		//dotPerSecToDotPerFrame
@@ -270,7 +269,7 @@ module jp.osakana4242.kimiko {
 				var diffSum = 0;
 				var prevTime = getTime();
 
-				var sampleCountMax = app.core.fps;
+				var sampleCountMax = g_app.core.fps;
 				var sampleCount = 0;
 				var fpsMin = 9999;
 				var fpsMax = 0;
@@ -307,13 +306,13 @@ module jp.osakana4242.kimiko {
 		},
 	});
 
-	/** この時点で app.evn は参照可能. */
-	export var app: App = new App();
+	/** この時点で g_app.evn は参照可能. */
+	export var g_app: App = new App();
 
 	/** HTMLから呼ぶ. */
 	export function start(params) {
-		app.init(params);
-		app.core.start();
+		g_app.init(params);
+		g_app.core.start();
 	}
 }
 

@@ -3,14 +3,14 @@
 
 module jp.osakana4242.kimiko.game {
 
-	var app = jp.osakana4242.kimiko.app;
+	var g_app = jp.osakana4242.kimiko.g_app;
 	var DF = jp.osakana4242.kimiko.DF;
 
 	/** 敵弾 */
 	export var EnemyBullet: any = enchant.Class.create(enchant.Sprite, {
 		initialize: function () {
 			enchant.Sprite.call(this, 16, 16);
-			this.anim.sequence = app.getAnimFrames(DF.ANIM_ID_BULLET002);
+			this.anim.sequence = g_app.getAnimFrames(DF.ANIM_ID_BULLET002);
 			this.ageMax = 0;
 			this.force = new utils.Vector2D();
 			this.force.x = 0;

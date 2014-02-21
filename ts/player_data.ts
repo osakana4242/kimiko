@@ -26,7 +26,7 @@ module jp.osakana4242.kimiko {
 			this.score= 0;
 			this.restTimeCounter= 0;
 			this.restTimeMax= 0;
-			this.restTimeMax = app.secToFrame(180);
+			this.restTimeMax = g_app.secToFrame(180);
 			this.restTimeCounter = this.restTimeMax;
 			this.mapId= DF.MAP_ID_MIN;
 		}

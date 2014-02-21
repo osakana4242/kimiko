@@ -124,7 +124,7 @@ module jp.osakana4242.kimiko {
 		}
 
 		public play(channelName: string, assetName: string) {
-			if (!app.env.isSoundEnabled) {
+			if (!g_app.env.isSoundEnabled) {
 				return;
 			}
 
@@ -144,7 +144,7 @@ module jp.osakana4242.kimiko {
 		}
 
 		public stop(channelName: string) {
-			if (!app.env.isSoundEnabled) {
+			if (!g_app.env.isSoundEnabled) {
 				return;
 			}
 			

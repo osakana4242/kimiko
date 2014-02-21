@@ -3,7 +3,7 @@
 
 module jp.osakana4242.kimiko.game {
 	
-	var app = jp.osakana4242.kimiko.app;
+	var g_app = jp.osakana4242.kimiko.g_app;
 
 	/**
 		HPを持つもの.
@@ -26,9 +26,9 @@ module jp.osakana4242.kimiko.game {
 			this.sprite = sprite;
 			this.hpMax = 100;
 			this.hp = this.hpMax;
-			this.ghostFrameMax = app.secToFrame(1.0);
+			this.ghostFrameMax = g_app.secToFrame(1.0);
 			this.ghostFrameCounter = 0;
-			this.damageFrameMax = app.secToFrame(0.2);
+			this.damageFrameMax = g_app.secToFrame(0.2);
 			/** ダメージによる点滅演出用カウンタ. */
 			this.damageFrameCounter = 0;
 		}
@@ -67,7 +67,7 @@ module jp.osakana4242.kimiko.game {
 		public get canAddDamage(): boolean { return this.isAlive && !this.isGhostTime; }
 
 		public addDamage(v: number): void {
-			if (!app.config.isDamageEnabled) {
+			if (!g_app.config.isDamageEnabled) {
 				v = 0;
 			}
 

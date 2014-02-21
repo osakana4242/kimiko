@@ -3,7 +3,7 @@
 
 module jp.osakana4242.kimiko.game {
 	
-	var app = jp.osakana4242.kimiko.app;
+	var g_app = jp.osakana4242.kimiko.g_app;
 
 	export class MapCharaManager {
 		scene: any;

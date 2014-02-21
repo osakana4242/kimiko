@@ -5,7 +5,7 @@ declare var enchant: any;
 
 module jp.osakana4242.kimiko.scenes {
 
-	var app = jp.osakana4242.kimiko.app;
+	var g_app = jp.osakana4242.kimiko.g_app;
 
 	export var GameOver: any = enchant.Class.create(enchant.Scene, {
 		initialize: function () {
@@ -25,8 +25,8 @@ module jp.osakana4242.kimiko.scenes {
 				label.x = ax;
 				label.y = ay;
 				label.tl.
-					moveTo(ax + 0, ay + 8, app.secToFrame(1.0), enchant.Easing.SIN_EASEINOUT).
-					moveTo(ax + 0, ay - 8, app.secToFrame(1.0), enchant.Easing.SIN_EASEINOUT).
+					moveTo(ax + 0, ay + 8, g_app.secToFrame(1.0), enchant.Easing.SIN_EASEINOUT).
+					moveTo(ax + 0, ay - 8, g_app.secToFrame(1.0), enchant.Easing.SIN_EASEINOUT).
 					loop();
 			})(label1);
 			//
@@ -36,7 +36,7 @@ module jp.osakana4242.kimiko.scenes {
 			scene.addChild(layer1);
 			//
 			scene.addEventListener(enchant.Event.TOUCH_END, () => {
-				app.core.popScene();
+				g_app.core.popScene();
 			});
 		}
 	});

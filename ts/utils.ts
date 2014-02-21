@@ -535,7 +535,7 @@ module jp.osakana4242.utils {
 			}
 			
 			this.waitCnt += 1;
-			if (kimiko.app.secToFrame(this.sequence_.frameTime) / this.speed <= this.waitCnt) {
+			if (kimiko.g_app.secToFrame(this.sequence_.frameTime) / this.speed <= this.waitCnt) {
 				this.frameIdx += 1;
 				if (this.sequence_.frameNum <= this.frameIdx) {
 					this.frameIdx = 0;

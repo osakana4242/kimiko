@@ -5,14 +5,14 @@ declare var enchant: any;
 
 module jp.osakana4242.kimiko.scenes {
 	
-	var app = jp.osakana4242.kimiko.app;
+	var g_app = jp.osakana4242.kimiko.g_app;
 	var DF = jp.osakana4242.kimiko.DF;
 
 	export var Title: any = enchant.Class.create(enchant.Scene, {
 		initialize: function () {
 			enchant.Scene.call(this);
 			
-			app.sound.stopBgm();
+			g_app.sound.stopBgm();
 
 			var scene = this;
 			var mapIds = [];
@@ -37,7 +37,7 @@ module jp.osakana4242.kimiko.scenes {
 
 			var player = (() => {
 				var spr = new enchant.Sprite();
-				spr.anim.sequence = app.getAnimFrames(DF.ANIM_ID_CHARA001_WALK);
+				spr.anim.sequence = g_app.getAnimFrames(DF.ANIM_ID_CHARA001_WALK);
 				spr.center.x = DF.SC_W / 2;
 				spr.y = 256;
 				var ax = spr.x;
@@ -49,8 +49,8 @@ module jp.osakana4242.kimiko.scenes {
 					}
 					spr.tl.
 						clear().
-						moveTo(ax, ay - 32, app.secToFrame(0.1), enchant.Easing.CUBIC_EASEOUT).
-						moveTo(ax, ay,      app.secToFrame(0.1), enchant.Easing.CUBIC_EASEIN);
+						moveTo(ax, ay - 32, g_app.secToFrame(0.1), enchant.Easing.CUBIC_EASEOUT).
+						moveTo(ax, ay,      g_app.secToFrame(0.1), enchant.Easing.CUBIC_EASEIN);
 				});
 				return spr;
 			})();
@@ -165,7 +165,7 @@ module jp.osakana4242.kimiko.scenes {
 			scene.addChild(rightBtn);
 			scene.addChild(startBtn);
 			scene.addChild(configBtn);
-			app.addTestHudTo(this);
+			g_app.addTestHudTo(this);
 			//
 			scene.addEventListener(enchant.Event.A_BUTTON_UP, gotoGameStart);
 			scene.addEventListener(enchant.Event.LEFT_BUTTON_UP, prevMap);
@@ -174,34 +174,34 @@ module jp.osakana4242.kimiko.scenes {
 			//
 			var fader = new Fader(this);
 			fader.setBlack(true);
-			fader.fadeIn(app.secToFrame(0.2));
+			fader.fadeIn(g_app.secToFrame(0.2));
 	
 			function nextMap() {
-				app.sound.playSe(Assets.SOUND_SE_CURSOR);
+				g_app.sound.playSe(Assets.SOUND_SE_CURSOR);
 				mapIdsIdx = (mapIdsIdx + mapIds.length + 1) % mapIds.length;
 				updateMapLabel();
 			}
 
 			function prevMap() {
-				app.sound.playSe(Assets.SOUND_SE_CURSOR);
+				g_app.sound.playSe(Assets.SOUND_SE_CURSOR);
 				mapIdsIdx = (mapIdsIdx + mapIds.length - 1) % mapIds.length;
 				updateMapLabel();
 			}
 
 			function gotoConfig() {
-				app.sound.playSe(Assets.SOUND_SE_OK);
-				fader.fadeOut(app.secToFrame(0.1), () => {
-					app.core.replaceScene(new scenes.Config());
+				g_app.sound.playSe(Assets.SOUND_SE_OK);
+				fader.fadeOut(g_app.secToFrame(0.1), () => {
+					g_app.core.replaceScene(new scenes.Config());
 				});
 			};
 
 			function gotoGameStart() {
-				app.sound.playSe(Assets.SOUND_SE_OK);
-				var pd = app.playerData;
+				g_app.sound.playSe(Assets.SOUND_SE_OK);
+				var pd = g_app.playerData;
 				pd.reset();
 				pd.mapId = mapIds[mapIdsIdx];
-				fader.fadeOut(app.secToFrame(0.3), () => {
-					app.core.replaceScene(new scenes.GameStart());
+				fader.fadeOut(g_app.secToFrame(0.3), () => {
+					g_app.core.replaceScene(new scenes.GameStart());
 				});
 			};
 		},

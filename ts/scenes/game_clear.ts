@@ -5,7 +5,7 @@ declare var enchant: any;
 
 module jp.osakana4242.kimiko.scenes {
 
-	var app = jp.osakana4242.kimiko.app;
+	var g_app = jp.osakana4242.kimiko.g_app;
 
 	/**
 		 GAME CLEAR!
@@ -21,7 +21,7 @@ module jp.osakana4242.kimiko.scenes {
 			enchant.Scene.call(this);
 			
 			var scene = this;
-			var pd = app.playerData;
+			var pd = g_app.playerData;
 			//
 			var label1 = new enchant.Label("GAME CLEAR!");
 			((label: any) => {
@@ -36,12 +36,12 @@ module jp.osakana4242.kimiko.scenes {
 				label.y = ay - 8;
 				label.tl.
 					hide().
-					delay(app.secToFrame(0.5)).
+					delay(g_app.secToFrame(0.5)).
 					show().
-					moveTo(ax, ay, app.secToFrame(0.5), enchant.Easing.SIN_EASEOUT);
+					moveTo(ax, ay, g_app.secToFrame(0.5), enchant.Easing.SIN_EASEOUT);
 			})(label1);
 			//
-			var label2 = new enchant.Label("REST TIME " + Math.floor(app.frameToSec(pd.restTimeCounter)));
+			var label2 = new enchant.Label("REST TIME " + Math.floor(g_app.frameToSec(pd.restTimeCounter)));
 			((label: any) => {
 				label.font = DF.FONT_M;
 				label.width = DF.SC_W;
@@ -54,9 +54,9 @@ module jp.osakana4242.kimiko.scenes {
 				label.y = ay - 8;
 				label.tl.
 					hide().
-					delay(app.secToFrame(1.0)).
+					delay(g_app.secToFrame(1.0)).
 					show().
-					moveTo(ax, ay, app.secToFrame(0.5), enchant.Easing.SIN_EASEOUT);
+					moveTo(ax, ay, g_app.secToFrame(0.5), enchant.Easing.SIN_EASEOUT);
 			})(label2);
 
 			var label3 = new enchant.Label("SCORE " + pd.score);
@@ -72,9 +72,9 @@ module jp.osakana4242.kimiko.scenes {
 				label.y = ay - 8;
 				label.tl.
 					hide().
-					delay(app.secToFrame(1.5)).
+					delay(g_app.secToFrame(1.5)).
 					show().
-					moveTo(ax, ay, app.secToFrame(0.5), enchant.Easing.SIN_EASEOUT);
+					moveTo(ax, ay, g_app.secToFrame(0.5), enchant.Easing.SIN_EASEOUT);
 			})(label3);
 
 			//
@@ -86,21 +86,21 @@ module jp.osakana4242.kimiko.scenes {
 			scene.addChild(layer1);
 			//
 			scene.tl.
-				delay(app.secToFrame(3.0)).
+				delay(g_app.secToFrame(3.0)).
 				waitUntil(() => {
-					if (pd.restTimeCounter < app.secToFrame(1)) {
+					if (pd.restTimeCounter < g_app.secToFrame(1)) {
 						return true;
 					}
-					pd.restTimeCounter -= app.secToFrame(1);
+					pd.restTimeCounter -= g_app.secToFrame(1);
 					pd.score += Math.floor(10);
-					label2.text = "REST TIME " + Math.floor(app.frameToSec(pd.restTimeCounter));
+					label2.text = "REST TIME " + Math.floor(g_app.frameToSec(pd.restTimeCounter));
 					label3.text = "SCORE " + pd.score;
 					return false;
 				});
 			//
 			scene.addEventListener(enchant.Event.TOUCH_END, () => {
-				app.core.popScene();
-				app.core.replaceScene(new jp.osakana4242.kimiko.scenes.Title());
+				g_app.core.popScene();
+				g_app.core.replaceScene(new jp.osakana4242.kimiko.scenes.Title());
 			});
 		}
 	});

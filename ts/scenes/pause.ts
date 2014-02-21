@@ -5,7 +5,7 @@ declare var enchant: any;
 
 module jp.osakana4242.kimiko.scenes {
 
-	var app = jp.osakana4242.kimiko.app;
+	var g_app = jp.osakana4242.kimiko.g_app;
 
 	export var Pause: any = enchant.Class.create(enchant.Scene, {
 		initialize: function () {
@@ -30,8 +30,8 @@ module jp.osakana4242.kimiko.scenes {
 				label.x = 0;
 				label.y = 60;
 				label.tl.
-					moveBy(0, -8, app.secToFrame(1.0), enchant.Easing.SIN_EASEINOUT).
-					moveBy(0,  8, app.secToFrame(1.0), enchant.Easing.SIN_EASEINOUT).
+					moveBy(0, -8, g_app.secToFrame(1.0), enchant.Easing.SIN_EASEINOUT).
+					moveBy(0,  8, g_app.secToFrame(1.0), enchant.Easing.SIN_EASEINOUT).
 					loop();
 				return label;
 			})();
@@ -47,9 +47,9 @@ module jp.osakana4242.kimiko.scenes {
 				label.x = (DF.SC_W - label.width) / 2;
 				label.y = 90;
 				label.addEventListener(enchant.Event.TOUCH_END, () => {
-					app.sound.playSe(Assets.SOUND_SE_OK);
-					app.gameScene.state = app.gameScene.stateGameStart;
-					app.core.replaceScene(new scenes.Title());
+					g_app.sound.playSe(Assets.SOUND_SE_OK);
+					g_app.gameScene.state = g_app.gameScene.stateGameStart;
+					g_app.core.replaceScene(new scenes.Title());
 				});
 				return label;
 			})();
@@ -65,7 +65,7 @@ module jp.osakana4242.kimiko.scenes {
 				label.x = (DF.SC_W - label.width) / 2;
 				label.y = 180;
 				label.addEventListener(enchant.Event.TOUCH_END, () => {
-					app.core.popScene();
+					g_app.core.popScene();
 				});
 				return label;
 			})();
