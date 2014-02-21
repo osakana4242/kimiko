@@ -165,6 +165,7 @@ module jp.osakana4242.kimiko.scenes {
 			scene.addChild(rightBtn);
 			scene.addChild(startBtn);
 			scene.addChild(configBtn);
+			app.addTestHudTo(this);
 			//
 			scene.addEventListener(enchant.Event.A_BUTTON_UP, gotoGameStart);
 			scene.addEventListener(enchant.Event.LEFT_BUTTON_UP, prevMap);

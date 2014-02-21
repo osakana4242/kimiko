@@ -17,7 +17,7 @@ module jp.osakana4242.kimiko.scenes {
 			var scene = this;
 
 			var btnHeight = 48;
-			var tmpY = 8;
+			var tmpY = 24;
 
 	
 			var items: {[index: string]: {
@@ -33,6 +33,8 @@ module jp.osakana4242.kimiko.scenes {
 			addItem("isSeEnabled", "SE");
 			tmpY += 56;
 			addItem("fps", "FPS");
+			tmpY += 56;
+			addItem("isFpsVisible", "FPS VISIBLE");
 			tmpY += 56;
 
 			var backBtn = (() => {
@@ -71,6 +73,7 @@ module jp.osakana4242.kimiko.scenes {
 					scene.addChild(item.rightBtn);
 				}
 			}
+			app.addTestHudTo(this);
 			//
 	
 			//
@@ -157,6 +160,10 @@ module jp.osakana4242.kimiko.scenes {
 					case "fps":
 						userConfig.fps = app.numberUtil.trim(userConfig.fps + (diff * 20), 20, 60);
 						break;
+					case "isFpsVisible":
+						userConfig.isFpsVisible = !userConfig.isFpsVisible;
+						app.addTestHudTo(scene);
+						break;
 					default:
 						return;
 					}
@@ -176,6 +183,9 @@ module jp.osakana4242.kimiko.scenes {
 				},
 				"fps": () => {
 					items["fps"].valueLabel.text = userConfig.fps;
+				},
+				"isFpsVisible": () => {
+					items["isFpsVisible"].valueLabel.text = userConfig.isFpsVisible ? "ON": "OFF";
 				},
 			};
 

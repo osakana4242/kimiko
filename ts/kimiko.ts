@@ -59,6 +59,7 @@ module jp.osakana4242.kimiko {
 		playerData: PlayerData;
 		gameScene: any;
 		pauseScene: any;
+		testHud: any;
 
 		isInited: boolean = false;
 
@@ -184,6 +185,8 @@ module jp.osakana4242.kimiko {
 			//
 			core.onload = (() => {
 				app.playerData = new jp.osakana4242.kimiko.PlayerData();
+
+				app.testHud = new TestHud();
 				app.gameScene = new jp.osakana4242.kimiko.scenes.Game();
 				app.pauseScene = new jp.osakana4242.kimiko.scenes.Pause();
 				if (true) {
@@ -195,6 +198,15 @@ module jp.osakana4242.kimiko {
 					core.replaceScene(app.gameScene);
 				}
 			});
+		}
+
+		addTestHudTo(scene: any) {
+			if (app.testHud.parentNode) {
+				app.testHud.parentNode.removeChild(app.testHud);
+			}
+			if (app.storage.root.userConfig.isFpsVisible) {
+				scene.addChild(app.testHud);
+			}
 		}
 
 		animFrames: { [index: number]: utils.AnimSequence; } = <any>{};
@@ -239,6 +251,61 @@ module jp.osakana4242.kimiko {
 		//dotPerSecToDotPerFrame
 	
 	}
+
+	export var TestHud = enchant.Class.create(enchant.Group, {
+		initialize: function () {
+			enchant.Group.call(this);
+
+			var group = this;
+
+			var fpsLabel = (() => {
+				function getTime() {
+					return new Date().getTime();
+				}
+				var label = new enchant.Label("");
+				label.font = DF.FONT_M;
+				label.color = "rgb(255,255,255)";
+				label.backgroundColor = "rgb(0,0,128)";
+
+				var diffSum = 0;
+				var prevTime = getTime();
+
+				var sampleCountMax = app.core.fps;
+				var sampleCount = 0;
+				var fpsMin = 9999;
+				var fpsMax = 0;
+				var fpsSum = 0;
+
+				label.addEventListener(enchant.Event.RENDER, function() {
+					var nowTime = getTime();
+					var diffTime = nowTime - prevTime;
+					var realFps = (diffTime <= 0) ? 0 : 1000 / diffTime;
+					if (realFps < fpsMin) {
+						fpsMin = realFps;
+					}
+					if (fpsMax < realFps) {
+						fpsMax = realFps;
+					}
+					fpsSum += realFps;
+					++sampleCount;
+					prevTime = nowTime;
+					if ( sampleCountMax <= sampleCount ) {
+						var fpsAve = fpsSum / sampleCount;
+						label.text = "FPS " + Math.floor(fpsAve) +
+							" MIN " + Math.floor(fpsMin) +
+							" MAX " + Math.floor(fpsMax);
+						sampleCount = 0;
+						fpsMin = 9999;
+						fpsMax = 0;
+						fpsSum = 0;
+						// TODO: ノード数の表示.
+					}
+				});
+				return label;
+			})();
+			group.addChild(fpsLabel);
+		},
+	});
 
 	/** この時点で app.evn は参照可能. */
 	export var app: App = new App();

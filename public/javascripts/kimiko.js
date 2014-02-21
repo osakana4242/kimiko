@@ -1332,6 +1332,8 @@ var jp;
                     //
                     core.onload = (function () {
                         kimiko.app.playerData = new jp.osakana4242.kimiko.PlayerData();
+
+                        kimiko.app.testHud = new kimiko.TestHud();
                         kimiko.app.gameScene = new jp.osakana4242.kimiko.scenes.Game();
                         kimiko.app.pauseScene = new jp.osakana4242.kimiko.scenes.Pause();
                         if (true) {
@@ -1343,6 +1345,15 @@ var jp;
                             core.replaceScene(kimiko.app.gameScene);
                         }
                     });
+                };
+
+                App.prototype.addTestHudTo = function (scene) {
+                    if (kimiko.app.testHud.parentNode) {
+                        kimiko.app.testHud.parentNode.removeChild(kimiko.app.testHud);
+                    }
+                    if (kimiko.app.storage.root.userConfig.isFpsVisible) {
+                        scene.addChild(kimiko.app.testHud);
+                    }
                 };
 
                 App.prototype.registerAnimFrames = function (animId, seq) {
@@ -1388,6 +1399,59 @@ var jp;
                 return App;
             })();
             kimiko.App = App;
+
+            kimiko.TestHud = enchant.Class.create(enchant.Group, {
+                initialize: function () {
+                    enchant.Group.call(this);
+
+                    var group = this;
+
+                    var fpsLabel = (function () {
+                        function getTime() {
+                            return new Date().getTime();
+                        }
+                        var label = new enchant.Label("");
+                        label.font = DF.FONT_M;
+                        label.color = "rgb(255,255,255)";
+                        label.backgroundColor = "rgb(0,0,128)";
+
+                        var diffSum = 0;
+                        var prevTime = getTime();
+
+                        var sampleCountMax = kimiko.app.core.fps;
+                        var sampleCount = 0;
+                        var fpsMin = 9999;
+                        var fpsMax = 0;
+                        var fpsSum = 0;
+
+                        label.addEventListener(enchant.Event.RENDER, function () {
+                            var nowTime = getTime();
+                            var diffTime = nowTime - prevTime;
+                            var realFps = (diffTime <= 0) ? 0 : 1000 / diffTime;
+                            if (realFps < fpsMin) {
+                                fpsMin = realFps;
+                            }
+                            if (fpsMax < realFps) {
+                                fpsMax = realFps;
+                            }
+                            fpsSum += realFps;
+                            ++sampleCount;
+                            prevTime = nowTime;
+                            if (sampleCountMax <= sampleCount) {
+                                var fpsAve = fpsSum / sampleCount;
+                                label.text = "FPS " + Math.floor(fpsAve) + " MIN " + Math.floor(fpsMin) + " MAX " + Math.floor(fpsMax);
+                                sampleCount = 0;
+                                fpsMin = 9999;
+                                fpsMax = 0;
+                                fpsSum = 0;
+                                // TODO: ノード数の表示.
+                            }
+                        });
+                        return label;
+                    })();
+                    group.addChild(fpsLabel);
+                }
+            });
 
             /** この時点で app.evn は参照可能. */
             kimiko.app = new App();
@@ -3223,7 +3287,7 @@ var jp;
                         var scene = this;
 
                         var btnHeight = 48;
-                        var tmpY = 8;
+                        var tmpY = 24;
 
                         var items = {};
 
@@ -3233,6 +3297,8 @@ var jp;
                         addItem("isSeEnabled", "SE");
                         tmpY += 56;
                         addItem("fps", "FPS");
+                        tmpY += 56;
+                        addItem("isFpsVisible", "FPS VISIBLE");
                         tmpY += 56;
 
                         var backBtn = (function () {
@@ -3271,6 +3337,7 @@ var jp;
                                 scene.addChild(item.rightBtn);
                             }
                         }
+                        app.addTestHudTo(this);
 
                         //
                         //
@@ -3354,6 +3421,10 @@ var jp;
                                     case "fps":
                                         userConfig.fps = app.numberUtil.trim(userConfig.fps + (diff * 20), 20, 60);
                                         break;
+                                    case "isFpsVisible":
+                                        userConfig.isFpsVisible = !userConfig.isFpsVisible;
+                                        app.addTestHudTo(scene);
+                                        break;
                                     default:
                                         return;
                                 }
@@ -3373,6 +3444,9 @@ var jp;
                             },
                             "fps": function () {
                                 items["fps"].valueLabel.text = userConfig.fps;
+                            },
+                            "isFpsVisible": function () {
+                                items["isFpsVisible"].valueLabel.text = userConfig.isFpsVisible ? "ON" : "OFF";
                             }
                         };
 
@@ -3656,6 +3730,8 @@ var jp;
 
                         // scene.state = scene.stateGameClear;
                         app.sound.playBgm(jp.osakana4242.kimiko.Assets.SOUND_BGM, false);
+
+                        app.addTestHudTo(this);
                     },
                     stateNormal: function () {
                         var player = this.player;
@@ -4589,6 +4665,7 @@ var jp;
                         scene.addChild(rightBtn);
                         scene.addChild(startBtn);
                         scene.addChild(configBtn);
+                        app.addTestHudTo(this);
 
                         //
                         scene.addEventListener(enchant.Event.A_BUTTON_UP, gotoGameStart);

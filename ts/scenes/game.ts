@@ -246,6 +246,8 @@ module jp.osakana4242.kimiko.scenes {
 			// scene.state = scene.stateGameClear;
 
 			app.sound.playBgm(Assets.SOUND_BGM, false);
+
+			app.addTestHudTo(this);
 		},
 					
 		stateNormal: function () {
