@@ -16,81 +16,105 @@ module jp.osakana4242.kimiko.scenes {
 
 			var scene = this;
 
-			var btnHeight = 40;
+			var btnHeight = 48;
 			var margin = 4;
-			var tmpY = 24;
+			var itemSelectedIdx = 0;
 
-	
-			var items: {[index: string]: {
+			var userConfig = g_app.storage.root.userConfig;
+
+			var difficulties = {
+				"1": "EASY",
+				"2": "MEDIUM",
+			};
+
+			var layouter = new kimiko.SpriteLayouter(this);
+
+			var itemDataList = [
+				{
+					"title": "DIFFICULTY",
+					"func": (item: any, diff: number) => {
+						userConfig.difficulty = g_app.numberUtil.trim(userConfig.difficulty + diff, 1, 2);
+						item.valueLabel.text = difficulties[userConfig.difficulty];
+					},
+				},
+				{
+					"title": "BGM",
+					"func": (item: any, diff: number) => {
+						if (diff !== 0) {
+							userConfig.isBgmEnabled = !userConfig.isBgmEnabled;
+							g_app.sound.setBgmEnabled(userConfig.isBgmEnabled);
+							g_app.sound.playBgm(Assets.SOUND_BGM, false);
+						}
+						item.valueLabel.text = userConfig.isBgmEnabled ? "ON" : "OFF";
+					},
+				},
+				{
+					"title": "SE",
+					"func": (item: any, diff: number) => {
+						if (diff !== 0) {
+							userConfig.isSeEnabled = !userConfig.isSeEnabled;
+							g_app.sound.setSeEnabled(userConfig.isSeEnabled);
+						}
+						item.valueLabel.text = userConfig.isSeEnabled ? "ON" : "OFF";
+					},
+				},
+				{
+					"title": "UI LAYOUT",
+					"func": (item: any, diff: number) => {
+						if (diff !== 0) {
+							layouter.transition("none", true);
+							userConfig.isUiRight = !userConfig.isUiRight;
+							g_app.addTestHudTo(scene);
+						}
+						item.valueLabel.text = userConfig.isUiRight ? "RIGHTY": "LEFTY";
+						layouter.transition("none", false);
+						layouter.transition("right", true);
+					},
+				},
+				{
+					"title": "FPS",
+					"func": (item: any, diff: number) => {
+						userConfig.fps = g_app.numberUtil.trim(userConfig.fps + (diff * 20), 20, 60);
+						item.valueLabel.text = userConfig.fps;
+					},
+				},
+				{
+					"title": "FPS VISIBLE",
+					"func": (item: any, diff: number) => {
+						if (diff !== 0) {
+							userConfig.isFpsVisible = !userConfig.isFpsVisible;
+							g_app.addTestHudTo(scene);
+						}
+						item.valueLabel.text = userConfig.isFpsVisible ? "ON": "OFF";
+					},
+				},
+			];
+
+			var items: Array<{
 				titleLabel: any;
 				valueLabel: any;
-				leftBtn: any;
-				rightBtn: any;
-			}} = {};
+				itemData: any;
+			}> = [];
 
-			addItem("difficulty", "DIFFICULTY");
-			tmpY += btnHeight + margin;
-			addItem("isBgmEnabled", "BGM");
-			tmpY += btnHeight + margin;
-			addItem("isSeEnabled", "SE");
-			tmpY += btnHeight + margin;
-			addItem("fps", "FPS");
-			tmpY += btnHeight + margin;
-			addItem("isFpsVisible", "FPS VISIBLE");
-			tmpY += btnHeight + margin;
-
-			var backBtn = (() => {
-				var spr = new enchant.Label("TO TITLE");
-				spr.font = DF.FONT_L;
-				spr.color = "rgb(255, 255, 0)";
-				spr.backgroundColor = "rgb(64, 64, 64)";
-				spr.width = DF.SC_W / 2;
-				spr.height = 48;
-				spr.textAlign = "center";
-				spr.x = (DF.SC_W - spr.width) / 2;
-				spr.y = tmpY;
-				spr.addEventListener(enchant.Event.TOUCH_END, gotoTitle);
-				return spr;
-			})();
-			tmpY += 56;
-
-			//
-			scene.backgroundColor = "rgb( 32, 32, 32)";
-			scene.addChild(backBtn);
-			for (var key in items) {
-				var item = items[key];
+			for (var i = 0, iNum = itemDataList.length; i < iNum; ++i) {
+				var itemData = itemDataList[i];
 				var isAdd = true;
-				switch (key) {
-				case "isBgmEnabled":
-				case "isSeEnabled":
+				switch (itemData.title) {
+				case "BGM":
+				case "SE":
 					if (!g_app.env.isSoundEnabled) {
 						isAdd = false;
 					}
 					break;
 				}
 				if (isAdd) {
-					scene.addChild(item.titleLabel);
-					scene.addChild(item.valueLabel);
-					scene.addChild(item.leftBtn);
-					scene.addChild(item.rightBtn);
+					addItem(itemData.title, itemData);
 				}
 			}
-			g_app.addTestHudTo(this);
-			//
-	
-			//
-			var fader = new Fader(this);
-			fader.setBlack(true);
-			fader.fadeIn(g_app.secToFrame(0.1));
 
-			var userConfig = g_app.storage.root.userConfig;
-
-			var oldUserConfig = {};
-			for (var key in userConfig) {
-				oldUserConfig[key] = userConfig[key];
-			}
-		
-			function addItem(key: string, title: string) {
+			function addItem(title: string, itemData: any) {
+				var idx = items.length;
+				var tmpY = 36 * idx;
 				var item = {
 					"titleLabel": (() => {
 						var spr = new enchant.Label(title);
@@ -98,7 +122,7 @@ module jp.osakana4242.kimiko.scenes {
 						spr.color = "rgb(255, 255, 255)";
 						spr.width = DF.SC_W;
 						spr.height = btnHeight;
-						spr.textAlign = "center";
+						spr.textAlign = "left";
 						spr.x = 0;
 						spr.y = tmpY;
 						return spr;
@@ -107,100 +131,188 @@ module jp.osakana4242.kimiko.scenes {
 					"valueLabel": (() => {
 						var spr = new enchant.Label("");
 						spr.font = DF.FONT_M;
-						spr.color = "rgb(255, 255, 255)";
+						spr.color = "rgb(196, 255, 196)";
 						spr.width = DF.SC_W;
 						spr.height = btnHeight;
-						spr.textAlign = "center";
-						spr.x = 0;
-						spr.y = tmpY + 24;
+						spr.textAlign = "left";
+						spr.x = 12;
+						spr.y = tmpY + 12;
 						return spr;
 					})(),
 
-					"leftBtn": (() => {
-						var spr = new enchant.Label("<-");
-						spr.font = DF.FONT_L;
-						spr.backgroundColor = "rgb(64, 64, 64)";
-						spr.color = "rgb(255, 255, 0)";
-						spr.textAlign = "center";
-						spr.width = 56;
-						spr.height = btnHeight;
-						spr.x = DF.SC_W / 3 * 0 + (spr.width / 2);
-						spr.y = tmpY;
-						spr.addEventListener(enchant.Event.TOUCH_END, onAddValue(key, -1));
-						return spr;
-					})(),
-
-					"rightBtn": (() => {
-						var spr = new enchant.Label("->");
-						spr.font = DF.FONT_L;
-						spr.backgroundColor = "rgb(64, 64, 64)";
-						spr.color = "rgb(255, 255, 0)";
-						spr.textAlign = "center";
-						spr.width = 56;
-						spr.height = btnHeight;
-						spr.x = DF.SC_W / 3 * 2 + (spr.width / 2);
-						spr.y = tmpY;
-						spr.addEventListener(enchant.Event.TOUCH_END, onAddValue(key, 1));
-						return spr;
-					})(),
+					"itemData": itemData,
 				};
-				items[key] = item;
+				items.push(item);
+				return item;
 			}
 
-			function onAddValue(key: string, diff: number) {
-				return () => {
-					switch(key) {
-					case "difficulty":
-						userConfig.difficulty = g_app.numberUtil.trim(userConfig.difficulty + diff, 1, 2);
-						break;
-					case "isSeEnabled":
-						userConfig.isSeEnabled = !userConfig.isSeEnabled;
-						g_app.sound.setSeEnabled(userConfig.isSeEnabled);
-						break;
-					case "isBgmEnabled":
-						userConfig.isBgmEnabled = !userConfig.isBgmEnabled;
-						g_app.sound.setBgmEnabled(userConfig.isBgmEnabled);
-						g_app.sound.playBgm(Assets.SOUND_BGM, false);
-						break;
-					case "fps":
-						userConfig.fps = g_app.numberUtil.trim(userConfig.fps + (diff * 20), 20, 60);
-						break;
-					case "isFpsVisible":
-						userConfig.isFpsVisible = !userConfig.isFpsVisible;
-						g_app.addTestHudTo(scene);
-						break;
-					default:
-						return;
-					}
-					if (labelUpdaters[key]) {
-						labelUpdaters[key]();
-					}
+			layouter.layout = (() => {
+				var list = [
+					[ "spriteName", "layoutName", "visible", "delay",  "x",  "y", ],
+
+					[ "titleLabel", "none",       false,     0.05 * 0,  80,         -52, ],
+					[ "backBtn",    "none",       false,     0.05 * 0, 320,  4 + 52 * 0, ],
+					[ "upBtn",      "none",       false,     0.05 * 1, 320,  4 + 52 * 1, ],
+					[ "downBtn",    "none",       false,     0.05 * 2, 320,  4 + 52 * 2, ],
+					[ "leftBtn",    "none",       false,     0.05 * 3, 320,  4 + 52 * 3, ],
+					[ "rightBtn",   "none",       false,     0.05 * 4, 320,  4 + 52 * 4, ],
+
+					[ "titleLabel", "right",      true,      0.05 * 0,  80,           4, ],
+					[ "backBtn",    "right",      true,      0.05 * 0, 268,  4 + 52 * 0, ],
+					[ "upBtn",      "right",      true,      0.05 * 1, 268,  4 + 52 * 1, ],
+					[ "downBtn",    "right",      true,      0.05 * 2, 268,  4 + 52 * 2, ],
+					[ "leftBtn",    "right",      true,      0.05 * 3, 268,  4 + 52 * 3, ],
+					[ "rightBtn",   "right",      true,      0.05 * 4, 268,  4 + 52 * 4, ],
+				];
+				return g_app.labeledValuesToObjects(list);
+			})();
+
+			layouter.sprites["titleLabel"] = (() => {
+				var spr = new enchant.Label("CONFIG");
+				spr.font = DF.FONT_M;
+				spr.color = "rgb(255, 255, 255)";
+				spr.width = 160;
+				spr.height = btnHeight;
+				spr.textAlign = "center";
+				return spr;
+			})();
+
+			layouter.sprites["backBtn"] = (() => {
+				var spr = new enchant.Label("x");
+				spr.font = DF.FONT_L;
+				spr.color = "rgb(255, 255, 0)";
+				spr.backgroundColor = "rgb(64, 64, 64)";
+				spr.width = 48;
+				spr.height = btnHeight;
+				spr.textAlign = "center";
+				spr.addEventListener(enchant.Event.TOUCH_END, gotoTitle);
+				return spr;
+			})();
+
+			layouter.sprites["upBtn"] = (() => {
+				var spr = new enchant.Label("^");
+				spr.font = DF.FONT_L;
+				spr.backgroundColor = "rgb(64, 64, 64)";
+				spr.color = "rgb(255, 255, 0)";
+				spr.width = 48;
+				spr.height = btnHeight;
+				spr.textAlign = "center";
+				spr.addEventListener(enchant.Event.TOUCH_END, () => { onButtonEvent("up"); });
+				return spr;
+			})();
+
+			layouter.sprites["downBtn"] = (() => {
+				var spr = new enchant.Label("v");
+				spr.font = DF.FONT_L;
+				spr.backgroundColor = "rgb(64, 64, 64)";
+				spr.color = "rgb(255, 255, 0)";
+				spr.width = 48;
+				spr.height = btnHeight;
+				spr.textAlign = "center";
+				spr.addEventListener(enchant.Event.TOUCH_END, () => { onButtonEvent("down"); });
+				return spr;
+			})();
+
+			layouter.sprites["leftBtn"] = (() => {
+				var spr = new enchant.Label("<");
+				spr.font = DF.FONT_L;
+				spr.backgroundColor = "rgb(64, 64, 64)";
+				spr.color = "rgb(255, 255, 0)";
+				spr.width = 48;
+				spr.height = btnHeight;
+				spr.textAlign = "center";
+				spr.addEventListener(enchant.Event.TOUCH_END, () => { onButtonEvent("left"); });
+				return spr;
+			})();
+
+			layouter.sprites["rightBtn"] = (() => {
+				var spr = new enchant.Label(">");
+				spr.font = DF.FONT_L;
+				spr.backgroundColor = "rgb(64, 64, 64)";
+				spr.color = "rgb(255, 255, 0)";
+				spr.width = 48;
+				spr.height = btnHeight;
+				spr.textAlign = "center";
+				spr.addEventListener(enchant.Event.TOUCH_END, () => { onButtonEvent("right"); });
+				return spr;
+			})();
+
+			var cursor = (() => {
+				var spr = new enchant.Label("*");
+				spr.font = DF.FONT_M;
+				spr.color = "rgb(255, 255, 196)";
+				spr.width = 12;
+				spr.height = 12;
+				spr.textAlign = "center";
+				spr.x = 0;
+				spr.y = 0;
+				return spr;
+			})();
+
+			//
+			scene.backgroundColor = "rgb( 32, 32, 32)";
+			//
+			var menuGroup = new enchant.Group();
+			menuGroup.x = 80;
+			menuGroup.y = 36;
+
+			for (var i = 0, iNum = items.length; i < iNum; ++i) {
+				var item = items[i];
+				menuGroup.addChild(item.titleLabel);
+				menuGroup.addChild(item.valueLabel);
+			}
+			menuGroup.addChild(cursor);
+			//
+			scene.addChild(menuGroup);
+			for (var key in layouter.sprites) {
+				scene.addChild(layouter.sprites[key]);
+			}
+
+			g_app.addTestHudTo(this);
+
+			layouter.transition("none", false);
+	
+			//
+			var fader = new Fader(this);
+			fader.setBlack(true);
+			fader.fadeIn(g_app.secToFrame(0.1));
+
+			var oldUserConfig = {};
+			for (var key in userConfig) {
+				oldUserConfig[key] = userConfig[key];
+			}
+
+			// 値の更新.
+			for (var i = items.length - 1; 0 <= i; --i) {
+				var item = items[i];
+				item.itemData.func(item, 0);
+			}
+		
+			function updateCursorPosition() {
+				var item = items[itemSelectedIdx];
+				cursor.x = item.titleLabel.x - (cursor.width + 6);
+				cursor.y = item.titleLabel.y;
+			}
+
+			function onButtonEvent(eventName: string) {
+				switch(eventName) {
+				case "up":
+				case "down":
+					var diff = (eventName === "up") ? -1 : 1;
+					itemSelectedIdx = g_app.numberUtil.trim(itemSelectedIdx + diff, 0, items.length - 1);
 					g_app.sound.playSe(Assets.SOUND_SE_CURSOR);
-				};
+					updateCursorPosition();
+					break;
+				case "left":
+				case "right":
+					var diff = (eventName === "left") ? -1 : 1;
+					items[itemSelectedIdx].itemData.func(items[itemSelectedIdx], diff);
+					g_app.sound.playSe(Assets.SOUND_SE_CURSOR);
+					break;
+				}
 			}
 
-			var difficulties = {
-				"1": "EASY",
-				"2": "MEDIUM",
-			};
-
-			var labelUpdaters = {
-				"difficulty": () => {
-					items["difficulty"].valueLabel.text = difficulties[userConfig.difficulty];
-				},
-				"isSeEnabled": () => {
-					items["isSeEnabled"].valueLabel.text = userConfig.isSeEnabled ? "ON" : "OFF";
-				},
-				"isBgmEnabled": () => {
-					items["isBgmEnabled"].valueLabel.text = userConfig.isBgmEnabled ? "ON" : "OFF";
-				},
-				"fps": () => {
-					items["fps"].valueLabel.text = userConfig.fps;
-				},
-				"isFpsVisible": () => {
-					items["isFpsVisible"].valueLabel.text = userConfig.isFpsVisible ? "ON": "OFF";
-				},
-			};
+			updateCursorPosition();
 
 			function gotoTitle() {
 				g_app.sound.playSe(Assets.SOUND_SE_OK);
@@ -216,6 +328,8 @@ module jp.osakana4242.kimiko.scenes {
 					}
 				}
 
+				layouter.transition("none", true);
+
 				if (isReload) {
 					fader.fadeOut(g_app.secToFrame(1.0), () => {
 						window.location.reload();
@@ -227,9 +341,6 @@ module jp.osakana4242.kimiko.scenes {
 				}
 			};
 
-			for(var key in labelUpdaters) {
-				labelUpdaters[key]();
-			}
 		},
 	});
 }

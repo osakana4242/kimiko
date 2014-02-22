@@ -13,6 +13,20 @@ module jp.osakana4242.kimiko.scenes {
 			
 			var scene = this;
 			//
+			this.layouter = new kimiko.SpriteLayouter(this);
+			this.layouter.layout = (() => {
+				var list = [
+					[ "spriteName", "layoutName", "visible", "delay",  "x",  "y", ],
+
+					[ "resumeBtn",  "hide",       false,     0.1 * 0,  80,    100 - 10, ],
+					[ "toTitleBtn", "hide",       false,     0.1 * 1,  80,    160 - 10, ],
+
+					[ "resumeBtn",  "normal",     true,      0.1 * 0,  80,    100, ],
+					[ "toTitleBtn", "normal",     true,      0.1 * 1,  80,    160, ],
+				];
+				return g_app.labeledValuesToObjects(list);
+			})();
+			//
 			var bg = (() => {
 				var spr = new enchant.Sprite(DF.SC_W, DF.SC_H);
 				spr.backgroundColor = "#000";
@@ -20,7 +34,7 @@ module jp.osakana4242.kimiko.scenes {
 				return spr;
 			})();
 
-			var label1 = (() => {
+			var pauseLabel = (() => {
 				var label = new enchant.Label("PAUSE");
 				label.font = DF.FONT_M;
 				label.width = DF.SC_W;
@@ -36,16 +50,14 @@ module jp.osakana4242.kimiko.scenes {
 				return label;
 			})();
 			//
-			var label2 = (() => {
-				var label = new enchant.Label("GOTO TITLE");
+			var toTitleBtn = this.layouter.sprites["toTitleBtn"] = (() => {
+				var label = new enchant.Label("TO TITLE");
 				label.font = DF.FONT_M;
 				label.width = DF.SC_W / 2;
 				label.height = 48;
 				label.backgroundColor = "#444";
 				label.color = "#ff0";
 				label.textAlign = "center";
-				label.x = (DF.SC_W - label.width) / 2;
-				label.y = 90;
 				label.addEventListener(enchant.Event.TOUCH_END, () => {
 					g_app.sound.playSe(Assets.SOUND_SE_OK);
 					g_app.gameScene.state = g_app.gameScene.stateGameStart;
@@ -54,16 +66,14 @@ module jp.osakana4242.kimiko.scenes {
 				return label;
 			})();
 
-			var label3 = (() => {
-				var label = new enchant.Label("CONTINUE");
+			var resumeBtn = this.layouter.sprites["resumeBtn"] = (() => {
+				var label = new enchant.Label("RESUME");
 				label.font = DF.FONT_M;
 				label.width = DF.SC_W / 2;
 				label.height = 48;
 				label.backgroundColor = "#444";
 				label.color = "#ff0";
 				label.textAlign = "center";
-				label.x = (DF.SC_W - label.width) / 2;
-				label.y = 180;
 				label.addEventListener(enchant.Event.TOUCH_END, () => {
 					g_app.core.popScene();
 				});
@@ -71,10 +81,20 @@ module jp.osakana4242.kimiko.scenes {
 			})();
 
 			scene.addChild(bg);
-			scene.addChild(label1); 
-			scene.addChild(label2); 
-			scene.addChild(label3);
-		}
+			scene.addChild(pauseLabel); 
+			scene.addChild(toTitleBtn); 
+			scene.addChild(resumeBtn);
+
+			this.layouter.transition("hide", false);
+		},
+
+		onenter: function() {
+			this.layouter.transition("normal", true);
+		},
+
+		onexit: function() {
+			this.layouter.transition("hide", false);
+		},
 	});
 
 }

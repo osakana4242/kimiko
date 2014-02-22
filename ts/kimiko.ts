@@ -247,7 +247,38 @@ module jp.osakana4242.kimiko {
 			return distance / g_app.dpsToDpf(dps);
 		}
 
-		//dotPerSecToDotPerFrame
+		/**
+			[ラベル行]と[値行]からなる配列を
+			Object型の配列に変換する.
+
+			[
+				[label1, label2],
+				[value, value],
+				[value, value],
+			];
+
+				||
+				vv
+
+			[
+				{label1: value, label2: value},
+				{label1: value, label2: value},
+			];
+		*/
+		public labeledValuesToObjects(list: Array<any>): Array<any> {
+			var dest = [];
+			var keys = list[0];
+			for (var i = 1, iNum = list.length; i < iNum; ++i) {
+				var record = list[i];
+				var obj = {};
+				for (var j = 0, jNum = keys.length; j < jNum; ++j) {
+					obj[keys[j]] = record[j];
+				}
+				dest.push(obj);
+			}
+			return dest;
+		}
+
 	
 	}
 

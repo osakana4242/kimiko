@@ -354,7 +354,7 @@
                         }
                         if (isFlipY) {
                             var phh = p.height >> 1;
-                            var shh = s.width >> 1;
+                            var shh = s.height >> 1;
                             y = (-1 * (s.y + shh - phh)) - shh + phh;
                         }
                     }
@@ -941,7 +941,8 @@ var jp;
                             "isBgmEnabled": jp.osakana4242.kimiko.g_app.env.isPc,
                             "fps": jp.osakana4242.kimiko.g_app.config.fps || jp.osakana4242.kimiko.g_app.env.isPc ? 60 : 20,
                             "isFpsVisible": true,
-                            "difficulty": 1
+                            "difficulty": 1,
+                            "isUiRight": true
                         },
                         "userMaps": {}
                     };
@@ -1007,8 +1008,8 @@ var jp;
                     }
                     return true;
                 };
-                Storage.storageVersion = 1;
-                Storage.storageKey = "jp.osakana4242.kimiko.v" + Storage.storageVersion;
+                Storage.storageVersion = 2;
+                Storage.storageKey = "jp.osakana4242.kimiko";
                 return Storage;
             })();
             kimiko.Storage = Storage;
@@ -1395,6 +1396,38 @@ var jp;
                 */
                 App.prototype.getFrameCountByHoge = function (distance, dps) {
                     return distance / kimiko.g_app.dpsToDpf(dps);
+                };
+
+                /**
+                [ラベル行]と[値行]からなる配列を
+                Object型の配列に変換する.
+                
+                [
+                [label1, label2],
+                [value, value],
+                [value, value],
+                ];
+                
+                ||
+                vv
+                
+                [
+                {label1: value, label2: value},
+                {label1: value, label2: value},
+                ];
+                */
+                App.prototype.labeledValuesToObjects = function (list) {
+                    var dest = [];
+                    var keys = list[0];
+                    for (var i = 1, iNum = list.length; i < iNum; ++i) {
+                        var record = list[i];
+                        var obj = {};
+                        for (var j = 0, jNum = keys.length; j < jNum; ++j) {
+                            obj[keys[j]] = record[j];
+                        }
+                        dest.push(obj);
+                    }
+                    return dest;
                 };
                 return App;
             })();
@@ -3286,75 +3319,101 @@ var jp;
 
                         var scene = this;
 
-                        var btnHeight = 40;
+                        var btnHeight = 48;
                         var margin = 4;
-                        var tmpY = 24;
+                        var itemSelectedIdx = 0;
 
-                        var items = {};
+                        var userConfig = g_app.storage.root.userConfig;
 
-                        addItem("difficulty", "DIFFICULTY");
-                        tmpY += btnHeight + margin;
-                        addItem("isBgmEnabled", "BGM");
-                        tmpY += btnHeight + margin;
-                        addItem("isSeEnabled", "SE");
-                        tmpY += btnHeight + margin;
-                        addItem("fps", "FPS");
-                        tmpY += btnHeight + margin;
-                        addItem("isFpsVisible", "FPS VISIBLE");
-                        tmpY += btnHeight + margin;
+                        var difficulties = {
+                            "1": "EASY",
+                            "2": "MEDIUM"
+                        };
 
-                        var backBtn = (function () {
-                            var spr = new enchant.Label("TO TITLE");
-                            spr.font = DF.FONT_L;
-                            spr.color = "rgb(255, 255, 0)";
-                            spr.backgroundColor = "rgb(64, 64, 64)";
-                            spr.width = DF.SC_W / 2;
-                            spr.height = 48;
-                            spr.textAlign = "center";
-                            spr.x = (DF.SC_W - spr.width) / 2;
-                            spr.y = tmpY;
-                            spr.addEventListener(enchant.Event.TOUCH_END, gotoTitle);
-                            return spr;
-                        })();
-                        tmpY += 56;
+                        var layouter = new jp.osakana4242.kimiko.SpriteLayouter(this);
 
-                        //
-                        scene.backgroundColor = "rgb( 32, 32, 32)";
-                        scene.addChild(backBtn);
-                        for (var key in items) {
-                            var item = items[key];
+                        var itemDataList = [
+                            {
+                                "title": "DIFFICULTY",
+                                "func": function (item, diff) {
+                                    userConfig.difficulty = g_app.numberUtil.trim(userConfig.difficulty + diff, 1, 2);
+                                    item.valueLabel.text = difficulties[userConfig.difficulty];
+                                }
+                            },
+                            {
+                                "title": "BGM",
+                                "func": function (item, diff) {
+                                    if (diff !== 0) {
+                                        userConfig.isBgmEnabled = !userConfig.isBgmEnabled;
+                                        g_app.sound.setBgmEnabled(userConfig.isBgmEnabled);
+                                        g_app.sound.playBgm(jp.osakana4242.kimiko.Assets.SOUND_BGM, false);
+                                    }
+                                    item.valueLabel.text = userConfig.isBgmEnabled ? "ON" : "OFF";
+                                }
+                            },
+                            {
+                                "title": "SE",
+                                "func": function (item, diff) {
+                                    if (diff !== 0) {
+                                        userConfig.isSeEnabled = !userConfig.isSeEnabled;
+                                        g_app.sound.setSeEnabled(userConfig.isSeEnabled);
+                                    }
+                                    item.valueLabel.text = userConfig.isSeEnabled ? "ON" : "OFF";
+                                }
+                            },
+                            {
+                                "title": "UI LAYOUT",
+                                "func": function (item, diff) {
+                                    if (diff !== 0) {
+                                        layouter.transition("none", true);
+                                        userConfig.isUiRight = !userConfig.isUiRight;
+                                        g_app.addTestHudTo(scene);
+                                    }
+                                    item.valueLabel.text = userConfig.isUiRight ? "RIGHTY" : "LEFTY";
+                                    layouter.transition("none", false);
+                                    layouter.transition("right", true);
+                                }
+                            },
+                            {
+                                "title": "FPS",
+                                "func": function (item, diff) {
+                                    userConfig.fps = g_app.numberUtil.trim(userConfig.fps + (diff * 20), 20, 60);
+                                    item.valueLabel.text = userConfig.fps;
+                                }
+                            },
+                            {
+                                "title": "FPS VISIBLE",
+                                "func": function (item, diff) {
+                                    if (diff !== 0) {
+                                        userConfig.isFpsVisible = !userConfig.isFpsVisible;
+                                        g_app.addTestHudTo(scene);
+                                    }
+                                    item.valueLabel.text = userConfig.isFpsVisible ? "ON" : "OFF";
+                                }
+                            }
+                        ];
+
+                        var items = [];
+
+                        for (var i = 0, iNum = itemDataList.length; i < iNum; ++i) {
+                            var itemData = itemDataList[i];
                             var isAdd = true;
-                            switch (key) {
-                                case "isBgmEnabled":
-                                case "isSeEnabled":
+                            switch (itemData.title) {
+                                case "BGM":
+                                case "SE":
                                     if (!g_app.env.isSoundEnabled) {
                                         isAdd = false;
                                     }
                                     break;
                             }
                             if (isAdd) {
-                                scene.addChild(item.titleLabel);
-                                scene.addChild(item.valueLabel);
-                                scene.addChild(item.leftBtn);
-                                scene.addChild(item.rightBtn);
+                                addItem(itemData.title, itemData);
                             }
                         }
-                        g_app.addTestHudTo(this);
 
-                        //
-                        //
-                        var fader = new jp.osakana4242.kimiko.scenes.Fader(this);
-                        fader.setBlack(true);
-                        fader.fadeIn(g_app.secToFrame(0.1));
-
-                        var userConfig = g_app.storage.root.userConfig;
-
-                        var oldUserConfig = {};
-                        for (var key in userConfig) {
-                            oldUserConfig[key] = userConfig[key];
-                        }
-
-                        function addItem(key, title) {
+                        function addItem(title, itemData) {
+                            var idx = items.length;
+                            var tmpY = 36 * idx;
                             var item = {
                                 "titleLabel": (function () {
                                     var spr = new enchant.Label(title);
@@ -3362,7 +3421,7 @@ var jp;
                                     spr.color = "rgb(255, 255, 255)";
                                     spr.width = DF.SC_W;
                                     spr.height = btnHeight;
-                                    spr.textAlign = "center";
+                                    spr.textAlign = "left";
                                     spr.x = 0;
                                     spr.y = tmpY;
                                     return spr;
@@ -3370,98 +3429,194 @@ var jp;
                                 "valueLabel": (function () {
                                     var spr = new enchant.Label("");
                                     spr.font = DF.FONT_M;
-                                    spr.color = "rgb(255, 255, 255)";
+                                    spr.color = "rgb(196, 255, 196)";
                                     spr.width = DF.SC_W;
                                     spr.height = btnHeight;
-                                    spr.textAlign = "center";
-                                    spr.x = 0;
-                                    spr.y = tmpY + 24;
+                                    spr.textAlign = "left";
+                                    spr.x = 12;
+                                    spr.y = tmpY + 12;
                                     return spr;
                                 })(),
-                                "leftBtn": (function () {
-                                    var spr = new enchant.Label("<-");
-                                    spr.font = DF.FONT_L;
-                                    spr.backgroundColor = "rgb(64, 64, 64)";
-                                    spr.color = "rgb(255, 255, 0)";
-                                    spr.textAlign = "center";
-                                    spr.width = 56;
-                                    spr.height = btnHeight;
-                                    spr.x = DF.SC_W / 3 * 0 + (spr.width / 2);
-                                    spr.y = tmpY;
-                                    spr.addEventListener(enchant.Event.TOUCH_END, onAddValue(key, -1));
-                                    return spr;
-                                })(),
-                                "rightBtn": (function () {
-                                    var spr = new enchant.Label("->");
-                                    spr.font = DF.FONT_L;
-                                    spr.backgroundColor = "rgb(64, 64, 64)";
-                                    spr.color = "rgb(255, 255, 0)";
-                                    spr.textAlign = "center";
-                                    spr.width = 56;
-                                    spr.height = btnHeight;
-                                    spr.x = DF.SC_W / 3 * 2 + (spr.width / 2);
-                                    spr.y = tmpY;
-                                    spr.addEventListener(enchant.Event.TOUCH_END, onAddValue(key, 1));
-                                    return spr;
-                                })()
+                                "itemData": itemData
                             };
-                            items[key] = item;
+                            items.push(item);
+                            return item;
                         }
 
-                        function onAddValue(key, diff) {
-                            return function () {
-                                switch (key) {
-                                    case "difficulty":
-                                        userConfig.difficulty = g_app.numberUtil.trim(userConfig.difficulty + diff, 1, 2);
-                                        break;
-                                    case "isSeEnabled":
-                                        userConfig.isSeEnabled = !userConfig.isSeEnabled;
-                                        g_app.sound.setSeEnabled(userConfig.isSeEnabled);
-                                        break;
-                                    case "isBgmEnabled":
-                                        userConfig.isBgmEnabled = !userConfig.isBgmEnabled;
-                                        g_app.sound.setBgmEnabled(userConfig.isBgmEnabled);
-                                        g_app.sound.playBgm(jp.osakana4242.kimiko.Assets.SOUND_BGM, false);
-                                        break;
-                                    case "fps":
-                                        userConfig.fps = g_app.numberUtil.trim(userConfig.fps + (diff * 20), 20, 60);
-                                        break;
-                                    case "isFpsVisible":
-                                        userConfig.isFpsVisible = !userConfig.isFpsVisible;
-                                        g_app.addTestHudTo(scene);
-                                        break;
-                                    default:
-                                        return;
-                                }
-                                if (labelUpdaters[key]) {
-                                    labelUpdaters[key]();
-                                }
-                                g_app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_CURSOR);
-                            };
+                        layouter.layout = (function () {
+                            var list = [
+                                ["spriteName", "layoutName", "visible", "delay", "x", "y"],
+                                ["titleLabel", "none", false, 0.05 * 0, 80, -52],
+                                ["backBtn", "none", false, 0.05 * 0, 320, 4 + 52 * 0],
+                                ["upBtn", "none", false, 0.05 * 1, 320, 4 + 52 * 1],
+                                ["downBtn", "none", false, 0.05 * 2, 320, 4 + 52 * 2],
+                                ["leftBtn", "none", false, 0.05 * 3, 320, 4 + 52 * 3],
+                                ["rightBtn", "none", false, 0.05 * 4, 320, 4 + 52 * 4],
+                                ["titleLabel", "right", true, 0.05 * 0, 80, 4],
+                                ["backBtn", "right", true, 0.05 * 0, 268, 4 + 52 * 0],
+                                ["upBtn", "right", true, 0.05 * 1, 268, 4 + 52 * 1],
+                                ["downBtn", "right", true, 0.05 * 2, 268, 4 + 52 * 2],
+                                ["leftBtn", "right", true, 0.05 * 3, 268, 4 + 52 * 3],
+                                ["rightBtn", "right", true, 0.05 * 4, 268, 4 + 52 * 4]
+                            ];
+                            return g_app.labeledValuesToObjects(list);
+                        })();
+
+                        layouter.sprites["titleLabel"] = (function () {
+                            var spr = new enchant.Label("CONFIG");
+                            spr.font = DF.FONT_M;
+                            spr.color = "rgb(255, 255, 255)";
+                            spr.width = 160;
+                            spr.height = btnHeight;
+                            spr.textAlign = "center";
+                            return spr;
+                        })();
+
+                        layouter.sprites["backBtn"] = (function () {
+                            var spr = new enchant.Label("x");
+                            spr.font = DF.FONT_L;
+                            spr.color = "rgb(255, 255, 0)";
+                            spr.backgroundColor = "rgb(64, 64, 64)";
+                            spr.width = 48;
+                            spr.height = btnHeight;
+                            spr.textAlign = "center";
+                            spr.addEventListener(enchant.Event.TOUCH_END, gotoTitle);
+                            return spr;
+                        })();
+
+                        layouter.sprites["upBtn"] = (function () {
+                            var spr = new enchant.Label("^");
+                            spr.font = DF.FONT_L;
+                            spr.backgroundColor = "rgb(64, 64, 64)";
+                            spr.color = "rgb(255, 255, 0)";
+                            spr.width = 48;
+                            spr.height = btnHeight;
+                            spr.textAlign = "center";
+                            spr.addEventListener(enchant.Event.TOUCH_END, function () {
+                                onButtonEvent("up");
+                            });
+                            return spr;
+                        })();
+
+                        layouter.sprites["downBtn"] = (function () {
+                            var spr = new enchant.Label("v");
+                            spr.font = DF.FONT_L;
+                            spr.backgroundColor = "rgb(64, 64, 64)";
+                            spr.color = "rgb(255, 255, 0)";
+                            spr.width = 48;
+                            spr.height = btnHeight;
+                            spr.textAlign = "center";
+                            spr.addEventListener(enchant.Event.TOUCH_END, function () {
+                                onButtonEvent("down");
+                            });
+                            return spr;
+                        })();
+
+                        layouter.sprites["leftBtn"] = (function () {
+                            var spr = new enchant.Label("<");
+                            spr.font = DF.FONT_L;
+                            spr.backgroundColor = "rgb(64, 64, 64)";
+                            spr.color = "rgb(255, 255, 0)";
+                            spr.width = 48;
+                            spr.height = btnHeight;
+                            spr.textAlign = "center";
+                            spr.addEventListener(enchant.Event.TOUCH_END, function () {
+                                onButtonEvent("left");
+                            });
+                            return spr;
+                        })();
+
+                        layouter.sprites["rightBtn"] = (function () {
+                            var spr = new enchant.Label(">");
+                            spr.font = DF.FONT_L;
+                            spr.backgroundColor = "rgb(64, 64, 64)";
+                            spr.color = "rgb(255, 255, 0)";
+                            spr.width = 48;
+                            spr.height = btnHeight;
+                            spr.textAlign = "center";
+                            spr.addEventListener(enchant.Event.TOUCH_END, function () {
+                                onButtonEvent("right");
+                            });
+                            return spr;
+                        })();
+
+                        var cursor = (function () {
+                            var spr = new enchant.Label("*");
+                            spr.font = DF.FONT_M;
+                            spr.color = "rgb(255, 255, 196)";
+                            spr.width = 12;
+                            spr.height = 12;
+                            spr.textAlign = "center";
+                            spr.x = 0;
+                            spr.y = 0;
+                            return spr;
+                        })();
+
+                        //
+                        scene.backgroundColor = "rgb( 32, 32, 32)";
+
+                        //
+                        var menuGroup = new enchant.Group();
+                        menuGroup.x = 80;
+                        menuGroup.y = 36;
+
+                        for (var i = 0, iNum = items.length; i < iNum; ++i) {
+                            var item = items[i];
+                            menuGroup.addChild(item.titleLabel);
+                            menuGroup.addChild(item.valueLabel);
+                        }
+                        menuGroup.addChild(cursor);
+
+                        //
+                        scene.addChild(menuGroup);
+                        for (var key in layouter.sprites) {
+                            scene.addChild(layouter.sprites[key]);
                         }
 
-                        var difficulties = {
-                            "1": "EASY",
-                            "2": "MEDIUM"
-                        };
+                        g_app.addTestHudTo(this);
 
-                        var labelUpdaters = {
-                            "difficulty": function () {
-                                items["difficulty"].valueLabel.text = difficulties[userConfig.difficulty];
-                            },
-                            "isSeEnabled": function () {
-                                items["isSeEnabled"].valueLabel.text = userConfig.isSeEnabled ? "ON" : "OFF";
-                            },
-                            "isBgmEnabled": function () {
-                                items["isBgmEnabled"].valueLabel.text = userConfig.isBgmEnabled ? "ON" : "OFF";
-                            },
-                            "fps": function () {
-                                items["fps"].valueLabel.text = userConfig.fps;
-                            },
-                            "isFpsVisible": function () {
-                                items["isFpsVisible"].valueLabel.text = userConfig.isFpsVisible ? "ON" : "OFF";
+                        layouter.transition("none", false);
+
+                        //
+                        var fader = new jp.osakana4242.kimiko.scenes.Fader(this);
+                        fader.setBlack(true);
+                        fader.fadeIn(g_app.secToFrame(0.1));
+
+                        var oldUserConfig = {};
+                        for (var key in userConfig) {
+                            oldUserConfig[key] = userConfig[key];
+                        }
+
+                        for (var i = items.length - 1; 0 <= i; --i) {
+                            var item = items[i];
+                            item.itemData.func(item, 0);
+                        }
+
+                        function updateCursorPosition() {
+                            var item = items[itemSelectedIdx];
+                            cursor.x = item.titleLabel.x - (cursor.width + 6);
+                            cursor.y = item.titleLabel.y;
+                        }
+
+                        function onButtonEvent(eventName) {
+                            switch (eventName) {
+                                case "up":
+                                case "down":
+                                    var diff = (eventName === "up") ? -1 : 1;
+                                    itemSelectedIdx = g_app.numberUtil.trim(itemSelectedIdx + diff, 0, items.length - 1);
+                                    g_app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_CURSOR);
+                                    updateCursorPosition();
+                                    break;
+                                case "left":
+                                case "right":
+                                    var diff = (eventName === "left") ? -1 : 1;
+                                    items[itemSelectedIdx].itemData.func(items[itemSelectedIdx], diff);
+                                    g_app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_CURSOR);
+                                    break;
                             }
-                        };
+                        }
+
+                        updateCursorPosition();
 
                         function gotoTitle() {
                             g_app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_OK);
@@ -3477,6 +3632,8 @@ var jp;
                                 }
                             }
 
+                            layouter.transition("none", true);
+
                             if (isReload) {
                                 fader.fadeOut(g_app.secToFrame(1.0), function () {
                                     window.location.reload();
@@ -3488,10 +3645,6 @@ var jp;
                             }
                         }
                         ;
-
-                        for (var key in labelUpdaters) {
-                            labelUpdaters[key]();
-                        }
                     }
                 });
             })(kimiko.scenes || (kimiko.scenes = {}));
@@ -3542,6 +3695,19 @@ var jp;
                         ];
 
                         //
+                        this.layouter = new jp.osakana4242.kimiko.SpriteLayouter(this);
+                        this.layouter.layout = (function () {
+                            var list = [
+                                ["spriteName", "layoutName", "visible", "delay", "x", "y"],
+                                ["pauseBtn", "normal", true, 0.05 * 0, 4, 4],
+                                ["statusLabels_0", "normal", true, 0.05 * 0, 70, 4 + 12 * 0],
+                                ["statusLabels_1", "normal", true, 0.05 * 0, 70, 4 + 12 * 1],
+                                ["statusLabels_2", "normal", true, 0.05 * 0, 70, 4 + 12 * 2],
+                                ["statusLabels_3", "normal", true, 0.05 * 0, 70, 4 + 12 * 3]
+                            ];
+                            return g_app.labeledValuesToObjects(list);
+                        })();
+
                         this.backgroundColor = "rgb(32, 32, 64)";
                         var sprite;
 
@@ -3601,10 +3767,11 @@ var jp;
                                 _this.labels.push(sprite);
                                 sprite.font = DF.FONT_M;
                                 sprite.color = "#fff";
-                                sprite.y = 12 * i;
+                                sprite.width = 240;
+                                _this.layouter.sprites["statusLabels_" + i] = sprite;
                             }
 
-                            var btnPause = (function () {
+                            var pauseBtn = (function () {
                                 var spr = new enchant.Label("P");
                                 spr.font = DF.FONT_M;
                                 spr.color = "#ff0";
@@ -3612,14 +3779,13 @@ var jp;
                                 spr.width = 48;
                                 spr.height = 48;
                                 spr.textAlign = "center";
-                                spr.x = DF.SC2_W - 56;
-                                spr.y = DF.SC2_H - 56;
                                 spr.addEventListener(enchant.Event.TOUCH_END, function () {
                                     g_app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_OK);
                                     g_app.core.pushScene(g_app.pauseScene);
                                 });
                                 return spr;
                             })();
+                            _this.layouter.sprites["pauseBtn"] = pauseBtn;
 
                             var group = new enchant.Group();
                             _this.statusGroup = group;
@@ -3630,7 +3796,7 @@ var jp;
                             for (var i = 0, iNum = _this.labels.length; i < iNum; ++i) {
                                 group.addChild(_this.labels[i]);
                             }
-                            group.addChild(btnPause);
+                            group.addChild(pauseBtn);
                             _this.addChild(group);
                         })();
 
@@ -3738,6 +3904,8 @@ var jp;
                         var player = scene.player;
                         var camera = scene.camera;
                         scene.fader.fadeIn2(g_app.secToFrame(0.2), camera.getTargetPosOnCamera());
+
+                        scene.layouter.transition("normal", false);
 
                         scene.state = scene.stateNormal;
 
@@ -4451,6 +4619,19 @@ var jp;
                         var scene = this;
 
                         //
+                        this.layouter = new jp.osakana4242.kimiko.SpriteLayouter(this);
+                        this.layouter.layout = (function () {
+                            var list = [
+                                ["spriteName", "layoutName", "visible", "delay", "x", "y"],
+                                ["resumeBtn", "hide", false, 0.1 * 0, 80, 100 - 10],
+                                ["toTitleBtn", "hide", false, 0.1 * 1, 80, 160 - 10],
+                                ["resumeBtn", "normal", true, 0.1 * 0, 80, 100],
+                                ["toTitleBtn", "normal", true, 0.1 * 1, 80, 160]
+                            ];
+                            return g_app.labeledValuesToObjects(list);
+                        })();
+
+                        //
                         var bg = (function () {
                             var spr = new enchant.Sprite(jp.osakana4242.kimiko.DF.SC_W, jp.osakana4242.kimiko.DF.SC_H);
                             spr.backgroundColor = "#000";
@@ -4458,7 +4639,7 @@ var jp;
                             return spr;
                         })();
 
-                        var label1 = (function () {
+                        var pauseLabel = (function () {
                             var label = new enchant.Label("PAUSE");
                             label.font = jp.osakana4242.kimiko.DF.FONT_M;
                             label.width = jp.osakana4242.kimiko.DF.SC_W;
@@ -4472,16 +4653,14 @@ var jp;
                         })();
 
                         //
-                        var label2 = (function () {
-                            var label = new enchant.Label("GOTO TITLE");
+                        var toTitleBtn = this.layouter.sprites["toTitleBtn"] = (function () {
+                            var label = new enchant.Label("TO TITLE");
                             label.font = jp.osakana4242.kimiko.DF.FONT_M;
                             label.width = jp.osakana4242.kimiko.DF.SC_W / 2;
                             label.height = 48;
                             label.backgroundColor = "#444";
                             label.color = "#ff0";
                             label.textAlign = "center";
-                            label.x = (jp.osakana4242.kimiko.DF.SC_W - label.width) / 2;
-                            label.y = 90;
                             label.addEventListener(enchant.Event.TOUCH_END, function () {
                                 g_app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_OK);
                                 g_app.gameScene.state = g_app.gameScene.stateGameStart;
@@ -4490,16 +4669,14 @@ var jp;
                             return label;
                         })();
 
-                        var label3 = (function () {
-                            var label = new enchant.Label("CONTINUE");
+                        var resumeBtn = this.layouter.sprites["resumeBtn"] = (function () {
+                            var label = new enchant.Label("RESUME");
                             label.font = jp.osakana4242.kimiko.DF.FONT_M;
                             label.width = jp.osakana4242.kimiko.DF.SC_W / 2;
                             label.height = 48;
                             label.backgroundColor = "#444";
                             label.color = "#ff0";
                             label.textAlign = "center";
-                            label.x = (jp.osakana4242.kimiko.DF.SC_W - label.width) / 2;
-                            label.y = 180;
                             label.addEventListener(enchant.Event.TOUCH_END, function () {
                                 g_app.core.popScene();
                             });
@@ -4507,9 +4684,17 @@ var jp;
                         })();
 
                         scene.addChild(bg);
-                        scene.addChild(label1);
-                        scene.addChild(label2);
-                        scene.addChild(label3);
+                        scene.addChild(pauseLabel);
+                        scene.addChild(toTitleBtn);
+                        scene.addChild(resumeBtn);
+
+                        this.layouter.transition("hide", false);
+                    },
+                    onenter: function () {
+                        this.layouter.transition("normal", true);
+                    },
+                    onexit: function () {
+                        this.layouter.transition("hide", false);
                     }
                 });
             })(kimiko.scenes || (kimiko.scenes = {}));
@@ -4729,6 +4914,144 @@ var jp;
                 });
             })(kimiko.scenes || (kimiko.scenes = {}));
             var scenes = kimiko.scenes;
+        })(osakana4242.kimiko || (osakana4242.kimiko = {}));
+        var kimiko = osakana4242.kimiko;
+    })(jp.osakana4242 || (jp.osakana4242 = {}));
+    var osakana4242 = jp.osakana4242;
+})(jp || (jp = {}));
+/// <reference path="kimiko.ts" />
+
+var jp;
+(function (jp) {
+    (function (osakana4242) {
+        (function (kimiko) {
+            var g_app = jp.osakana4242.kimiko.g_app;
+            var DF = jp.osakana4242.kimiko.DF;
+
+            var SpriteLayouter = (function () {
+                function SpriteLayouter(parentNode) {
+                    this.sprites = {};
+                    this.scale = new jp.osakana4242.utils.Vector2D(1.0, 1.0);
+                    this.node = new enchant.Node();
+                    parentNode.addChild(this.node);
+                }
+                /** 指定矩形のXYを指定位置を中心に反転する. */
+                SpriteLayouter.prototype.scalePosition = function (rect, origin, scale) {
+                    var x = rect.x;
+                    var y = rect.y;
+
+                    var ox = origin.x;
+                    var rhw = rect.width >> 1;
+                    x = (scale.x * (x + rhw - ox)) - rhw + ox;
+
+                    var oy = origin.y;
+                    var rhh = rect.height >> 1;
+                    y = (scale.y * (y + rhh - oy)) - rhh + oy;
+
+                    rect.x = x;
+                    rect.y = y;
+                    return rect;
+                };
+
+                /** 指定矩形のXYを指定位置を中心に反転する. */
+                SpriteLayouter.prototype.flipPosition = function (rect, origin, isFlipX, isFlipY) {
+                    var x = rect.x;
+                    var y = rect.y;
+                    if (isFlipX) {
+                        var ox = origin.x;
+                        var rhw = rect.width >> 1;
+                        x = (-1 * (x + rhw - ox)) - rhw + ox;
+                    }
+                    if (isFlipY) {
+                        var oy = origin.y;
+                        var rhh = rect.height >> 1;
+                        y = (-1 * (y + rhh - oy)) - rhh + oy;
+                    }
+                    rect.x = x;
+                    rect.y = y;
+                    return rect;
+                };
+
+                SpriteLayouter.prototype._transition = function (layoutName, isUseTl, scale) {
+                    console.log("transition: " + layoutName);
+
+                    var rect = jp.osakana4242.utils.Rect.alloc(0, 0, 320, 320);
+                    var sprRect = jp.osakana4242.utils.Rect.alloc();
+
+                    var origin = rect.center;
+
+                    for (var i = 0, iNum = this.layout.length; i < iNum; ++i) {
+                        var l = this.layout[i];
+                        if (l.layoutName !== layoutName) {
+                            continue;
+                        }
+                        var spr = this.sprites[l.spriteName];
+                        if (!spr) {
+                            continue;
+                        }
+                        console.log("spr:" + l.spriteName);
+
+                        sprRect.x = l.x;
+                        sprRect.y = l.y;
+                        sprRect.width = spr.width;
+                        sprRect.height = spr.height;
+                        this.scalePosition(sprRect, origin, scale);
+
+                        if (isUseTl) {
+                            if (0 < l.delay) {
+                                spr.tl.delay(g_app.secToFrame(l.delay));
+                            }
+                            if (l.visible) {
+                                // 動く前に表示する.
+                                spr.tl.then(function () {
+                                    this.visible = true;
+                                });
+                            }
+                            spr.tl.moveTo(sprRect.x, sprRect.y, g_app.secToFrame(0.2), enchant.Easing.SIN_EASEOUT);
+                            if (!l.visible) {
+                                // 動いた後に非表示にする.
+                                spr.tl.then(function () {
+                                    this.visible = false;
+                                });
+                            }
+                        } else {
+                            spr.x = sprRect.x;
+                            spr.y = sprRect.y;
+                            spr.visible = l.visible;
+                        }
+                    }
+
+                    jp.osakana4242.utils.Rect.free(rect);
+                    jp.osakana4242.utils.Rect.free(sprRect);
+                };
+
+                SpriteLayouter.prototype.transition = function (layoutName, isUseTl) {
+                    var _this = this;
+                    var scale = new jp.osakana4242.utils.Vector2D(this.scale.x, this.scale.y);
+                    if (!g_app.storage.root.userConfig.isUiRight) {
+                        scale.x *= -1;
+                    }
+
+                    if (!isUseTl && this.node.tl.queue.length <= 0) {
+                        this._transition(layoutName, isUseTl, scale);
+                        return;
+                    }
+
+                    this.node.tl.then(function () {
+                        _this._transition(layoutName, isUseTl, scale);
+                    }).waitUntil(function () {
+                        for (var key in _this.sprites) {
+                            var spr = _this.sprites[key];
+                            if (0 < spr.tl.queue.length) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    });
+                };
+                return SpriteLayouter;
+            })();
+            kimiko.SpriteLayouter = SpriteLayouter;
         })(osakana4242.kimiko || (osakana4242.kimiko = {}));
         var kimiko = osakana4242.kimiko;
     })(jp.osakana4242 || (jp.osakana4242 = {}));

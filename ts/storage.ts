@@ -21,6 +21,7 @@ module jp.osakana4242.kimiko {
 			fps: number;
 			isFpsVisible: boolean;
 			difficulty: number;
+			isUiRight: boolean;
 		}
 
 		export interface IUserMap {
@@ -34,8 +35,8 @@ module jp.osakana4242.kimiko {
 
 	export class Storage {
 
-		public static storageVersion = 1;
-		public static storageKey = "jp.osakana4242.kimiko.v" + Storage.storageVersion;
+		public static storageVersion = 2;
+		public static storageKey = "jp.osakana4242.kimiko";
 
 		public root: storage.IRoot = null;
 		private defaultRoot: storage.IRoot = null;
@@ -49,6 +50,7 @@ module jp.osakana4242.kimiko {
 					"fps":          g_app.config.fps || g_app.env.isPc ? 60 : 20,
 					"isFpsVisible": true,
 					"difficulty": 1,
+					"isUiRight": true,
 				},
 				"userMaps": {},
 			};

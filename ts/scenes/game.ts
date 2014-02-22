@@ -34,6 +34,20 @@ module jp.osakana4242.kimiko.scenes {
 				[], [], [], [],
 			];
 			//
+			this.layouter = new kimiko.SpriteLayouter(this);
+			this.layouter.layout = (() => {
+				var list = [
+					[ "spriteName",       "layoutName", "visible", "delay",  "x",  "y", ],
+
+					[ "pauseBtn",         "normal",     true,       0.05 * 0,  4,     4, ],
+					[ "statusLabels_0",   "normal",     true,       0.05 * 0,  70,    4 + 12 * 0, ],
+					[ "statusLabels_1",   "normal",     true,       0.05 * 0,  70,    4 + 12 * 1, ],
+					[ "statusLabels_2",   "normal",     true,       0.05 * 0,  70,    4 + 12 * 2, ],
+					[ "statusLabels_3",   "normal",     true,       0.05 * 0,  70,    4 + 12 * 3, ],
+				];
+				return g_app.labeledValuesToObjects(list);
+			})();
+
 			this.backgroundColor = "rgb(32, 32, 64)";
 			var sprite;
 
@@ -94,10 +108,11 @@ module jp.osakana4242.kimiko.scenes {
 					this.labels.push(sprite);
 					sprite.font = DF.FONT_M;
 					sprite.color = "#fff";
-					sprite.y = 12 * i;
+					sprite.width = 240;
+					this.layouter.sprites["statusLabels_" + i ] = sprite;
 				}
 
-				var btnPause = (() => {
+				var pauseBtn = (() => {
 					var spr = new enchant.Label("P");
 					spr.font = DF.FONT_M;
 					spr.color = "#ff0";
@@ -105,14 +120,13 @@ module jp.osakana4242.kimiko.scenes {
 					spr.width = 48;
 					spr.height = 48;
 					spr.textAlign = "center";
-					spr.x = DF.SC2_W - 56;
-					spr.y = DF.SC2_H - 56;
 					spr.addEventListener(enchant.Event.TOUCH_END, () => {
 						g_app.sound.playSe(Assets.SOUND_SE_OK);
 						g_app.core.pushScene(g_app.pauseScene);
 					});
 					return spr;
 				})();
+				this.layouter.sprites["pauseBtn"] = pauseBtn;
 
 				var group = new enchant.Group();
 				this.statusGroup = group;
@@ -123,7 +137,7 @@ module jp.osakana4242.kimiko.scenes {
 				for (var i: number = 0, iNum: number = this.labels.length; i < iNum; ++i) {
 					group.addChild(this.labels[i]);
 				}
-				group.addChild(btnPause);
+				group.addChild(pauseBtn);
 				this.addChild(group);
 
 			})();
@@ -242,10 +256,13 @@ module jp.osakana4242.kimiko.scenes {
 			var camera = scene.camera;
 			scene.fader.fadeIn2(g_app.secToFrame(0.2), camera.getTargetPosOnCamera());
 
+			scene.layouter.transition("normal", false);
+
 			scene.state = scene.stateNormal;
 			// scene.state = scene.stateGameClear;
 
 			g_app.sound.playBgm(Assets.SOUND_BGM, false);
+
 
 			g_app.addTestHudTo(this);
 		},

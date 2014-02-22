@@ -344,7 +344,7 @@ module jp.osakana4242.utils {
 				}
 				if (isFlipY) {
 					var phh = p.height >> 1;
-					var shh = s.width >> 1;
+					var shh = s.height >> 1;
 					y = (-1 * (s.y + shh - phh)) - shh + phh;
 				}
 			}
