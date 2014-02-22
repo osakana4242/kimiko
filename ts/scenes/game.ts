@@ -96,7 +96,7 @@ module jp.osakana4242.kimiko.scenes {
 					this.controllArea = spr;
 					spr.x = 0;
 					spr.y = 0;
-					spr.backgroundColor = "rgb(64, 64, 64)";
+					spr.backgroundColor = "rgb(60, 60, 40)";
 					return spr;
 				})();
 
@@ -104,22 +104,14 @@ module jp.osakana4242.kimiko.scenes {
 				this.labels = [];
 				var texts: string[][] = this.statusTexts;
 				for (var i: number = 0, iNum: number = texts.length; i < iNum; ++i) {
-					sprite = new enchant.Label("");
+					sprite = new enchant.Sprite();
 					this.labels.push(sprite);
-					sprite.font = DF.FONT_M;
-					sprite.color = "#fff";
-					sprite.width = 240;
+					sprite.font = g_app.fontS;
 					this.layouter.sprites["statusLabels_" + i ] = sprite;
 				}
 
 				var pauseBtn = (() => {
-					var spr = new enchant.Label("P");
-					spr.font = DF.FONT_M;
-					spr.color = "#ff0";
-					spr.backgroundColor = "#000";
-					spr.width = 48;
-					spr.height = 48;
-					spr.textAlign = "center";
+					var spr = new LabeledButton(48, 48, "P");
 					spr.addEventListener(enchant.Event.TOUCH_END, () => {
 						g_app.sound.playSe(Assets.SOUND_SE_OK);
 						g_app.core.pushScene(g_app.pauseScene);
@@ -599,7 +591,7 @@ module jp.osakana4242.kimiko.scenes {
 			var pd = g_app.playerData;
 			var mapCharaMgr: game.MapCharaManager = this.mapCharaMgr;
 			var texts: string[][] = this.statusTexts;
-			var lifeText = g_app.stringUtil.mul("o", player.life.hp) + utils.StringUtil.mul("_", player.life.hpMax - player.life.hp);
+			var lifeText = g_app.stringUtil.mul("O", player.life.hp) + utils.StringUtil.mul("_", player.life.hpMax - player.life.hp);
 			texts[0][0] = "SC " + g_app.playerData.score + " " +
 				"TIME " + Math.floor(g_app.frameToSec(pd.restTimeCounter));	
 			texts[1][0] = "LIFE " + lifeText + " " +
@@ -607,7 +599,7 @@ module jp.osakana4242.kimiko.scenes {
 				(player.targetEnemy ? "LOCK" : "    ") + " " +
 				"";
 
-			texts[2][0] = "nodes " + scene.world.childNodes.length;
+			texts[2][0] = "NODES " + scene.world.childNodes.length;
 			//texts[1][0] = player.stateToString()
 			//texts[2][1] = "actives:" + mapCharaMgr.actives.length + " " +
 			//	"sleeps:" + mapCharaMgr.sleeps.length;

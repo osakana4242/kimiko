@@ -117,26 +117,22 @@ module jp.osakana4242.kimiko.scenes {
 				var tmpY = 36 * idx;
 				var item = {
 					"titleLabel": (() => {
-						var spr = new enchant.Label(title);
-						spr.font = DF.FONT_M;
-						spr.color = "rgb(255, 255, 255)";
-						spr.width = DF.SC_W;
-						spr.height = btnHeight;
-						spr.textAlign = "left";
+						var spr = new enchant.Sprite();
+						spr.font = g_app.fontS;
+						spr.text = title;
 						spr.x = 0;
 						spr.y = tmpY;
+						spr.touchEnabled = false;
 						return spr;
 					})(),
 
 					"valueLabel": (() => {
-						var spr = new enchant.Label("");
-						spr.font = DF.FONT_M;
-						spr.color = "rgb(196, 255, 196)";
-						spr.width = DF.SC_W;
-						spr.height = btnHeight;
-						spr.textAlign = "left";
-						spr.x = 12;
-						spr.y = tmpY + 12;
+						var spr = new enchant.Sprite();
+						spr.font = g_app.fontS;
+						spr.text = "";
+						spr.x = 24;
+						spr.y = tmpY + spr.font.lineHeight;
+						spr.touchEnabled = false;
 						return spr;
 					})(),
 
@@ -150,14 +146,14 @@ module jp.osakana4242.kimiko.scenes {
 				var list = [
 					[ "spriteName", "layoutName", "visible", "delay",  "x",  "y", ],
 
-					[ "titleLabel", "none",       false,     0.05 * 0,  80,         -52, ],
+					[ "titleLabel", "none",       false,     0.05 * 0, 124,         -52, ],
 					[ "backBtn",    "none",       false,     0.05 * 0, 320,  4 + 52 * 0, ],
 					[ "upBtn",      "none",       false,     0.05 * 1, 320,  4 + 52 * 1, ],
 					[ "downBtn",    "none",       false,     0.05 * 2, 320,  4 + 52 * 2, ],
 					[ "leftBtn",    "none",       false,     0.05 * 3, 320,  4 + 52 * 3, ],
 					[ "rightBtn",   "none",       false,     0.05 * 4, 320,  4 + 52 * 4, ],
 
-					[ "titleLabel", "right",      true,      0.05 * 0,  80,           4, ],
+					[ "titleLabel", "right",      true,      0.05 * 0, 124,           4, ],
 					[ "backBtn",    "right",      true,      0.05 * 0, 268,  4 + 52 * 0, ],
 					[ "upBtn",      "right",      true,      0.05 * 1, 268,  4 + 52 * 1, ],
 					[ "downBtn",    "right",      true,      0.05 * 2, 268,  4 + 52 * 2, ],
@@ -168,89 +164,53 @@ module jp.osakana4242.kimiko.scenes {
 			})();
 
 			layouter.sprites["titleLabel"] = (() => {
-				var spr = new enchant.Label("CONFIG");
-				spr.font = DF.FONT_M;
-				spr.color = "rgb(255, 255, 255)";
-				spr.width = 160;
-				spr.height = btnHeight;
-				spr.textAlign = "center";
+				var spr = new enchant.Sprite();
+				spr.font = g_app.fontS;
+				spr.text = "CONFIG";
 				return spr;
 			})();
 
 			layouter.sprites["backBtn"] = (() => {
-				var spr = new enchant.Label("x");
-				spr.font = DF.FONT_L;
-				spr.color = "rgb(255, 255, 0)";
-				spr.backgroundColor = "rgb(64, 64, 64)";
-				spr.width = 48;
-				spr.height = btnHeight;
-				spr.textAlign = "center";
+				var spr = new LabeledButton(48, 48, "X");
 				spr.addEventListener(enchant.Event.TOUCH_END, gotoTitle);
 				return spr;
 			})();
 
 			layouter.sprites["upBtn"] = (() => {
-				var spr = new enchant.Label("^");
-				spr.font = DF.FONT_L;
-				spr.backgroundColor = "rgb(64, 64, 64)";
-				spr.color = "rgb(255, 255, 0)";
-				spr.width = 48;
-				spr.height = btnHeight;
-				spr.textAlign = "center";
+				var spr = new LabeledButton(48, 48, "^");
 				spr.addEventListener(enchant.Event.TOUCH_END, () => { onButtonEvent("up"); });
 				return spr;
 			})();
 
 			layouter.sprites["downBtn"] = (() => {
-				var spr = new enchant.Label("v");
-				spr.font = DF.FONT_L;
-				spr.backgroundColor = "rgb(64, 64, 64)";
-				spr.color = "rgb(255, 255, 0)";
-				spr.width = 48;
-				spr.height = btnHeight;
-				spr.textAlign = "center";
+				var spr = new LabeledButton(48, 48, "V");
 				spr.addEventListener(enchant.Event.TOUCH_END, () => { onButtonEvent("down"); });
 				return spr;
 			})();
 
 			layouter.sprites["leftBtn"] = (() => {
-				var spr = new enchant.Label("<");
-				spr.font = DF.FONT_L;
-				spr.backgroundColor = "rgb(64, 64, 64)";
-				spr.color = "rgb(255, 255, 0)";
-				spr.width = 48;
-				spr.height = btnHeight;
-				spr.textAlign = "center";
+				var spr = new LabeledButton(48, 48, "<");
 				spr.addEventListener(enchant.Event.TOUCH_END, () => { onButtonEvent("left"); });
 				return spr;
 			})();
 
 			layouter.sprites["rightBtn"] = (() => {
-				var spr = new enchant.Label(">");
-				spr.font = DF.FONT_L;
-				spr.backgroundColor = "rgb(64, 64, 64)";
-				spr.color = "rgb(255, 255, 0)";
-				spr.width = 48;
-				spr.height = btnHeight;
-				spr.textAlign = "center";
+				var spr = new LabeledButton(48, 48, ">");
 				spr.addEventListener(enchant.Event.TOUCH_END, () => { onButtonEvent("right"); });
 				return spr;
 			})();
 
 			var cursor = (() => {
-				var spr = new enchant.Label("*");
-				spr.font = DF.FONT_M;
-				spr.color = "rgb(255, 255, 196)";
-				spr.width = 12;
-				spr.height = 12;
-				spr.textAlign = "center";
+				var spr = new enchant.Sprite();
+				spr.font = g_app.fontS;
+				spr.text = "*";
 				spr.x = 0;
 				spr.y = 0;
 				return spr;
 			})();
 
 			//
-			scene.backgroundColor = "rgb( 32, 32, 32)";
+			scene.backgroundColor = "rgb( 128, 128, 32)";
 			//
 			var menuGroup = new enchant.Group();
 			menuGroup.x = 80;

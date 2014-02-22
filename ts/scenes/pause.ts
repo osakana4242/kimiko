@@ -35,13 +35,10 @@ module jp.osakana4242.kimiko.scenes {
 			})();
 
 			var pauseLabel = (() => {
-				var label = new enchant.Label("PAUSE");
-				label.font = DF.FONT_M;
-				label.width = DF.SC_W;
-				label.height = 12;
-				label.color = "rgb(255, 255, 255)";
-				label.textAlign = "center";
-				label.x = 0;
+				var label = new enchant.Sprite();
+				label.font = g_app.fontS;
+				label.text = "PAUSE";
+				label.x = (DF.SC_W - label.width) / 2;
 				label.y = 60;
 				label.tl.
 					moveBy(0, -8, g_app.secToFrame(1.0), enchant.Easing.SIN_EASEINOUT).
@@ -51,13 +48,7 @@ module jp.osakana4242.kimiko.scenes {
 			})();
 			//
 			var toTitleBtn = this.layouter.sprites["toTitleBtn"] = (() => {
-				var label = new enchant.Label("TO TITLE");
-				label.font = DF.FONT_M;
-				label.width = DF.SC_W / 2;
-				label.height = 48;
-				label.backgroundColor = "#444";
-				label.color = "#ff0";
-				label.textAlign = "center";
+				var label = new LabeledButton(160, 48, "TO TITLE");
 				label.addEventListener(enchant.Event.TOUCH_END, () => {
 					g_app.sound.playSe(Assets.SOUND_SE_OK);
 					g_app.gameScene.state = g_app.gameScene.stateGameStart;
@@ -67,13 +58,7 @@ module jp.osakana4242.kimiko.scenes {
 			})();
 
 			var resumeBtn = this.layouter.sprites["resumeBtn"] = (() => {
-				var label = new enchant.Label("RESUME");
-				label.font = DF.FONT_M;
-				label.width = DF.SC_W / 2;
-				label.height = 48;
-				label.backgroundColor = "#444";
-				label.color = "#ff0";
-				label.textAlign = "center";
+				var label = new LabeledButton(160, 48, "RESUME");
 				label.addEventListener(enchant.Event.TOUCH_END, () => {
 					g_app.core.popScene();
 				});

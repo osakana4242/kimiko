@@ -566,6 +566,84 @@
                 };
             })();
 
+            var SpriteFont = (function () {
+                function SpriteFont() {
+                }
+                SpriteFont.prototype.getTextWidth = function (text) {
+                    var ret = 0;
+                    for (var i = 0, iNum = text.length; i < iNum; ++i) {
+                        var code = text.charCodeAt(i);
+                        var fc = this.getCharacter(code);
+                        ret -= this.marginRight;
+                        ret += fc.width;
+                        ret -= this.marginLeft;
+                    }
+                    return ret;
+                };
+
+                SpriteFont.prototype.getCharacter = function (code) {
+                    var fc = this.characters[code];
+                    if (!fc) {
+                        if (0x61 <= code && code <= 0x7a) {
+                            // a <= fc <= z
+                            fc = this.characters[code - 0x20];
+                        }
+                        if (!fc) {
+                            fc = this.characters[this.defaultCharCode];
+                        }
+                    }
+                    return fc;
+                };
+
+                Object.defineProperty(SpriteFont.prototype, "lineHeight", {
+                    get: function () {
+                        return this.characters[this.defaultCharCode].height;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+
+                SpriteFont.makeFromFontSettings = function (assetName, defaultCharCode, imageWidth, imageHeight, fontSettings) {
+                    var font = new SpriteFont();
+                    font.assetName = assetName;
+                    font.imageWidth = imageWidth;
+                    font.imageHeight = imageHeight;
+                    font.characters = SpriteFont.loadFontSettings(imageWidth, imageHeight, fontSettings);
+                    font.defaultCharCode = defaultCharCode;
+                    font.marginLeft = 1;
+                    font.marginRight = 1;
+                    return font;
+                };
+
+                SpriteFont.loadFontSettings = function (textureWidth, textureHeight, arr) {
+                    var colCnt = 9;
+                    var rowCnt = arr.length / colCnt;
+                    var map = {};
+                    for (var rowI = 0; rowI < rowCnt; ++rowI) {
+                        var arrOffs = colCnt * rowI;
+                        var charCode = arr[arrOffs + 0];
+                        var fontLeftRate = arr[arrOffs + 1];
+                        var fontBottomRate = arr[arrOffs + 2];
+                        var fontWidth = arr[arrOffs + 7];
+                        var fontHeight = -arr[arrOffs + 8];
+                        var fontLeft = textureWidth * fontLeftRate;
+                        var fontBottom = textureHeight - textureHeight * fontBottomRate;
+                        var fontTop = fontBottom - fontHeight;
+                        var c = String.fromCharCode(charCode);
+                        map[charCode] = {
+                            "char": c,
+                            "left": fontLeft,
+                            "top": fontTop,
+                            "width": fontWidth,
+                            "height": fontHeight
+                        };
+                    }
+                    return map;
+                };
+                return SpriteFont;
+            })();
+            utils.SpriteFont = SpriteFont;
+
             /** enchant.Sprite拡張. */
             (function () {
                 var orig = enchant.Sprite.prototype.initialize;
@@ -573,6 +651,47 @@
                     orig.apply(this, arguments);
                     this.center = new utils.RectCenter(this);
                     this.anim = new utils.AnimSequencer(this);
+                };
+
+                Object.defineProperty(enchant.Sprite.prototype, "text", {
+                    "set": function (value) {
+                        value = value.toString();
+                        this._text = value;
+                        var font = this.font;
+                        if (!font) {
+                            console.log("please set sprite font!");
+                            return;
+                        }
+                        this.width = font.getTextWidth(value);
+                        this.height = font.lineHeight;
+                        if (this.image === null || this.image.width < this.width || this.image.height < this.height) {
+                            this.image = new enchant.Surface(this.width, this.height);
+                        }
+                        this.drawText(value, font, this.image);
+                    },
+                    "get": function () {
+                        return this._text;
+                    }
+                });
+
+                enchant.Sprite.prototype.drawText = function (txt, font, destImage) {
+                    var core = enchant.Core.instance;
+                    var assetImage = core.assets[font.assetName];
+                    destImage.clear();
+                    var marginLeft = font.marginLeft;
+                    var marginRight = font.marginRight;
+                    var xOnImage = 0;
+
+                    for (var i = 0, txtLength = txt.length; i < txtLength; ++i) {
+                        xOnImage -= marginLeft;
+                        var charCode = txt.charCodeAt(i);
+                        var fc = font.getCharacter(charCode);
+                        var fcw = fc.width;
+                        var fch = fc.height;
+                        destImage.draw(assetImage, fc.left, fc.top, fcw, fch, xOnImage, 0, fcw, fch);
+                        xOnImage -= marginRight;
+                        xOnImage += fcw;
+                    }
                 };
             })();
 
@@ -644,6 +763,7 @@ var jp;
     (function (osakana4242) {
         (function (kimiko) {
             (function (Assets) {
+                Assets.IMAGE_FONT_S = "./images/font_s.png";
                 Assets.IMAGE_GAME_START_BG = "./images/game_start_bg.png";
                 Assets.IMAGE_MAP = "./images/map.png";
                 Assets.IMAGE_CHARA001 = "./images/chara001.png";
@@ -1331,6 +1451,12 @@ var jp;
                     core.keybind("S".charCodeAt(0), "down");
 
                     //
+                    // ASCII
+                    //  !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+                    //
+                    kimiko.g_app.fontS = jp.osakana4242.utils.SpriteFont.makeFromFontSettings(Assets.IMAGE_FONT_S, "?".charCodeAt(0), 128, 128, jp.osakana4242.kimiko["g_fontSettings"]);
+
+                    //
                     core.onload = (function () {
                         kimiko.g_app.playerData = new jp.osakana4242.kimiko.PlayerData();
 
@@ -1443,10 +1569,8 @@ var jp;
                         function getTime() {
                             return new Date().getTime();
                         }
-                        var label = new enchant.Label("");
-                        label.font = DF.FONT_M;
-                        label.color = "rgb(255,255,255)";
-                        label.backgroundColor = "rgb(0,0,128)";
+                        var label = new enchant.Sprite();
+                        label.font = kimiko.g_app.fontS;
 
                         var diffSum = 0;
                         var prevTime = getTime();
@@ -1483,6 +1607,59 @@ var jp;
                         return label;
                     })();
                     group.addChild(fpsLabel);
+                }
+            });
+
+            kimiko.LabeledButton = enchant.Class(enchant.Group, {
+                initialize: function (width, height, text) {
+                    enchant.Group.call(this);
+                    this.button = new enchant.Sprite(width, height);
+                    this.button.backgroundColor = "rgb(80,80,80)";
+                    this.button.touchEnabled = true;
+                    this.label = new enchant.Sprite();
+                    this.label.font = kimiko.g_app.fontS;
+                    this.label.touchEnabled = false;
+                    this.text = text;
+                    this.addChild(this.button);
+                    this.addChild(this.label);
+                    this._visible = true;
+                },
+                ontouchstart: function () {
+                    this.button.backgroundColor = "rgb(64,64,64)";
+                    this.button.y = 1;
+                },
+                ontouchend: function () {
+                    this.button.backgroundColor = "rgb(80,80,80)";
+                    this.button.y = 0;
+                },
+                visible: {
+                    get: function () {
+                        return this._visible;
+                    },
+                    set: function (value) {
+                        if (this._visible === value) {
+                            return;
+                        }
+                        this._visible = value;
+                        this.button.visible = value;
+                        this.label.visible = value;
+                    }
+                },
+                width: { get: function () {
+                        return this.button.width;
+                    } },
+                height: { get: function () {
+                        return this.button.height;
+                    } },
+                text: {
+                    get: function () {
+                        return this.label.text;
+                    },
+                    set: function (value) {
+                        this.label.text = value;
+                        this.label.x = (this.width - this.label.width) / 2;
+                        this.label.y = (this.height - this.label.height) / 2;
+                    }
                 }
             });
 
@@ -3416,25 +3593,21 @@ var jp;
                             var tmpY = 36 * idx;
                             var item = {
                                 "titleLabel": (function () {
-                                    var spr = new enchant.Label(title);
-                                    spr.font = DF.FONT_M;
-                                    spr.color = "rgb(255, 255, 255)";
-                                    spr.width = DF.SC_W;
-                                    spr.height = btnHeight;
-                                    spr.textAlign = "left";
+                                    var spr = new enchant.Sprite();
+                                    spr.font = g_app.fontS;
+                                    spr.text = title;
                                     spr.x = 0;
                                     spr.y = tmpY;
+                                    spr.touchEnabled = false;
                                     return spr;
                                 })(),
                                 "valueLabel": (function () {
-                                    var spr = new enchant.Label("");
-                                    spr.font = DF.FONT_M;
-                                    spr.color = "rgb(196, 255, 196)";
-                                    spr.width = DF.SC_W;
-                                    spr.height = btnHeight;
-                                    spr.textAlign = "left";
-                                    spr.x = 12;
-                                    spr.y = tmpY + 12;
+                                    var spr = new enchant.Sprite();
+                                    spr.font = g_app.fontS;
+                                    spr.text = "";
+                                    spr.x = 24;
+                                    spr.y = tmpY + spr.font.lineHeight;
+                                    spr.touchEnabled = false;
                                     return spr;
                                 })(),
                                 "itemData": itemData
@@ -3446,13 +3619,13 @@ var jp;
                         layouter.layout = (function () {
                             var list = [
                                 ["spriteName", "layoutName", "visible", "delay", "x", "y"],
-                                ["titleLabel", "none", false, 0.05 * 0, 80, -52],
+                                ["titleLabel", "none", false, 0.05 * 0, 124, -52],
                                 ["backBtn", "none", false, 0.05 * 0, 320, 4 + 52 * 0],
                                 ["upBtn", "none", false, 0.05 * 1, 320, 4 + 52 * 1],
                                 ["downBtn", "none", false, 0.05 * 2, 320, 4 + 52 * 2],
                                 ["leftBtn", "none", false, 0.05 * 3, 320, 4 + 52 * 3],
                                 ["rightBtn", "none", false, 0.05 * 4, 320, 4 + 52 * 4],
-                                ["titleLabel", "right", true, 0.05 * 0, 80, 4],
+                                ["titleLabel", "right", true, 0.05 * 0, 124, 4],
                                 ["backBtn", "right", true, 0.05 * 0, 268, 4 + 52 * 0],
                                 ["upBtn", "right", true, 0.05 * 1, 268, 4 + 52 * 1],
                                 ["downBtn", "right", true, 0.05 * 2, 268, 4 + 52 * 2],
@@ -3463,35 +3636,20 @@ var jp;
                         })();
 
                         layouter.sprites["titleLabel"] = (function () {
-                            var spr = new enchant.Label("CONFIG");
-                            spr.font = DF.FONT_M;
-                            spr.color = "rgb(255, 255, 255)";
-                            spr.width = 160;
-                            spr.height = btnHeight;
-                            spr.textAlign = "center";
+                            var spr = new enchant.Sprite();
+                            spr.font = g_app.fontS;
+                            spr.text = "CONFIG";
                             return spr;
                         })();
 
                         layouter.sprites["backBtn"] = (function () {
-                            var spr = new enchant.Label("x");
-                            spr.font = DF.FONT_L;
-                            spr.color = "rgb(255, 255, 0)";
-                            spr.backgroundColor = "rgb(64, 64, 64)";
-                            spr.width = 48;
-                            spr.height = btnHeight;
-                            spr.textAlign = "center";
+                            var spr = new jp.osakana4242.kimiko.LabeledButton(48, 48, "X");
                             spr.addEventListener(enchant.Event.TOUCH_END, gotoTitle);
                             return spr;
                         })();
 
                         layouter.sprites["upBtn"] = (function () {
-                            var spr = new enchant.Label("^");
-                            spr.font = DF.FONT_L;
-                            spr.backgroundColor = "rgb(64, 64, 64)";
-                            spr.color = "rgb(255, 255, 0)";
-                            spr.width = 48;
-                            spr.height = btnHeight;
-                            spr.textAlign = "center";
+                            var spr = new jp.osakana4242.kimiko.LabeledButton(48, 48, "^");
                             spr.addEventListener(enchant.Event.TOUCH_END, function () {
                                 onButtonEvent("up");
                             });
@@ -3499,13 +3657,7 @@ var jp;
                         })();
 
                         layouter.sprites["downBtn"] = (function () {
-                            var spr = new enchant.Label("v");
-                            spr.font = DF.FONT_L;
-                            spr.backgroundColor = "rgb(64, 64, 64)";
-                            spr.color = "rgb(255, 255, 0)";
-                            spr.width = 48;
-                            spr.height = btnHeight;
-                            spr.textAlign = "center";
+                            var spr = new jp.osakana4242.kimiko.LabeledButton(48, 48, "V");
                             spr.addEventListener(enchant.Event.TOUCH_END, function () {
                                 onButtonEvent("down");
                             });
@@ -3513,13 +3665,7 @@ var jp;
                         })();
 
                         layouter.sprites["leftBtn"] = (function () {
-                            var spr = new enchant.Label("<");
-                            spr.font = DF.FONT_L;
-                            spr.backgroundColor = "rgb(64, 64, 64)";
-                            spr.color = "rgb(255, 255, 0)";
-                            spr.width = 48;
-                            spr.height = btnHeight;
-                            spr.textAlign = "center";
+                            var spr = new jp.osakana4242.kimiko.LabeledButton(48, 48, "<");
                             spr.addEventListener(enchant.Event.TOUCH_END, function () {
                                 onButtonEvent("left");
                             });
@@ -3527,13 +3673,7 @@ var jp;
                         })();
 
                         layouter.sprites["rightBtn"] = (function () {
-                            var spr = new enchant.Label(">");
-                            spr.font = DF.FONT_L;
-                            spr.backgroundColor = "rgb(64, 64, 64)";
-                            spr.color = "rgb(255, 255, 0)";
-                            spr.width = 48;
-                            spr.height = btnHeight;
-                            spr.textAlign = "center";
+                            var spr = new jp.osakana4242.kimiko.LabeledButton(48, 48, ">");
                             spr.addEventListener(enchant.Event.TOUCH_END, function () {
                                 onButtonEvent("right");
                             });
@@ -3541,19 +3681,16 @@ var jp;
                         })();
 
                         var cursor = (function () {
-                            var spr = new enchant.Label("*");
-                            spr.font = DF.FONT_M;
-                            spr.color = "rgb(255, 255, 196)";
-                            spr.width = 12;
-                            spr.height = 12;
-                            spr.textAlign = "center";
+                            var spr = new enchant.Sprite();
+                            spr.font = g_app.fontS;
+                            spr.text = "*";
                             spr.x = 0;
                             spr.y = 0;
                             return spr;
                         })();
 
                         //
-                        scene.backgroundColor = "rgb( 32, 32, 32)";
+                        scene.backgroundColor = "rgb( 128, 128, 32)";
 
                         //
                         var menuGroup = new enchant.Group();
@@ -3755,7 +3892,7 @@ var jp;
                                 _this.controllArea = spr;
                                 spr.x = 0;
                                 spr.y = 0;
-                                spr.backgroundColor = "rgb(64, 64, 64)";
+                                spr.backgroundColor = "rgb(60, 60, 40)";
                                 return spr;
                             })();
 
@@ -3763,22 +3900,14 @@ var jp;
                             _this.labels = [];
                             var texts = _this.statusTexts;
                             for (var i = 0, iNum = texts.length; i < iNum; ++i) {
-                                sprite = new enchant.Label("");
+                                sprite = new enchant.Sprite();
                                 _this.labels.push(sprite);
-                                sprite.font = DF.FONT_M;
-                                sprite.color = "#fff";
-                                sprite.width = 240;
+                                sprite.font = g_app.fontS;
                                 _this.layouter.sprites["statusLabels_" + i] = sprite;
                             }
 
                             var pauseBtn = (function () {
-                                var spr = new enchant.Label("P");
-                                spr.font = DF.FONT_M;
-                                spr.color = "#ff0";
-                                spr.backgroundColor = "#000";
-                                spr.width = 48;
-                                spr.height = 48;
-                                spr.textAlign = "center";
+                                var spr = new jp.osakana4242.kimiko.LabeledButton(48, 48, "P");
                                 spr.addEventListener(enchant.Event.TOUCH_END, function () {
                                     g_app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_OK);
                                     g_app.core.pushScene(g_app.pauseScene);
@@ -4238,11 +4367,11 @@ var jp;
                         var pd = g_app.playerData;
                         var mapCharaMgr = this.mapCharaMgr;
                         var texts = this.statusTexts;
-                        var lifeText = g_app.stringUtil.mul("o", player.life.hp) + jp.osakana4242.utils.StringUtil.mul("_", player.life.hpMax - player.life.hp);
+                        var lifeText = g_app.stringUtil.mul("O", player.life.hp) + jp.osakana4242.utils.StringUtil.mul("_", player.life.hpMax - player.life.hp);
                         texts[0][0] = "SC " + g_app.playerData.score + " " + "TIME " + Math.floor(g_app.frameToSec(pd.restTimeCounter));
                         texts[1][0] = "LIFE " + lifeText + " " + "WALL " + player.wallPushDir.x + "," + player.wallPushDir.y + " " + (player.targetEnemy ? "LOCK" : "    ") + " " + "";
 
-                        texts[2][0] = "nodes " + scene.world.childNodes.length;
+                        texts[2][0] = "NODES " + scene.world.childNodes.length;
 
                         for (var i = 0, iNum = texts.length; i < iNum; ++i) {
                             var line = texts[i].join(" ");
@@ -4556,13 +4685,10 @@ var jp;
                         })(bg1);
 
                         //
-                        var label1 = new enchant.Label("GOOD NIGHT...");
+                        var label1 = new enchant.Sprite();
+                        label1.font = g_app.fontS;
+                        label1.text = "GOOD NIGHT...";
                         (function (label) {
-                            label.font = jp.osakana4242.kimiko.DF.FONT_M;
-                            label.width = jp.osakana4242.kimiko.DF.SC_W;
-                            label.height = 12;
-                            label.color = "rgb(255, 255, 255)";
-                            label.textAlign = "center";
                             var ax = (jp.osakana4242.kimiko.DF.SC1_W - label.width) / 2;
                             var ay = (jp.osakana4242.kimiko.DF.SC1_H - label.height) / 2;
                             label.x = ax;
@@ -4640,13 +4766,10 @@ var jp;
                         })();
 
                         var pauseLabel = (function () {
-                            var label = new enchant.Label("PAUSE");
-                            label.font = jp.osakana4242.kimiko.DF.FONT_M;
-                            label.width = jp.osakana4242.kimiko.DF.SC_W;
-                            label.height = 12;
-                            label.color = "rgb(255, 255, 255)";
-                            label.textAlign = "center";
-                            label.x = 0;
+                            var label = new enchant.Sprite();
+                            label.font = g_app.fontS;
+                            label.text = "PAUSE";
+                            label.x = (jp.osakana4242.kimiko.DF.SC_W - label.width) / 2;
                             label.y = 60;
                             label.tl.moveBy(0, -8, g_app.secToFrame(1.0), enchant.Easing.SIN_EASEINOUT).moveBy(0, 8, g_app.secToFrame(1.0), enchant.Easing.SIN_EASEINOUT).loop();
                             return label;
@@ -4654,13 +4777,7 @@ var jp;
 
                         //
                         var toTitleBtn = this.layouter.sprites["toTitleBtn"] = (function () {
-                            var label = new enchant.Label("TO TITLE");
-                            label.font = jp.osakana4242.kimiko.DF.FONT_M;
-                            label.width = jp.osakana4242.kimiko.DF.SC_W / 2;
-                            label.height = 48;
-                            label.backgroundColor = "#444";
-                            label.color = "#ff0";
-                            label.textAlign = "center";
+                            var label = new jp.osakana4242.kimiko.LabeledButton(160, 48, "TO TITLE");
                             label.addEventListener(enchant.Event.TOUCH_END, function () {
                                 g_app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_OK);
                                 g_app.gameScene.state = g_app.gameScene.stateGameStart;
@@ -4670,13 +4787,7 @@ var jp;
                         })();
 
                         var resumeBtn = this.layouter.sprites["resumeBtn"] = (function () {
-                            var label = new enchant.Label("RESUME");
-                            label.font = jp.osakana4242.kimiko.DF.FONT_M;
-                            label.width = jp.osakana4242.kimiko.DF.SC_W / 2;
-                            label.height = 48;
-                            label.backgroundColor = "#444";
-                            label.color = "#ff0";
-                            label.textAlign = "center";
+                            var label = new jp.osakana4242.kimiko.LabeledButton(160, 48, "RESUME");
                             label.addEventListener(enchant.Event.TOUCH_END, function () {
                                 g_app.core.popScene();
                             });
@@ -4730,13 +4841,12 @@ var jp;
 
                         //
                         var title = (function () {
-                            var spr = new enchant.Label("KIMIKO'S NIGHTMARE");
-                            spr.font = DF.FONT_L;
-                            spr.color = "rgb(255, 255, 255)";
-                            spr.width = DF.SC_W;
-                            spr.height = 24;
-                            spr.textAlign = "center";
-                            spr.x = 0;
+                            var spr = new enchant.Sprite();
+                            spr.font = g_app.fontS;
+                            spr.text = "KIMIKO'S NIGHTMARE";
+
+                            //spr.textAlign = "center";
+                            spr.x = (DF.SC_W - spr.width) / 2;
                             spr.y = 8;
                             return spr;
                         })();
@@ -4759,36 +4869,25 @@ var jp;
                         })();
 
                         var author = (function () {
-                            var spr = new enchant.Label("created by @osakana4242");
-                            spr.font = DF.FONT_M;
-                            spr.color = "rgb(255, 255, 255)";
-                            spr.width = DF.SC_W;
-                            spr.height = 12;
-                            spr.textAlign = "center";
-                            spr.x = 0;
+                            var spr = new enchant.Sprite();
+                            spr.font = g_app.fontS;
+                            spr.text = "created by @osakana4242";
+                            spr.x = (DF.SC_W - spr.width) / 2;
                             spr.y = 300;
                             return spr;
                         })();
 
                         var mapLabel = (function () {
-                            var spr = new enchant.Label();
-                            spr.font = DF.FONT_L;
-                            spr.color = "rgb(255, 255, 255)";
-                            spr.width = DF.SC_W;
-                            spr.height = 24;
-                            spr.textAlign = "center";
+                            var spr = new enchant.Sprite();
+                            spr.font = g_app.fontS;
                             spr.x = 0;
                             spr.y = 70;
                             return spr;
                         })();
 
                         var mapLabel2 = (function () {
-                            var spr = new enchant.Label();
-                            spr.font = DF.FONT_L;
-                            spr.color = "rgb(255, 255, 255)";
-                            spr.width = DF.SC_W;
-                            spr.height = 24;
-                            spr.textAlign = "center";
+                            var spr = new enchant.Sprite();
+                            spr.font = g_app.fontS;
                             spr.x = 0;
                             spr.y = 94;
                             return spr;
@@ -4798,45 +4897,30 @@ var jp;
                             var mapId = mapIds[mapIdsIdx];
                             mapLabel.text = "MAP " + mapId;
                             mapLabel2.text = DF.MAP_OPTIONS[mapId].title;
+
+                            mapLabel.x = (DF.SC_W - mapLabel.width) / 2;
+                            mapLabel2.x = (DF.SC_W - mapLabel2.width) / 2;
                         }
                         updateMapLabel();
 
                         var leftBtn = (function () {
-                            var spr = new enchant.Label("<-");
-                            spr.font = DF.FONT_L;
-                            spr.backgroundColor = "rgb(64, 64, 64)";
-                            spr.color = "rgb(255, 255, 0)";
-                            spr.textAlign = "center";
-                            spr.width = 56;
-                            spr.height = 48;
-                            spr.x = DF.SC_W / 3 * 0 + (spr.width / 2);
+                            var spr = new jp.osakana4242.kimiko.LabeledButton(48, 48, "<");
+                            spr.x = 4;
                             spr.y = 80;
                             spr.addEventListener(enchant.Event.TOUCH_END, prevMap);
                             return spr;
                         })();
 
                         var rightBtn = (function () {
-                            var spr = new enchant.Label("->");
-                            spr.font = DF.FONT_L;
-                            spr.backgroundColor = "rgb(64, 64, 64)";
-                            spr.color = "rgb(255, 255, 0)";
-                            spr.textAlign = "center";
-                            spr.width = 56;
-                            spr.height = 48;
-                            spr.x = DF.SC_W / 3 * 2 + (spr.width / 2);
+                            var spr = new jp.osakana4242.kimiko.LabeledButton(48, 48, ">");
+                            spr.x = 320 - spr.width - 4;
                             spr.y = 80;
                             spr.addEventListener(enchant.Event.TOUCH_END, nextMap);
                             return spr;
                         })();
 
                         var startBtn = (function () {
-                            var spr = new enchant.Label("START");
-                            spr.font = DF.FONT_L;
-                            spr.color = "rgb(255, 255, 0)";
-                            spr.backgroundColor = "rgb(64, 64, 64)";
-                            spr.width = DF.SC_W / 2;
-                            spr.height = 48;
-                            spr.textAlign = "center";
+                            var spr = new jp.osakana4242.kimiko.LabeledButton(160, 48, "START");
                             spr.x = (DF.SC_W - spr.width) / 2;
                             spr.y = 140;
                             spr.addEventListener(enchant.Event.TOUCH_END, gotoGameStart);
@@ -4844,13 +4928,7 @@ var jp;
                         })();
 
                         var configBtn = (function () {
-                            var spr = new enchant.Label("CONFIG");
-                            spr.font = DF.FONT_L;
-                            spr.color = "rgb(255, 255, 0)";
-                            spr.backgroundColor = "rgb(64, 64, 64)";
-                            spr.width = DF.SC_W / 2;
-                            spr.height = 48;
-                            spr.textAlign = "center";
+                            var spr = new jp.osakana4242.kimiko.LabeledButton(160, 48, "CONFIG");
                             spr.x = (DF.SC_W - spr.width) / 2;
                             spr.y = 200;
                             spr.addEventListener(enchant.Event.TOUCH_END, gotoConfig);
@@ -4858,7 +4936,7 @@ var jp;
                         })();
 
                         //
-                        scene.backgroundColor = "rgb( 32, 32, 32)";
+                        scene.backgroundColor = "rgb( 16, 16, 16)";
                         scene.addChild(player);
                         scene.addChild(title);
                         scene.addChild(author);

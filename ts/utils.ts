@@ -559,6 +559,91 @@ module jp.osakana4242.utils {
 		};
 	})();
 
+	export interface ISpriteFontCharacter {
+		left: number;
+		top: number;
+		width: number;
+		height: number;
+	}
+
+	export class SpriteFont {
+		assetName: string;
+		imageWidth: number;
+		imageHeight: number;
+		marginLeft: number;
+		marginRight: number;
+		characters: {[index: number]: ISpriteFontCharacter;};
+		defaultCharCode: number;
+
+		public getTextWidth(text: string): number {
+			var ret = 0;
+			for (var i = 0, iNum = text.length; i < iNum; ++i) {
+				var code = text.charCodeAt(i);
+				var fc = this.getCharacter(code);
+				ret -= this.marginRight;
+				ret += fc.width;
+				ret -= this.marginLeft;
+			}
+			return ret;
+		}
+
+		public getCharacter(code: number) {
+			var fc = this.characters[code];
+			if (!fc) {
+				if (0x61 <= code && code <= 0x7a) {
+					// a <= fc <= z
+					fc = this.characters[code - 0x20];
+				}
+				if (!fc) {
+					fc = this.characters[this.defaultCharCode];
+				}
+			}
+			return fc;
+		}
+
+		public get lineHeight(): number {
+			return this.characters[this.defaultCharCode].height;
+		}
+
+		public static makeFromFontSettings(assetName: string, defaultCharCode: number, imageWidth: number, imageHeight: number, fontSettings: Array<number>) {
+			var font = new SpriteFont();
+			font.assetName = assetName;
+			font.imageWidth = imageWidth;
+			font.imageHeight = imageHeight;
+			font.characters = SpriteFont.loadFontSettings(imageWidth, imageHeight, fontSettings);
+			font.defaultCharCode = defaultCharCode;
+			font.marginLeft = 1;
+			font.marginRight = 1;
+			return font;
+		}
+
+		public static loadFontSettings(textureWidth: number, textureHeight: number, arr: Array<number>) {
+			var colCnt = 9;
+			var rowCnt = arr.length / colCnt;
+			var map: any = {};
+			for (var rowI = 0; rowI < rowCnt; ++rowI) {
+				var arrOffs = colCnt * rowI;
+				var charCode = arr[arrOffs + 0];
+				var fontLeftRate = arr[arrOffs + 1];
+				var fontBottomRate = arr[arrOffs + 2];
+				var fontWidth =  arr[arrOffs + 7];
+				var fontHeight = - arr[arrOffs + 8];
+				var fontLeft =   textureWidth * fontLeftRate;
+				var fontBottom = textureHeight - textureHeight * fontBottomRate;
+				var fontTop =    fontBottom - fontHeight;
+				var c = String.fromCharCode(charCode);
+				map[charCode] = {
+					"char": c,
+					"left": fontLeft,
+					"top": fontTop,
+					"width": fontWidth,
+					"height": fontHeight,
+				};
+			}
+			return map;
+		}
+	}
+
 	/** enchant.Sprite拡張. */
 	(() => {
 		var orig = enchant.Sprite.prototype.initialize;
@@ -566,6 +651,50 @@ module jp.osakana4242.utils {
 			orig.apply(this, arguments);
 			this.center = new utils.RectCenter(this);
 			this.anim = new utils.AnimSequencer(this);
+		};
+
+		Object.defineProperty(enchant.Sprite.prototype, "text", {
+			"set": function (value: string) {
+				value = value.toString();
+				this._text = value;
+				var font: SpriteFont = this.font;
+				if (!font) {
+					console.log("please set sprite font!");
+					return;
+				}
+				this.width = font.getTextWidth(value);
+				this.height = font.lineHeight;
+				if (this.image === null || this.image.width < this.width || this.image.height < this.height) {
+					this.image = new enchant.Surface(this.width, this.height);
+				}
+				this.drawText(value, font, this.image);
+			},
+			"get": function () {
+				return this._text;
+			},
+		});
+
+		enchant.Sprite.prototype.drawText = function (txt: string, font: SpriteFont, destImage: any) {
+			var core = enchant.Core.instance;
+			var assetImage = core.assets[font.assetName];
+			destImage.clear();
+			var marginLeft = font.marginLeft;
+			var marginRight = font.marginRight;
+			var xOnImage = 0;
+
+			for(var i = 0, txtLength = txt.length; i < txtLength; ++i) {
+				xOnImage -= marginLeft;
+				var charCode = txt.charCodeAt(i);
+				var fc = font.getCharacter(charCode);
+				var fcw = fc.width;
+				var fch = fc.height;
+				destImage.draw(
+					assetImage, 
+					fc.left, fc.top, fcw, fch,
+					xOnImage, 0, fcw, fch);
+				xOnImage -= marginRight;
+				xOnImage += fcw;
+			}
 		};
 	})();
 

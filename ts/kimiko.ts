@@ -63,6 +63,8 @@ module jp.osakana4242.kimiko {
 
 		isInited: boolean = false;
 
+		fontS: utils.SpriteFont;
+
 		constructor() {
 			this.env = new Env();
 		}
@@ -180,6 +182,17 @@ module jp.osakana4242.kimiko {
 			core.keybind("D".charCodeAt(0), "right");	
 			core.keybind("W".charCodeAt(0), "up");	
 			core.keybind("S".charCodeAt(0), "down");	
+			//
+			// ASCII
+			//  !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+			//
+			g_app.fontS = utils.SpriteFont.makeFromFontSettings( 
+				Assets.IMAGE_FONT_S,
+				"?".charCodeAt(0),
+				128,
+				128,
+				jp.osakana4242.kimiko["g_fontSettings"]
+			);
 
 			//
 			core.onload = (() => {
@@ -292,10 +305,8 @@ module jp.osakana4242.kimiko {
 				function getTime() {
 					return new Date().getTime();
 				}
-				var label = new enchant.Label("");
-				label.font = DF.FONT_M;
-				label.color = "rgb(255,255,255)";
-				label.backgroundColor = "rgb(0,0,128)";
+				var label = new enchant.Sprite();
+				label.font = g_app.fontS;
 
 				var diffSum = 0;
 				var prevTime = getTime();
@@ -334,6 +345,65 @@ module jp.osakana4242.kimiko {
 				return label;
 			})();
 			group.addChild(fpsLabel);
+		},
+	});
+
+	export var LabeledButton = enchant.Class(enchant.Group, {
+		initialize: function (width: number, height: number, text: string) {
+			enchant.Group.call(this);
+			this.button = new enchant.Sprite(width, height);
+			this.button.backgroundColor = "rgb(80,80,80)";
+			this.button.touchEnabled = true;
+			this.label = new enchant.Sprite();
+			this.label.font = g_app.fontS;
+			this.label.touchEnabled = false;
+			this.text = text;
+			this.addChild(this.button);
+			this.addChild(this.label);
+			this._visible = true;
+		},
+
+		ontouchstart: function () {
+			this.button.backgroundColor = "rgb(64,64,64)";
+			this.button.y = 1;
+		},
+
+		ontouchend: function () {
+			this.button.backgroundColor = "rgb(80,80,80)";
+			this.button.y = 0;
+		},
+
+		visible: {
+			get: function () {
+				return this._visible;
+			},
+			set: function (value: boolean) {
+				if (this._visible === value) {
+					return;
+				}
+				this._visible = value;
+				this.button.visible = value;
+				this.label.visible = value;
+			}
+		},
+
+		width: { get: function () {
+			return this.button.width;
+		} },
+
+		height: { get: function () {
+			return this.button.height;
+		} },
+
+		text: {
+			get: function (): string {
+				return this.label.text;
+			},
+			set: function (value: string) {
+				this.label.text = value;
+				this.label.x = (this.width - this.label.width) / 2;
+				this.label.y = (this.height - this.label.height) / 2;
+			},
 		},
 	});
 

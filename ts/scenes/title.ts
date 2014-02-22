@@ -24,13 +24,11 @@ module jp.osakana4242.kimiko.scenes {
 			
 			//
 			var title = (() => {
-				var spr = new enchant.Label("KIMIKO'S NIGHTMARE");
-				spr.font = DF.FONT_L;
-				spr.color = "rgb(255, 255, 255)";
-				spr.width = DF.SC_W;
-				spr.height =24;
-				spr.textAlign = "center";
-				spr.x = 0;
+				var spr = new enchant.Sprite();
+				spr.font = g_app.fontS;
+				spr.text = "KIMIKO'S NIGHTMARE";
+				//spr.textAlign = "center";
+				spr.x = (DF.SC_W- spr.width) / 2;
 				spr.y = 8;
 				return spr;
 			})();
@@ -56,36 +54,25 @@ module jp.osakana4242.kimiko.scenes {
 			})();
 		
 			var author = (() => {
-				var spr = new enchant.Label("created by @osakana4242");
-				spr.font = DF.FONT_M;
-				spr.color = "rgb(255, 255, 255)";
-				spr.width = DF.SC_W;
-				spr.height = 12;
-				spr.textAlign = "center";
-				spr.x = 0;
+				var spr = new enchant.Sprite();
+				spr.font = g_app.fontS;
+				spr.text = "created by @osakana4242";
+				spr.x = (DF.SC_W - spr.width) / 2;
 				spr.y = 300;
 				return spr;
 			})();
 
 			var mapLabel = (() => {
-				var spr = new enchant.Label();
-				spr.font = DF.FONT_L;
-				spr.color = "rgb(255, 255, 255)";
-				spr.width = DF.SC_W;
-				spr.height = 24;
-				spr.textAlign = "center";
+				var spr = new enchant.Sprite();
+				spr.font = g_app.fontS;
 				spr.x = 0;
 				spr.y = 70;
 				return spr;
 			})();
 			
 			var mapLabel2 = (() => {
-				var spr = new enchant.Label();
-				spr.font = DF.FONT_L;
-				spr.color = "rgb(255, 255, 255)";
-				spr.width = DF.SC_W;
-				spr.height = 24;
-				spr.textAlign = "center";
+				var spr = new enchant.Sprite();
+				spr.font = g_app.fontS;
 				spr.x = 0;
 				spr.y = 94;
 				return spr;
@@ -95,45 +82,30 @@ module jp.osakana4242.kimiko.scenes {
 				var mapId = mapIds[mapIdsIdx];
 				mapLabel.text = "MAP " + mapId;
 				mapLabel2.text = DF.MAP_OPTIONS[mapId].title;
+
+				mapLabel.x = (DF.SC_W - mapLabel.width) / 2;
+				mapLabel2.x = (DF.SC_W - mapLabel2.width) / 2;
 			}
 			updateMapLabel();
 
 			var leftBtn = (() => {
-				var spr = new enchant.Label("<-");
-				spr.font = DF.FONT_L;
-				spr.backgroundColor = "rgb(64, 64, 64)";
-				spr.color = "rgb(255, 255, 0)";
-				spr.textAlign = "center";
-				spr.width = 56;
-				spr.height = 48;
-				spr.x = DF.SC_W / 3 * 0 + (spr.width / 2);
+				var spr = new LabeledButton(48, 48, "<");
+				spr.x = 4;
 				spr.y = 80;
 				spr.addEventListener(enchant.Event.TOUCH_END, prevMap);
 				return spr;
 			})();
 
 			var rightBtn = (() => {
-				var spr = new enchant.Label("->");
-				spr.font = DF.FONT_L;
-				spr.backgroundColor = "rgb(64, 64, 64)";
-				spr.color = "rgb(255, 255, 0)";
-				spr.textAlign = "center";
-				spr.width = 56;
-				spr.height = 48;
-				spr.x = DF.SC_W / 3 * 2 + (spr.width / 2);
+				var spr = new LabeledButton(48, 48, ">");
+				spr.x = 320 - spr.width - 4;
 				spr.y = 80;
 				spr.addEventListener(enchant.Event.TOUCH_END, nextMap);
 				return spr;
 			})();
 		
 			var startBtn = (() => {
-				var spr = new enchant.Label("START");
-				spr.font = DF.FONT_L;
-				spr.color = "rgb(255, 255, 0)";
-				spr.backgroundColor = "rgb(64, 64, 64)";
-				spr.width = DF.SC_W / 2;
-				spr.height = 48;
-				spr.textAlign = "center";
+				var spr = new LabeledButton(160, 48, "START");
 				spr.x = (DF.SC_W - spr.width) / 2;
 				spr.y = 140;
 				spr.addEventListener(enchant.Event.TOUCH_END, gotoGameStart);
@@ -141,13 +113,7 @@ module jp.osakana4242.kimiko.scenes {
 			})();
 
 			var configBtn = (() => {
-				var spr = new enchant.Label("CONFIG");
-				spr.font = DF.FONT_L;
-				spr.color = "rgb(255, 255, 0)";
-				spr.backgroundColor = "rgb(64, 64, 64)";
-				spr.width = DF.SC_W / 2;
-				spr.height = 48;
-				spr.textAlign = "center";
+				var spr = new LabeledButton(160, 48, "CONFIG");
 				spr.x = (DF.SC_W - spr.width) / 2;
 				spr.y = 200;
 				spr.addEventListener(enchant.Event.TOUCH_END, gotoConfig);
@@ -155,7 +121,7 @@ module jp.osakana4242.kimiko.scenes {
 			})();
 
 			//
-			scene.backgroundColor = "rgb( 32, 32, 32)";
+			scene.backgroundColor = "rgb( 16, 16, 16)";
 			scene.addChild(player);
 			scene.addChild(title);
 			scene.addChild(author);
