@@ -35,9 +35,7 @@ module jp.osakana4242.kimiko.scenes {
 			})();
 
 			var pauseLabel = (() => {
-				var label = new enchant.Sprite();
-				label.font = g_app.fontS;
-				label.text = "PAUSE";
+				var label = new utils.SpriteLabel(g_app.fontS, "PAUSE");
 				label.x = (DF.SC_W - label.width) / 2;
 				label.y = 60;
 				label.tl.

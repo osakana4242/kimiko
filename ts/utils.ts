@@ -653,49 +653,108 @@ module jp.osakana4242.utils {
 			this.anim = new utils.AnimSequencer(this);
 		};
 
-		Object.defineProperty(enchant.Sprite.prototype, "text", {
-			"set": function (value: string) {
-				value = value.toString();
-				if (this._text === value) {
-					return;
+
+	})();
+
+	export var SpriteLabel = (function () {
+
+		function getSuperPropertyDescriptor(obj: Object, name: string) {
+			var p = obj;
+			while (p) {
+				var desc = Object.getOwnPropertyDescriptor(p, name);
+				if (desc) {
+					return desc;
 				}
-				this._text = value;
-				var font: SpriteFont = this.font;
-				if (!font) {
-					console.log("please set sprite font!");
-					return;
-				}
-				this.width = font.getTextWidth(value);
-				this.height = font.lineHeight;
-				if (this.image === null || this.image.width < this.width || this.image.height < this.height) {
-					this.image = new enchant.Surface(this.width, this.height);
-				}
-				this.drawText(value, font, this.image);
+				p = Object.getPrototypeOf(p);
+			}
+			return undefined;
+		}
+
+		var _super = enchant.Sprite;
+		var superWidthAccessor = getSuperPropertyDescriptor(_super.prototype, "width");
+
+		return enchant.Class.create(_super, {
+			initialize: function (font: SpriteFont, text: string) {
+				_super.call(this);
+				this.font = font;
+				this.text = text;
+				this.textAlign = "left";
+				this.width = this.textWidth;
+				this.height = this.textHeight;
 			},
-			"get": function () {
-				return this._text;
+
+			width: {
+				set: function (value: number) {
+					if (this.image && this.image.width < value) {
+						this.image = new enchant.Surface(value, this.image.height);
+					}
+					superWidthAccessor.set.call(this, value);
+				},
+				get: superWidthAccessor.get,
+			},
+
+			text: {
+				"set": function (value: string) {
+					value = value.toString();
+					if (this._text === value) {
+						return;
+					}
+					this._text = value;
+					var font: SpriteFont = this.font;
+					if (!font) {
+						console.log("please set sprite font!");
+						return;
+					}
+					this.textWidth = font.getTextWidth(value);
+					this.textHeight = font.lineHeight;
+					if (this.width < this.textWidth) {
+						this.width = this.textWidth;
+					}
+					if (this.height < this.textHeight) {
+						this.height = this.textHeight;
+					}
+					if (this.image === null || this.image.width < this.textWidth || this.image.height < this.textHeight) {
+						this.image = new enchant.Surface(this.textWidth, this.textHeight);
+					}
+					this.drawText(value, font, this.textAlign, this.image);
+				},
+				"get": function () {
+					return this._text;
+				},
+			},
+
+			drawText: function (txt: string, font: SpriteFont, textAlign: string, destImage: any) {
+				var core = enchant.Core.instance;
+				var assetImage = core.assets[font.assetName];
+				destImage.clear();
+				var outlineSize = font.outlineSize;
+				var xOnImage = 0;
+				switch (textAlign) {
+				case "left":
+					break;
+				case "right":
+					xOnImage = destImage.width - font.getTextWidth(txt);
+					break;
+				case "center":
+					xOnImage = (destImage.width - font.getTextWidth(txt)) / 2;
+					break;
+				default:
+					break;
+				}
+
+				for(var i = 0, txtLength = txt.length; i < txtLength; ++i) {
+					var charCode = txt.charCodeAt(i);
+					var fc = font.getCharacter(charCode);
+					var fcw = fc.width;
+					var fch = fc.height;
+					destImage.draw(
+						assetImage, 
+						fc.left, fc.top, fcw, fch,
+						xOnImage, 0, fcw, fch);
+					xOnImage += fcw - outlineSize;
+				}
 			},
 		});
-
-		enchant.Sprite.prototype.drawText = function (txt: string, font: SpriteFont, destImage: any) {
-			var core = enchant.Core.instance;
-			var assetImage = core.assets[font.assetName];
-			destImage.clear();
-			var outlineSize = font.outlineSize;
-			var xOnImage = 0;
-
-			for(var i = 0, txtLength = txt.length; i < txtLength; ++i) {
-				var charCode = txt.charCodeAt(i);
-				var fc = font.getCharacter(charCode);
-				var fcw = fc.width;
-				var fch = fc.height;
-				destImage.draw(
-					assetImage, 
-					fc.left, fc.top, fcw, fch,
-					xOnImage, 0, fcw, fch);
-				xOnImage += fcw - outlineSize;
-			}
-		};
 	})();
 
 	export class SpritePool {

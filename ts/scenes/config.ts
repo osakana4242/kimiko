@@ -117,9 +117,7 @@ module jp.osakana4242.kimiko.scenes {
 				var tmpY = 36 * idx;
 				var item = {
 					"titleLabel": (() => {
-						var spr = new enchant.Sprite();
-						spr.font = g_app.fontS;
-						spr.text = title;
+						var spr = new utils.SpriteLabel(g_app.fontS, title);
 						spr.x = 0;
 						spr.y = tmpY;
 						spr.touchEnabled = false;
@@ -127,9 +125,7 @@ module jp.osakana4242.kimiko.scenes {
 					})(),
 
 					"valueLabel": (() => {
-						var spr = new enchant.Sprite();
-						spr.font = g_app.fontS;
-						spr.text = "";
+						var spr = new utils.SpriteLabel(g_app.fontS, "");
 						spr.x = 24;
 						spr.y = tmpY + spr.font.lineHeight;
 						spr.touchEnabled = false;
@@ -164,9 +160,7 @@ module jp.osakana4242.kimiko.scenes {
 			})();
 
 			layouter.sprites["titleLabel"] = (() => {
-				var spr = new enchant.Sprite();
-				spr.font = g_app.fontS;
-				spr.text = "CONFIG";
+				var spr = new utils.SpriteLabel(g_app.fontS, "CONFIG");
 				return spr;
 			})();
 
@@ -201,9 +195,7 @@ module jp.osakana4242.kimiko.scenes {
 			})();
 
 			var cursor = (() => {
-				var spr = new enchant.Sprite();
-				spr.font = g_app.fontS;
-				spr.text = "*";
+				var spr = new utils.SpriteLabel(g_app.fontS, "*");
 				spr.x = 0;
 				spr.y = 0;
 				return spr;

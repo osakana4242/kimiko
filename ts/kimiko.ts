@@ -305,8 +305,8 @@ module jp.osakana4242.kimiko {
 				function getTime() {
 					return new Date().getTime();
 				}
-				var label = new enchant.Sprite();
-				label.font = g_app.fontS;
+				var label = new utils.SpriteLabel(g_app.fontS, "");
+				label.width = 160;
 
 				var diffSum = 0;
 				var prevTime = getTime();
@@ -354,10 +354,10 @@ module jp.osakana4242.kimiko {
 			this.button = new enchant.Sprite(width, height);
 			this.button.backgroundColor = "rgb(80,80,80)";
 			this.button.touchEnabled = true;
-			this.label = new enchant.Sprite();
-			this.label.font = g_app.fontS;
+			this.label = new utils.SpriteLabel(g_app.fontS, text);
+			this.label.x = (this.button.width - this.label.width) / 2;
+			this.label.y = (this.button.height - this.label.height) / 2;
 			this.label.touchEnabled = false;
-			this.text = text;
 			this.addChild(this.button);
 			this.addChild(this.label);
 			this._visible = true;

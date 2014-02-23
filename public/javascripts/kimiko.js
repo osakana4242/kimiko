@@ -652,47 +652,100 @@
                     this.center = new utils.RectCenter(this);
                     this.anim = new utils.AnimSequencer(this);
                 };
+            })();
 
-                Object.defineProperty(enchant.Sprite.prototype, "text", {
-                    "set": function (value) {
-                        value = value.toString();
-                        if (this._text === value) {
-                            return;
+            utils.SpriteLabel = (function () {
+                function getSuperPropertyDescriptor(obj, name) {
+                    var p = obj;
+                    while (p) {
+                        var desc = Object.getOwnPropertyDescriptor(p, name);
+                        if (desc) {
+                            return desc;
                         }
-                        this._text = value;
-                        var font = this.font;
-                        if (!font) {
-                            console.log("please set sprite font!");
-                            return;
-                        }
-                        this.width = font.getTextWidth(value);
-                        this.height = font.lineHeight;
-                        if (this.image === null || this.image.width < this.width || this.image.height < this.height) {
-                            this.image = new enchant.Surface(this.width, this.height);
-                        }
-                        this.drawText(value, font, this.image);
+                        p = Object.getPrototypeOf(p);
+                    }
+                    return undefined;
+                }
+
+                var _super = enchant.Sprite;
+                var superWidthAccessor = getSuperPropertyDescriptor(_super.prototype, "width");
+
+                return enchant.Class.create(_super, {
+                    initialize: function (font, text) {
+                        _super.call(this);
+                        this.font = font;
+                        this.text = text;
+                        this.textAlign = "left";
+                        this.width = this.textWidth;
+                        this.height = this.textHeight;
                     },
-                    "get": function () {
-                        return this._text;
+                    width: {
+                        set: function (value) {
+                            if (this.image && this.image.width < value) {
+                                this.image = new enchant.Surface(value, this.image.height);
+                            }
+                            superWidthAccessor.set.call(this, value);
+                        },
+                        get: superWidthAccessor.get
+                    },
+                    text: {
+                        "set": function (value) {
+                            value = value.toString();
+                            if (this._text === value) {
+                                return;
+                            }
+                            this._text = value;
+                            var font = this.font;
+                            if (!font) {
+                                console.log("please set sprite font!");
+                                return;
+                            }
+                            this.textWidth = font.getTextWidth(value);
+                            this.textHeight = font.lineHeight;
+                            if (this.width < this.textWidth) {
+                                this.width = this.textWidth;
+                            }
+                            if (this.height < this.textHeight) {
+                                this.height = this.textHeight;
+                            }
+                            if (this.image === null || this.image.width < this.textWidth || this.image.height < this.textHeight) {
+                                this.image = new enchant.Surface(this.textWidth, this.textHeight);
+                            }
+                            this.drawText(value, font, this.textAlign, this.image);
+                        },
+                        "get": function () {
+                            return this._text;
+                        }
+                    },
+                    drawText: function (txt, font, textAlign, destImage) {
+                        var core = enchant.Core.instance;
+                        var assetImage = core.assets[font.assetName];
+                        destImage.clear();
+                        var outlineSize = font.outlineSize;
+                        var xOnImage = 0;
+                        switch (textAlign) {
+                            case "left":
+                                break;
+                            case "right":
+                                xOnImage = destImage.width - font.getTextWidth(txt);
+                                break;
+                            case "center":
+                                xOnImage = (destImage.width - font.getTextWidth(txt)) / 2;
+                                break;
+                            default:
+                                break;
+                        }
+
+                        for (var i = 0, txtLength = txt.length; i < txtLength; ++i) {
+                            var charCode = txt.charCodeAt(i);
+                            var fc = font.getCharacter(charCode);
+                            var fcw = fc.width;
+                            var fch = fc.height;
+                            destImage.draw(assetImage, fc.left, fc.top, fcw, fch, xOnImage, 0, fcw, fch);
+                            xOnImage += fcw - outlineSize;
+                        }
                     }
                 });
-
-                enchant.Sprite.prototype.drawText = function (txt, font, destImage) {
-                    var core = enchant.Core.instance;
-                    var assetImage = core.assets[font.assetName];
-                    destImage.clear();
-                    var outlineSize = font.outlineSize;
-                    var xOnImage = 0;
-
-                    for (var i = 0, txtLength = txt.length; i < txtLength; ++i) {
-                        var charCode = txt.charCodeAt(i);
-                        var fc = font.getCharacter(charCode);
-                        var fcw = fc.width;
-                        var fch = fc.height;
-                        destImage.draw(assetImage, fc.left, fc.top, fcw, fch, xOnImage, 0, fcw, fch);
-                        xOnImage += fcw - outlineSize;
-                    }
-                };
             })();
 
             var SpritePool = (function () {
@@ -1569,8 +1622,8 @@ var jp;
                         function getTime() {
                             return new Date().getTime();
                         }
-                        var label = new enchant.Sprite();
-                        label.font = kimiko.g_app.fontS;
+                        var label = new jp.osakana4242.utils.SpriteLabel(kimiko.g_app.fontS, "");
+                        label.width = 160;
 
                         var diffSum = 0;
                         var prevTime = getTime();
@@ -1616,10 +1669,10 @@ var jp;
                     this.button = new enchant.Sprite(width, height);
                     this.button.backgroundColor = "rgb(80,80,80)";
                     this.button.touchEnabled = true;
-                    this.label = new enchant.Sprite();
-                    this.label.font = kimiko.g_app.fontS;
+                    this.label = new jp.osakana4242.utils.SpriteLabel(kimiko.g_app.fontS, text);
+                    this.label.x = (this.button.width - this.label.width) / 2;
+                    this.label.y = (this.button.height - this.label.height) / 2;
                     this.label.touchEnabled = false;
-                    this.text = text;
                     this.addChild(this.button);
                     this.addChild(this.label);
                     this._visible = true;
@@ -3593,18 +3646,14 @@ var jp;
                             var tmpY = 36 * idx;
                             var item = {
                                 "titleLabel": (function () {
-                                    var spr = new enchant.Sprite();
-                                    spr.font = g_app.fontS;
-                                    spr.text = title;
+                                    var spr = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, title);
                                     spr.x = 0;
                                     spr.y = tmpY;
                                     spr.touchEnabled = false;
                                     return spr;
                                 })(),
                                 "valueLabel": (function () {
-                                    var spr = new enchant.Sprite();
-                                    spr.font = g_app.fontS;
-                                    spr.text = "";
+                                    var spr = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "");
                                     spr.x = 24;
                                     spr.y = tmpY + spr.font.lineHeight;
                                     spr.touchEnabled = false;
@@ -3636,9 +3685,7 @@ var jp;
                         })();
 
                         layouter.sprites["titleLabel"] = (function () {
-                            var spr = new enchant.Sprite();
-                            spr.font = g_app.fontS;
-                            spr.text = "CONFIG";
+                            var spr = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "CONFIG");
                             return spr;
                         })();
 
@@ -3681,9 +3728,7 @@ var jp;
                         })();
 
                         var cursor = (function () {
-                            var spr = new enchant.Sprite();
-                            spr.font = g_app.fontS;
-                            spr.text = "*";
+                            var spr = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "*");
                             spr.x = 0;
                             spr.y = 0;
                             return spr;
@@ -3900,9 +3945,9 @@ var jp;
                             _this.labels = [];
                             var texts = _this.statusTexts;
                             for (var i = 0, iNum = texts.length; i < iNum; ++i) {
-                                sprite = new enchant.Sprite();
+                                sprite = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "");
+                                sprite.width = 160;
                                 _this.labels.push(sprite);
-                                sprite.font = g_app.fontS;
                                 _this.layouter.sprites["statusLabels_" + i] = sprite;
                             }
 
@@ -4685,9 +4730,7 @@ var jp;
                         })(bg1);
 
                         //
-                        var label1 = new enchant.Sprite();
-                        label1.font = g_app.fontS;
-                        label1.text = "GOOD NIGHT...";
+                        var label1 = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "GOOD NIGHT...");
                         (function (label) {
                             var ax = (jp.osakana4242.kimiko.DF.SC1_W - label.width) / 2;
                             var ay = (jp.osakana4242.kimiko.DF.SC1_H - label.height) / 2;
@@ -4766,9 +4809,7 @@ var jp;
                         })();
 
                         var pauseLabel = (function () {
-                            var label = new enchant.Sprite();
-                            label.font = g_app.fontS;
-                            label.text = "PAUSE";
+                            var label = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "PAUSE");
                             label.x = (jp.osakana4242.kimiko.DF.SC_W - label.width) / 2;
                             label.y = 60;
                             label.tl.moveBy(0, -8, g_app.secToFrame(1.0), enchant.Easing.SIN_EASEINOUT).moveBy(0, 8, g_app.secToFrame(1.0), enchant.Easing.SIN_EASEINOUT).loop();
@@ -4841,11 +4882,7 @@ var jp;
 
                         //
                         var title = (function () {
-                            var spr = new enchant.Sprite();
-                            spr.font = g_app.fontS;
-                            spr.text = "KIMIKO'S NIGHTMARE";
-
-                            //spr.textAlign = "center";
+                            var spr = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "KIMIKO'S NIGHTMARE");
                             spr.x = (DF.SC_W - spr.width) / 2;
                             spr.y = 8;
                             return spr;
@@ -4869,25 +4906,25 @@ var jp;
                         })();
 
                         var author = (function () {
-                            var spr = new enchant.Sprite();
-                            spr.font = g_app.fontS;
-                            spr.text = "created by @osakana4242";
+                            var spr = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "created by @osakana4242");
                             spr.x = (DF.SC_W - spr.width) / 2;
                             spr.y = 300;
                             return spr;
                         })();
 
                         var mapLabel = (function () {
-                            var spr = new enchant.Sprite();
-                            spr.font = g_app.fontS;
+                            var spr = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "");
+                            spr.width = 160;
+                            spr.textAlign = "center";
                             spr.x = 0;
                             spr.y = 70;
                             return spr;
                         })();
 
                         var mapLabel2 = (function () {
-                            var spr = new enchant.Sprite();
-                            spr.font = g_app.fontS;
+                            var spr = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "");
+                            spr.width = 160;
+                            spr.textAlign = "center";
                             spr.x = 0;
                             spr.y = 94;
                             return spr;

@@ -20,9 +20,7 @@ module jp.osakana4242.kimiko.scenes {
 				sprite.image = g_app.core.assets[Assets.IMAGE_GAME_START_BG];
 			})(bg1);
 			//
-			var label1 = new enchant.Sprite();
-			label1.font = g_app.fontS;
-			label1.text = "GOOD NIGHT...";
+			var label1 = new utils.SpriteLabel(g_app.fontS, "GOOD NIGHT...");
 			((label: any) => {
 				var ax = (DF.SC1_W - label.width) / 2;
 				var ay = (DF.SC1_H - label.height) / 2;

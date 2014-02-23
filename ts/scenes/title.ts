@@ -24,10 +24,7 @@ module jp.osakana4242.kimiko.scenes {
 			
 			//
 			var title = (() => {
-				var spr = new enchant.Sprite();
-				spr.font = g_app.fontS;
-				spr.text = "KIMIKO'S NIGHTMARE";
-				//spr.textAlign = "center";
+				var spr = new utils.SpriteLabel(g_app.fontS, "KIMIKO'S NIGHTMARE");
 				spr.x = (DF.SC_W- spr.width) / 2;
 				spr.y = 8;
 				return spr;
@@ -54,25 +51,25 @@ module jp.osakana4242.kimiko.scenes {
 			})();
 		
 			var author = (() => {
-				var spr = new enchant.Sprite();
-				spr.font = g_app.fontS;
-				spr.text = "created by @osakana4242";
+				var spr = new utils.SpriteLabel(g_app.fontS, "created by @osakana4242");
 				spr.x = (DF.SC_W - spr.width) / 2;
 				spr.y = 300;
 				return spr;
 			})();
 
 			var mapLabel = (() => {
-				var spr = new enchant.Sprite();
-				spr.font = g_app.fontS;
+				var spr = new utils.SpriteLabel(g_app.fontS, "");
+				spr.width = 160;
+				spr.textAlign = "center";
 				spr.x = 0;
 				spr.y = 70;
 				return spr;
 			})();
 			
 			var mapLabel2 = (() => {
-				var spr = new enchant.Sprite();
-				spr.font = g_app.fontS;
+				var spr = new utils.SpriteLabel(g_app.fontS, "");
+				spr.width = 160;
+				spr.textAlign = "center";
 				spr.x = 0;
 				spr.y = 94;
 				return spr;

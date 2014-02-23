@@ -104,9 +104,9 @@ module jp.osakana4242.kimiko.scenes {
 				this.labels = [];
 				var texts: string[][] = this.statusTexts;
 				for (var i: number = 0, iNum: number = texts.length; i < iNum; ++i) {
-					sprite = new enchant.Sprite();
+					sprite = new utils.SpriteLabel(g_app.fontS, "");
+					sprite.width = 160;
 					this.labels.push(sprite);
-					sprite.font = g_app.fontS;
 					this.layouter.sprites["statusLabels_" + i ] = sprite;
 				}
 
