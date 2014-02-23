@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<!-- saved from url=(0055)http://sapphire-al2o3.github.io/font_tex/generator.html -->
+<html lang="ja" class="wf-quicksand-n4-active wf-active wf-oxygenmono-n4-active wf-sharetechmono-n4-active wf-ptmono-n4-active"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta charset="UTF-8">
+		<title>Font Texture Generator</title>
+		<script src="./map_sample003_files/webfont.js"></script>
+		<script src="./map_sample003_files/colorselector.js"></script>
+		<style type="text/css">
+			p {
+				font-size: 12px;
+				margin: 2px;
+				font-family: Meiryo;
+			}
+			canvas {
+				border: 1px solid #AAA;
+				background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEXk6Oz///+sAbTXAAAAEElEQVQI12Ng+M+AFeEQBgB+vw/xWs16mgAAAABJRU5ErkJggg==");
+				background-color: #000;
+			}
+			#buffer, #character {
+				display: none;
+			}
+			input[type="text"] {
+				width: 200px;
+				border: 1px solid #CCC;
+				border-radius: 3px;
+				box-shadow: inset #EEE 0 1px 2px 0;
+				padding: 0 6px;
+				line-height: 20px;
+			}
+			input[type="number"] {
+				width: 48px;
+				font-size: 10pt;
+				text-align: right;
+				border-radius: 3px;
+				border: 1px solid #CCC;
+				box-shadow: inset #EEE 0 1px 2px 0;
+				line-height: 20px;
+				padding: 0 6px;
+				font-family: consolas, monospace;
+			}
+			input[type="checkbox"] {
+				margin-right: 12px;
+			}
+			label {
+				margin-right: 8px;
+				font-size: 12px;
+			}
+			textarea {
+				width: 400px;
+				height: 240px;
+			}
+			.left, .right {
+				width: 8px;
+				height: 8px;
+				padding-left: 4px;
+				background-position: 4px 0;
+				cursor: pointer;
+				display: inline-block;
+				background-repeat: no-repeat;
+				background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAIAgMAAACNGJcEAAAACVBMVEWMjIzg4OD/AP8zVUyNAAAAA3RSTlP//wDXyg1BAAAAJElEQVQI12NYuGqVF8OCrJVcDEuklkgxrORakAUhwFywBEgJACRCDmsms24NAAAAAElFTkSuQmCC");
+				-webkit-user-select: none;
+			}
+			.left {
+				background-position: -8px 0;
+			}
+			
+			input.color {
+				width: 64px;
+			}
+		</style><link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Quicksand"><link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Oxygen+Mono"><link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Share+Tech+Mono"><link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Oxygen+Mono"><link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Mono">
+	</head>
+	<body>
+		<canvas id="canvas" width="128" height="128"></canvas>
+		<canvas id="buffer" width="256" height="256"></canvas>
+		<canvas id="character" width="128" height="128"></canvas>
+		<p><label>テクスチャサイズ</label>
+			<select id="tex-width"><option value="128">128</option><option value="256" selected="">256</option><option value="512">512</option><option value="1024">1024</option></select>
+			x
+			<select id="tex-height"><option value="128">128</option><option value="256" selected="">256</option><option value="512">512</option><option value="1024">1024</option></select>
+		</p>
+		<p><label>フォント</label><input type="text" id="font" value="Quicksand"><input type="button" id="load" value="load"></p>
+		<p><label>テキスト</label><input type="text" id="text" value="0123456789abcdefghijklmnopqrstu"><input type="button" id="opt" value="重複文字の削除"></p>
+		<p><label>フォントサイズ</label><span class="left"></span><input type="number" id="size" value="42"><span class="right"></span></p>
+		<p><label>フォントスタイル</label><label>太字</label><input type="checkbox" id="bold"><label>斜体</label><input type="checkbox" id="italic"></p>
+		<p><label for="mono">等幅</label><input type="checkbox" id="mono" checked=""><label for="ss">スーパーサンプリング</label><input type="checkbox" id="ss" checked=""></p>
+		<p><label for="outline">アウトライン</label><input type="checkbox" id="outline" checked=""><span class="left"></span><input type="number" id="outline-width" value="8" min="0" step="0.1"><span class="right"></span></p>
+		<p><label>アウトラインオフセット</label><span class="left"></span><input type="number" id="outline-offset-x" value="0"><span class="right"></span><span class="left"></span><input type="number" id="outline-offset-y" value="0"><span class="right"></span></p>
+		<p><label>テキストカラー</label><input type="text" id="text-color" class="color" value="#FFFFFF"></p>
+		<p><label>アウトラインカラー</label><input type="text" id="outline-color" class="color" value="#849d19"></p>
+		<p><label for="grad">グラデーション</label><input type="checkbox" id="grad"><input type="text" id="end-color" class="color" value="#FF7700"></p>
+		<p><label>グラデーション角度</label><input type="number" id="grad-angle" value="0"></p>
+		<p><label for="shadow">シャドウ</label><input type="checkbox" id="shadow"><span class="left"></span><input type="number" id="shadow-blur" value="3" min="0"><span class="right"></span></p>
+		<p><label for="shadow-color">シャドウカラー</label><input type="text" id="shadow-color" value="#000000" class="color"></p>
+		<p><label>シャドウオフセット</label><span class="left"></span><input type="number" id="shadow-offset-x" value="0"><span class="right"></span><span class="left"></span><input type="number" id="shadow-offset-y" value="0"><span class="right"></span></p>
+		<p><input type="button" value="設定保存" id="save-settings"><input type="button" value="設定読込" id="load-settings"><input type="button" value="PNG" id="png"><input type="button" id="alpha" value="アルファ"></p>
+		<p><label for="gird">グリッド表示</label><input type="checkbox" id="grid"></p>
+		<p>
+			<a id="download" download="font.png" href="http://sapphire-al2o3.github.io/font_tex/generator.html#" target="_blank">PNGダウンロード</a>
+			<a id="fontsettings" download="font.fontsettings" href="http://sapphire-al2o3.github.io/font_tex/generator.html#" target="_blank">fontsettingsダウンロード</a>
+		</p>
+		<p><textarea id="json">32,0,0,0.078125,0.109375,0,0,10,-14
+33,0.078125,0,0.078125,0.109375,0,0,10,-14
+34,0.15625,0,0.078125,0.109375,0,0,10,-14
+35,0.234375,0,0.078125,0.109375,0,0,10,-14
+36,0.3125,0,0.078125,0.109375,0,0,10,-14
+37,0.390625,0,0.078125,0.109375,0,0,10,-14
+38,0.46875,0,0.078125,0.109375,0,0,10,-14
+39,0.546875,0,0.078125,0.109375,0,0,10,-14
+40,0.625,0,0.078125,0.109375,0,0,10,-14
+41,0.703125,0,0.078125,0.109375,0,0,10,-14
+42,0.78125,0,0.078125,0.109375,0,0,10,-14
+43,0.859375,0,0.078125,0.109375,0,0,10,-14
+44,0,0.109375,0.078125,0.109375,0,0,10,-14
+45,0.078125,0.109375,0.078125,0.109375,0,0,10,-14
+46,0.15625,0.109375,0.078125,0.109375,0,0,10,-14
+47,0.234375,0.109375,0.078125,0.109375,0,0,10,-14
+48,0.3125,0.109375,0.078125,0.109375,0,0,10,-14
+49,0.390625,0.109375,0.078125,0.109375,0,0,10,-14
+50,0.46875,0.109375,0.078125,0.109375,0,0,10,-14
+51,0.546875,0.109375,0.078125,0.109375,0,0,10,-14
+52,0.625,0.109375,0.078125,0.109375,0,0,10,-14
+53,0.703125,0.109375,0.078125,0.109375,0,0,10,-14
+54,0.78125,0.109375,0.078125,0.109375,0,0,10,-14
+55,0.859375,0.109375,0.078125,0.109375,0,0,10,-14
+56,0,0.21875,0.078125,0.109375,0,0,10,-14
+57,0.078125,0.21875,0.078125,0.109375,0,0,10,-14
+58,0.15625,0.21875,0.078125,0.109375,0,0,10,-14
+59,0.234375,0.21875,0.078125,0.109375,0,0,10,-14
+60,0.3125,0.21875,0.078125,0.109375,0,0,10,-14
+61,0.390625,0.21875,0.078125,0.109375,0,0,10,-14
+62,0.46875,0.21875,0.078125,0.109375,0,0,10,-14
+63,0.546875,0.21875,0.078125,0.109375,0,0,10,-14
+64,0.625,0.21875,0.078125,0.109375,0,0,10,-14
+65,0.703125,0.21875,0.078125,0.109375,0,0,10,-14
+66,0.78125,0.21875,0.078125,0.109375,0,0,10,-14
+67,0.859375,0.21875,0.078125,0.109375,0,0,10,-14
+68,0,0.328125,0.078125,0.109375,0,0,10,-14
+69,0.078125,0.328125,0.078125,0.109375,0,0,10,-14
+70,0.15625,0.328125,0.078125,0.109375,0,0,10,-14
+71,0.234375,0.328125,0.078125,0.109375,0,0,10,-14
+72,0.3125,0.328125,0.078125,0.109375,0,0,10,-14
+73,0.390625,0.328125,0.078125,0.109375,0,0,10,-14
+74,0.46875,0.328125,0.078125,0.109375,0,0,10,-14
+75,0.546875,0.328125,0.078125,0.109375,0,0,10,-14
+76,0.625,0.328125,0.078125,0.109375,0,0,10,-14
+77,0.703125,0.328125,0.078125,0.109375,0,0,10,-14
+78,0.78125,0.328125,0.078125,0.109375,0,0,10,-14
+79,0.859375,0.328125,0.078125,0.109375,0,0,10,-14
+80,0,0.4375,0.078125,0.109375,0,0,10,-14
+81,0.078125,0.4375,0.078125,0.109375,0,0,10,-14
+82,0.15625,0.4375,0.078125,0.109375,0,0,10,-14
+83,0.234375,0.4375,0.078125,0.109375,0,0,10,-14
+84,0.3125,0.4375,0.078125,0.109375,0,0,10,-14
+85,0.390625,0.4375,0.078125,0.109375,0,0,10,-14
+86,0.46875,0.4375,0.078125,0.109375,0,0,10,-14
+87,0.546875,0.4375,0.078125,0.109375,0,0,10,-14
+88,0.625,0.4375,0.078125,0.109375,0,0,10,-14
+89,0.703125,0.4375,0.078125,0.109375,0,0,10,-14
+90,0.78125,0.4375,0.078125,0.109375,0,0,10,-14
+91,0.859375,0.4375,0.078125,0.109375,0,0,10,-14
+92,0,0.546875,0.078125,0.109375,0,0,10,-14
+93,0.078125,0.546875,0.078125,0.109375,0,0,10,-14
+94,0.15625,0.546875,0.078125,0.109375,0,0,10,-14
+95,0.234375,0.546875,0.078125,0.109375,0,0,10,-14
+96,0.3125,0.546875,0.078125,0.109375,0,0,10,-14
+97,0.390625,0.546875,0.078125,0.109375,0,0,10,-14
+98,0.46875,0.546875,0.078125,0.109375,0,0,10,-14
+99,0.546875,0.546875,0.078125,0.109375,0,0,10,-14
+100,0.625,0.546875,0.078125,0.109375,0,0,10,-14
+101,0.703125,0.546875,0.078125,0.109375,0,0,10,-14
+102,0.78125,0.546875,0.078125,0.109375,0,0,10,-14
+103,0.859375,0.546875,0.078125,0.109375,0,0,10,-14
+104,0,0.65625,0.078125,0.109375,0,0,10,-14
+105,0.078125,0.65625,0.078125,0.109375,0,0,10,-14
+106,0.15625,0.65625,0.078125,0.109375,0,0,10,-14
+107,0.234375,0.65625,0.078125,0.109375,0,0,10,-14
+108,0.3125,0.65625,0.078125,0.109375,0,0,10,-14
+109,0.390625,0.65625,0.078125,0.109375,0,0,10,-14
+110,0.46875,0.65625,0.078125,0.109375,0,0,10,-14
+111,0.546875,0.65625,0.078125,0.109375,0,0,10,-14
+112,0.625,0.65625,0.078125,0.109375,0,0,10,-14
+113,0.703125,0.65625,0.078125,0.109375,0,0,10,-14
+114,0.78125,0.65625,0.078125,0.109375,0,0,10,-14
+115,0.859375,0.65625,0.078125,0.109375,0,0,10,-14
+116,0,0.765625,0.078125,0.109375,0,0,10,-14
+117,0.078125,0.765625,0.078125,0.109375,0,0,10,-14
+118,0.15625,0.765625,0.078125,0.109375,0,0,10,-14
+119,0.234375,0.765625,0.078125,0.109375,0,0,10,-14
+120,0.3125,0.765625,0.078125,0.109375,0,0,10,-14
+121,0.390625,0.765625,0.078125,0.109375,0,0,10,-14
+122,0.46875,0.765625,0.078125,0.109375,0,0,10,-14
+123,0.546875,0.765625,0.078125,0.109375,0,0,10,-14
+124,0.625,0.765625,0.078125,0.109375,0,0,10,-14
+125,0.703125,0.765625,0.078125,0.109375,0,0,10,-14
+126,0.78125,0.765625,0.078125,0.109375,0,0,10,-14</textarea></p>
+		<script>
+			(function() {
+				'use strict';
+				
+				var canvas = document.getElementById('canvas'),
+					buffer = document.getElementById('buffer'),
+					character = document.getElementById('character'),
+					ctxa = canvas.getContext('2d'),
+					ctxb = buffer.getContext('2d'),
+					ctxc = character.getContext('2d'),
+					ctx = ctxa;
+				
+				var fontHeight = 40,
+					fontWidth = 26,
+					fontFamily = 'Quicksand', //'Baumans',
+					text = '0123456789abcdefghijklmnopqrstuvwxyz',
+					mono = true,
+					outline = true,
+					outlineOffsetX = 0,
+					outlineOffsetY = 0,
+					outlineWidth = 2.0,
+					shadow = false,
+					shadowColor = '#000000',
+					shadowBlur = 3.0,
+					shadowOffsetX = 0,
+					shadowOffsetY = 0,
+					textColor = '#FFFFFF',
+					outlineColor = '#849d19',
+					scale = 1.0,
+					ss = true,
+					bold = false,
+					italic = false,
+					grad = true,
+					endColor = '#FF7700',
+					grid = false;
+				
+				var fontRects = [];
+				
+				setControl();
+				
+				function $(e) {
+					if(!$[e]) {
+						$[e] = document.getElementById(e);
+					}
+					return $[e];
+				}
+				
+				$('tex-width').addEventListener('change', function(e) {
+					canvas.width = parseInt(e.target.value, 10);
+					buffer.width = canvas.width * 2;
+					render();
+				});
+				
+				$('tex-height').addEventListener('change', function(e) {
+					canvas.height = parseInt(e.target.value, 10);
+					buffer.height = canvas.height * 2;
+					render();
+				});
+				
+				$('text').addEventListener('keyup', function(e) {
+					text = $('text').value;
+					render();
+				}, false);
+				
+				$('size').addEventListener('change', function(e) {
+					fontHeight = parseInt(e.target.value, 10);
+					render();
+				}, false);
+				
+				createNumberControll($('size'), function(v) {
+					fontHeight = v;
+					render();
+				}, 1, 1, 100);
+
+				$('load').addEventListener('click', function(e) {
+					fontFamily = $('font').value;
+					loadFont(fontFamily);
+				});
+				
+				$('mono').addEventListener('change', function(e) {
+					mono = e.target.checked;
+					render();
+				}, false);
+				
+				$('ss').addEventListener('change', function(e) {
+					ss = e.target.checked;
+					render();
+				}, false);
+				
+				$('bold').addEventListener('change', function(e) {
+					bold = e.target.checked;
+					render();
+				});
+				
+				$('italic').addEventListener('change', function(e) {
+					italic = e.target.checked;
+					render();
+				});
+				
+				$('outline').addEventListener('change', function(e) {
+					outline = e.target.checked;
+					outlineWidth = parseFloat($('outline-width').value);
+					render();
+				}, false);
+				
+				createNumberControll($('outline-width'), function(v) {
+					outlineWidth = v;
+					render();
+				}, 0.1, 0.0, 100.0);
+				
+				createNumberControll($('outline-offset-x'), function(v) {
+					outlineOffsetX = v;
+					render();
+				}, 0.1, -100.0, 100.0);
+				
+				createNumberControll($('outline-offset-y'), function(v) {
+					outlineOffsetY = v;
+					render();
+				}, 0.1, -100.0, 100.0);
+				
+				$('text-color').addEventListener('change', function(e) {
+					textColor = e.target.value;
+					render();
+				}, false);
+				
+				$('text-color').addEventListener('mousedown', function(e) {
+					ColorSelector.show(function(v) {
+						textColor = v;
+						$('text-color').value = v;
+						render();
+					}, textColor, e.target);
+					e.stopPropagation();
+				});
+				
+				$('outline-color').addEventListener('change', function(e) {
+					outlineColor = e.target.value;
+					render();
+				}, false);
+				
+				$('outline-color').addEventListener('mousedown', function(e) {
+					ColorSelector.show(function(v) {
+						outlineColor = v;
+						$('outline-color').value = v;
+						render();
+					}, outlineColor, e.target);
+					e.stopPropagation();
+				}, false);
+				
+				$('shadow').addEventListener('change', function(e) {
+					shadow = e.target.checked;
+					render();
+				}, false);
+				
+				createNumberControll($('shadow-blur'), function(v) {
+					shadowBlur = v;
+					render();
+				}, 1, 0, 20);
+				
+				createNumberControll($('shadow-offset-x'), function(v) {
+					shadowOffsetX = v;
+					render
+				}, 1, -20, 20);
+
+				createNumberControll($('shadow-offset-y'), function(v) {
+					shadowOffsetY = v;
+					render();
+				}, 1, -20, 20);
+				
+				$('grad').addEventListener('change', function(e) {
+					grad = e.target.checked;
+					render();
+				});
+				
+				$('end-color').addEventListener('change', function(e) {
+					endColor = e.target.value;
+					console.log(endColor);
+					render();
+				});
+				
+				$('end-color').addEventListener('mousedown', function(e) {
+					ColorSelector.show(function(v) {
+						$('end-color').value = v;
+						endColor = v;
+						render();
+					}, endColor, e.target);
+					e.stopPropagation();
+				});
+				
+				$('shadow-color').addEventListener('mousedown', function(e) {
+					ColorSelector.show(function(v) {
+						$('shadow-color').value = v;
+						shadowColor = v;
+						render();
+					}, shadowColor, e.target);
+					e.stopPropagation();
+				});
+				
+				$('save-settings').addEventListener('click', function(e) {
+					saveSettings();
+				}, false);
+				
+				$('load-settings').addEventListener('click', function(e) {
+					loadSettings();
+					loadFont(fontFamily);
+				}, false);
+				
+				// 重複文字を削除する
+				$('opt').addEventListener('click', function(e) {
+					text = $('text').value;
+					var t = [];
+					for(var i = 0; i < text.length; i++) {
+						if(t.indexOf(text[i]) < 0) {
+							t.push(text[i]);
+						}
+					}
+					text = t.join('');
+					$('text').value = text;
+					render();
+				}, false);
+				
+				$('png').addEventListener('click', function(e) {
+					var img = canvas.toDataURL();
+//					img = img.replace("image/png", "image/octet-stream");
+					window.open(img, 'font.png');
+				}, false);
+				
+				$('alpha').addEventListener('click', function(e) {
+					showAlpha();
+				}, false);
+				
+				$('grid').addEventListener('change', function(e) {
+					grid = e.target.checked;
+					render();
+				});
+				
+				$('download').addEventListener('click', function(e) {
+					e.target.href = canvas.toDataURL();
+				});
+				
+				$('fontsettings').addEventListener('click', function(e) {
+					var text = generateFontSettings(fontRects),
+						blob = new Blob([text], {'type': 'text/plain'});
+					window.URL = window.URL || window.webkitURL;
+					e.target.href = window.URL.createObjectURL(blob);
+				});
+				
+				function createNumberControll(target, f, step, min, max) {
+					step = step || 1;
+					min = min || 0;
+					max = max || 100;
+					
+					var s = step.toString(),
+						d = s.indexOf('.') >= 0 ? s.length - s.indexOf('.') - 1 : 0;
+					
+					var left = document.createElement('span'),
+						right = document.createElement('span');
+					
+					left.classList.add('left');
+					right.classList.add('right');
+					
+					var callback = function(s) {
+						var val = parseFloat(target.value);
+						val = isNaN(val) ? 0 : val + s;
+						if(val < min) val = min;
+						if(val > max) val = max;
+						target.value = val.toFixed(d);
+						f(val);
+					}
+					
+					left.addEventListener('click', callback.bind(null, -step));
+					
+					right.addEventListener('click', callback.bind(null, step));
+					
+					target.addEventListener('change', function(e) {
+						var val = parseFloat(target.value);
+						f(val);
+					});
+					
+					target.parentNode.insertBefore(left, target);
+					target.parentNode.insertBefore(right, target.nextSibling);
+				}
+				
+				function generateFontSettings(rect) {
+					var font = {
+						m_ObjectHideFlags: 0,
+						m_PrefabParentObject: {fileID: 0},
+						m_PrefabInternal: {fileID: 0},
+						m_Name: 'CustomFont',
+						serializedVersion: 4,
+						m_AsciiStartOffset: 0,
+						m_Kerning: 1,
+						m_LineSpacing: .100000001,
+						m_CharacterSpacing: 1,
+						m_CharacterPadding: 0,
+						m_ConvertCase: 0,
+//						m_DefaultMaterial: {fileID: 2100000, guid: '', type: 2},
+						m_CharacterRects: [],
+						m_Texture: {fileID: 0},
+						m_KerningValues: [],
+						m_PixelScale: .100000001,
+						m_FontData: '',
+						m_FontSize: 0,
+						m_Ascent: 0,
+						m_DefaultStyle: 0,
+						m_FontNames: [],
+						m_FallbackFonts: [],
+						m_FontRenderingMode: 0
+					};
+					
+					for(var i = 0; i < rect.length; i++) {
+						var r = rect[i];
+						font.m_CharacterRects.push({
+							serializedVersion: 2,
+							index: r[0],
+							uv: {
+								serializedVersion: 2,
+								x: r[1],
+								y: r[2],
+								width: r[3],
+								height: r[4],
+							},
+							vert: {
+								serializedVersion: 2,
+								x: r[5],
+								y: r[6],
+								width: r[7],
+								height: r[8],
+							},
+							width: r[7],
+							flipped: 0
+						});
+					}
+					
+					var text = JSON.stringify({Font: font});
+					text = '%YAML 1.1\n' +
+						'%TAG !u! tag:unity3d.com,2011:\n' +
+						'--- !u!128 &12800000\n' + text;
+					return text;
+				}
+				
+				loadFont($('font').value);
+				
+				function loadFont(font) {
+					console.log(font);
+					WebFont.load({
+						google: {
+							families: [font]
+						},
+						active: render,
+						inactive: function() {
+							console.log('inactive');
+							render();
+						}
+					});
+				}
+				
+				function saveSettings() {
+					if(localStorage) {
+						localStorage.setItem('width', canvas.width);
+						localStorage.setItem('height', canvas.height);
+						localStorage.setItem('font', fontFamily);
+						localStorage.setItem('text', text);
+						localStorage.setItem('size', fontHeight);
+						localStorage.setItem('text-color', textColor);
+						localStorage.setItem('mono', mono);
+						localStorage.setItem('outline', outline);
+						localStorage.setItem('outline-color', outlineColor);
+						localStorage.setItem('outline-width', outlineWidth);
+						localStorage.setItem('outline-offset-x', outlineOffsetX);
+						localStorage.setItem('outline-offset-y', outlineOffsetY);
+						localStorage.setItem('shadow', shadow);
+						localStorage.setItem('shadow-color', shadowColor);
+						localStorage.setItem('shadow-offset-x', shadowOffsetX);
+						localStorage.setItem('shadow-offset-y', shadowOffsetY);
+						localStorage.setItem('grad', grad);
+						localStorage.setItem('end-color', endColor);
+						localStorage.setItem('ss', ss);
+					}
+				}
+				
+				function getFloat(k, d) {
+					var v = localStorage.getItem(k);
+					return v ? parseFloat(v) : d;
+				}
+				function getString(k, d) {
+					var v = localStorage.getItem(k);
+					return v ? v : d;
+				}
+				function getBool(k, d) {
+					var v = localStorage.getItem(k);
+					return v ? v === 'true' ? true : false : d;
+				}
+				
+				function setControl() {
+					$('tex-width').selectedIndex = canvas.width >> 8;
+					$('tex-height').selectedIndex = canvas.height >> 8;
+					$('font').value = fontFamily;
+					$('text').value = text;
+					$('size').value = fontHeight;
+					$('text-color').value = textColor;
+					$('mono').checked = mono;
+					$('outline').checked = outline;
+					$('outline-color').value = outlineColor;
+					$('outline-width').value = outlineWidth;
+					$('outline-offset-x').value = outlineOffsetX;
+					$('outline-offset-y').value = outlineOffsetY;
+					$('shadow').checked = shadow;
+					$('shadow-color').value = shadowColor;
+					$('shadow-offset-y').value = shadowOffsetX;
+					$('shadow-offset-y').value = shadowOffsetY;
+					$('grad').checked = grad;
+					$('end-color').value = endColor;
+					$('ss').checked = ss;
+				}
+				
+				function loadSettings() {
+					if(localStorage) {
+						canvas.width = getFloat('width', 256);
+						canvas.height = getFloat('height', 256);
+						buffer.width = canvas.width * 2;
+						buffer.height = canvas.height * 2;
+						fontFamily = getString('font', 'Baumans');
+						text = getString('text', '0123456789');
+						fontHeight = getFloat('size', 42);
+						textColor = getString('text-color', '#FFFFFF');
+						mono = getBool('mono', true);
+						outline = getBool('outline', false);
+						outlineColor = getString('outline-color', '#000000');
+						outlineWidth = getFloat('outline-width', 8);
+						outlineOffsetX = getFloat('outline-offset-x', 0);
+						outlineOffsetY = getFloat('outline-offset-y', 0);
+						shadow = getBool('shadow', false);
+						shadowColor = getString('shadowColor', '#000000');
+						shadowOffsetX = getFloat('shadow-offset-x', 0);
+						shadowOffsetY = getFloat('shadow-offset-y', 0);
+						grad = getBool('grad', false);
+						endColor = getString('end-color', '#000000');
+						ss = getBool('ss', false);
+						
+						setControl();
+					}
+				}
+				
+				function showAlpha() {
+					ctx = ctxa;
+					
+					var image = ctx.getImageData(0, 0, canvas.width, canvas.height),
+						data = image.data;
+					for(var i = 0; i < data.length; i += 4) {
+						var a = data[i + 3];
+						data[i] = a;
+						data[i + 1] = a;
+						data[i + 2] = a;
+						data[i + 3] = 255;
+					}
+					ctx.putImageData(image, 0, 0);
+				}
+				
+				function drawCharacter(c) {
+					var w = character.width,
+						h = character.height;
+				}
+				
+				function render() {
+					ctx = ss ? ctxb : ctxa;
+					
+					ctx.save();
+					if(ss) {
+						ctx.scale(2.0, 2.0);
+					}
+					ctx.clearRect(0, 0, canvas.width, canvas.height);
+					
+					var w = 0;
+					
+					if(outline) {
+						w = outlineWidth;
+					}
+					var fontStyle = '';
+					fontStyle += italic ? 'italic ' : '',
+					fontStyle += bold ? 'bold ' : '',
+					fontStyle += fontHeight + 'px ',
+					fontStyle += fontFamily;
+					ctx.font = fontStyle;
+					
+					ctx.strokeStyle = outlineColor;
+					ctx.lineWidth = w;
+					ctx.textBaseline = 'bottom';
+					ctx.textAlign = 'center';
+					ctx.lineCap = 'round';
+					ctx.lineJoin = 'round';
+					
+					if(!mono) {
+						fontWidth = ctx.measureText(text[0]).width;
+					} else {
+						fontWidth = 0;
+						for(var j = 0; j < text.length; j++) {
+							var m = ctx.measureText(text[j]).width;
+							if(m > fontWidth) {
+								fontWidth = m;
+							}
+						}
+					}
+					
+					
+					ctx.fillStyle = textColor;
+					
+					if(shadow) {
+						ctx.shadowBlur = shadowBlur;
+						ctx.shadowColor = shadowColor;
+						ctx.shadowOffsetX = shadowOffsetX;
+						ctx.shadowOffsetY = shadowOffsetY;
+						w += shadowBlur * 0.5;
+					}
+					
+					var offsetX = w * 0.5 + fontWidth * 0.5,
+						offsetY = canvas.height - w * 0.5 - outlineOffsetY;
+					
+					if(grad) {
+						var gradColor = ctx.createLinearGradient(0, offsetY - fontHeight, 0, offsetY);
+						gradColor.addColorStop(0, textColor);
+						gradColor.addColorStop(1, endColor);
+						ctx.fillStyle = gradColor;
+					}
+					
+					var prevFontWidth = fontWidth;
+					
+					var rect = [];
+					
+					var col = 0,
+						row = 0;
+					
+					fontRects.length = 0;
+					
+					for(var i = 0; i < text.length; i++) {
+						var c = text[i],
+							m = ctx.measureText(c);
+						
+						if(!mono) {
+							offsetX -= fontWidth * 0.5;
+							offsetX += m.width * 0.5;
+							fontWidth = m.width;
+						}
+						
+						if(offsetX + fontWidth * 0.5 + w > canvas.width) {
+							offsetY -= fontHeight + w + outlineOffsetY;
+							offsetX = w * 0.5 + fontWidth * 0.5;
+							
+							if(grad) {
+								var gradColor = ctx.createLinearGradient(0, offsetY - fontHeight, 0, offsetY);
+								gradColor.addColorStop(0, textColor);
+								gradColor.addColorStop(1, endColor);
+								ctx.fillStyle = gradColor;
+							}
+							col = 0;
+							row++;
+						}
+						
+						var size = {
+							x: 0,
+							y: 0,
+							w: fontWidth + w,
+							h: -(fontHeight + w)
+						};
+						
+						var uv = {
+							x: (offsetX - w * 0.5 - fontWidth * 0.5) / canvas.width,
+							y: (canvas.height - (offsetY + w * 0.5)) / canvas.height,
+							w: size.w / canvas.width,
+							h: (fontHeight + w) / canvas.height
+						};
+						
+						if(grid)
+						{
+							ctx.save();
+							ctx.fillStyle = (row & 1) ^ (col & 1) ? '#0F0' : '#F0F';
+							ctx.fillRect(offsetX - size.w / 2, offsetY, size.w, size.h);
+							ctx.restore();
+						}
+						
+						if(outline) {
+							ctx.strokeText(c, offsetX + outlineOffsetX, offsetY + outlineOffsetY);
+						}
+						
+						ctx.fillText(c, offsetX, offsetY);
+						
+						col++;
+						
+						var r = [
+							c.charCodeAt(), uv.x, uv.y, uv.w, uv.h,
+							size.x, size.y, size.w, size.h
+						];
+						
+						rect.push(r.join(','));
+						fontRects.push(r);
+						
+						offsetX += fontWidth + w;
+					}
+					ctx.restore();
+					if(ss) {
+						var ctx2 = canvas.getContext('2d');
+						ctx2.clearRect(0, 0, canvas.width, canvas.height);
+						ctx2.drawImage(buffer, 0, 0, canvas.width, canvas.height);
+					}
+					document.getElementById('json').textContent = rect.join('\n');
+				}
+			})();
+		</script>
+	
+
+<div id="color-selector" style="background-color: rgb(255, 255, 255); position: absolute; display: none; border: 1px solid rgb(170, 170, 170); padding: 4px; box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 3px 0px; left: 126px; top: 537px;"><img src="./map_sample003_files/color.png" style="background-color: rgb(209, 255, 0);"><span id="color-cursor" style="position: absolute; display: block; top: 5px; left: 100px; width: 2px; height: 2px; border: 1px solid rgb(255, 255, 255); box-shadow: rgba(0, 0, 0, 0.4) 0px 1px 3px 0px;"></span><img src="./map_sample003_files/hue.png" style="margin-left: 4px;"><span id="hue-cursor" style="position: absolute; display: block; top: 27.244444444444444px; left: 134px; width: 18px; height: 2px; border: 1px solid rgb(255, 255, 255); box-shadow: rgba(0, 0, 0, 0.6) 0px 1px 3px 0px;"></span><div><span style="display: inline-block; width: 12px; height: 12px; margin-right: 4px; background-color: rgb(0, 0, 0);"></span><span style="display: inline-block; width: 12px; height: 12px; margin-right: 4px; background-color: rgb(255, 255, 255);"></span><span style="display: inline-block; width: 12px; height: 12px; margin-right: 4px; background-color: rgb(255, 0, 0);"></span><span style="display: inline-block; width: 12px; height: 12px; margin-right: 4px; background-color: rgb(0, 255, 0);"></span><span style="display: inline-block; width: 12px; height: 12px; margin-right: 4px; background-color: rgb(0, 0, 255);"></span><span style="display: inline-block; width: 12px; height: 12px; margin-right: 4px; background-color: rgb(255, 255, 0);"></span><span style="display: inline-block; width: 12px; height: 12px; margin-right: 4px; background-color: rgb(255, 0, 255);"></span><span style="display: inline-block; width: 12px; height: 12px; margin-right: 4px; background-color: rgb(0, 255, 255);"></span></div><style>#color-selector{absolute: position;background-color: #FFF}</style></div></body></html>

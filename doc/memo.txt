@@ -143,3 +143,17 @@ B: 通し番号
 
 waitUntil が2回呼ばれる. 
 
+--------------------------------------------------------------------------------
+フォントの作り方。
+
+1.google fonts で好きなフォントを探す.
+	http://www.google.com/fonts
+2. フォントテクスチャジェネレータで png, fontsettings を作成.
+	http://sapphire-al2o3.github.io/font_tex/generator.html
+	はじめから等幅のMONO系がいい.
+3. pngを減色する. 8色程度に.
+	http://compresspng.com/#
+
+// ASCII
+ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~
+
