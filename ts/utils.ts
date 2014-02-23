@@ -570,6 +570,7 @@ module jp.osakana4242.utils {
 		assetName: string;
 		imageWidth: number;
 		imageHeight: number;
+		outlineSize: number;
 		marginLeft: number;
 		marginRight: number;
 		characters: {[index: number]: ISpriteFontCharacter;};
@@ -580,10 +581,10 @@ module jp.osakana4242.utils {
 			for (var i = 0, iNum = text.length; i < iNum; ++i) {
 				var code = text.charCodeAt(i);
 				var fc = this.getCharacter(code);
-				ret -= this.marginRight;
 				ret += fc.width;
-				ret -= this.marginLeft;
 			}
+			// 縁取り重なり分.
+			ret -= (text.length - 1) * this.outlineSize;
 			return ret;
 		}
 
@@ -612,8 +613,7 @@ module jp.osakana4242.utils {
 			font.imageHeight = imageHeight;
 			font.characters = SpriteFont.loadFontSettings(imageWidth, imageHeight, fontSettings);
 			font.defaultCharCode = defaultCharCode;
-			font.marginLeft = 1;
-			font.marginRight = 1;
+			font.outlineSize = 1;
 			return font;
 		}
 
@@ -629,8 +629,8 @@ module jp.osakana4242.utils {
 				var fontWidth =  arr[arrOffs + 7];
 				var fontHeight = - arr[arrOffs + 8];
 				var fontLeft =   textureWidth * fontLeftRate;
-				var fontBottom = textureHeight - textureHeight * fontBottomRate;
-				var fontTop =    fontBottom - fontHeight;
+				var fontBottom = textureHeight - (textureHeight * fontBottomRate);
+				var fontTop =    fontBottom - fontHeight - 1;
 				var c = String.fromCharCode(charCode);
 				map[charCode] = {
 					"char": c,
@@ -656,6 +656,9 @@ module jp.osakana4242.utils {
 		Object.defineProperty(enchant.Sprite.prototype, "text", {
 			"set": function (value: string) {
 				value = value.toString();
+				if (this._text === value) {
+					return;
+				}
 				this._text = value;
 				var font: SpriteFont = this.font;
 				if (!font) {
@@ -678,12 +681,10 @@ module jp.osakana4242.utils {
 			var core = enchant.Core.instance;
 			var assetImage = core.assets[font.assetName];
 			destImage.clear();
-			var marginLeft = font.marginLeft;
-			var marginRight = font.marginRight;
+			var outlineSize = font.outlineSize;
 			var xOnImage = 0;
 
 			for(var i = 0, txtLength = txt.length; i < txtLength; ++i) {
-				xOnImage -= marginLeft;
 				var charCode = txt.charCodeAt(i);
 				var fc = font.getCharacter(charCode);
 				var fcw = fc.width;
@@ -692,8 +693,7 @@ module jp.osakana4242.utils {
 					assetImage, 
 					fc.left, fc.top, fcw, fch,
 					xOnImage, 0, fcw, fch);
-				xOnImage -= marginRight;
-				xOnImage += fcw;
+				xOnImage += fcw - outlineSize;
 			}
 		};
 	})();

@@ -183,7 +183,7 @@ module jp.osakana4242.kimiko.scenes {
 			})();
 
 			layouter.sprites["downBtn"] = (() => {
-				var spr = new LabeledButton(48, 48, "V");
+				var spr = new LabeledButton(48, 48, "v");
 				spr.addEventListener(enchant.Event.TOUCH_END, () => { onButtonEvent("down"); });
 				return spr;
 			})();
