@@ -666,6 +666,9 @@
 					ctx.clearRect(0, 0, canvas.width, canvas.height);
 					
 					var w = 0;
+					/** 高さ補正. 2014.02.23 osakana4242 */
+					var marginTop = 2;
+					var fontHeight2 = fontHeight + marginTop;
 					
 					if(outline) {
 						w = outlineWidth;
@@ -737,7 +740,7 @@
 						}
 						
 						if(offsetX + fontWidth * 0.5 + w > canvas.width) {
-							offsetY -= fontHeight + w + outlineOffsetY;
+							offsetY -= fontHeight2 + w + outlineOffsetY;
 							offsetX = w * 0.5 + fontWidth * 0.5;
 							
 							if(grad) {
@@ -754,14 +757,14 @@
 							x: 0,
 							y: 0,
 							w: fontWidth + w,
-							h: -(fontHeight + w)
+							h: -(fontHeight2 + w)
 						};
 						
 						var uv = {
 							x: (offsetX - w * 0.5 - fontWidth * 0.5) / canvas.width,
 							y: (canvas.height - (offsetY + w * 0.5)) / canvas.height,
 							w: size.w / canvas.width,
-							h: (fontHeight + w) / canvas.height
+							h: (fontHeight2 + w) / canvas.height
 						};
 						
 						if(grid)
