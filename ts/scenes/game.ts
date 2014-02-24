@@ -591,15 +591,24 @@ module jp.osakana4242.kimiko.scenes {
 			var pd = g_app.playerData;
 			var mapCharaMgr: game.MapCharaManager = this.mapCharaMgr;
 			var texts: string[][] = this.statusTexts;
-			var lifeText = g_app.stringUtil.mul("O", player.life.hp) + utils.StringUtil.mul("_", player.life.hpMax - player.life.hp);
-			texts[0][0] = "SC " + g_app.playerData.score + " " +
-				"TIME " + Math.floor(g_app.frameToSec(pd.restTimeCounter));	
-			texts[1][0] = "LIFE " + lifeText + " " +
-				"WALL " + player.wallPushDir.x + "," + player.wallPushDir.y + " " +
-				(player.targetEnemy ? "LOCK" : "    ") + " " +
-				"";
+			var lifeText = g_app.stringUtil.mul("[@]", player.life.hp) + utils.StringUtil.mul("[ ]", player.life.hpMax - player.life.hp);
+			texts[0][0] =
+				"LIFE  " + lifeText;
+			texts[1][0] =
+				"SCORE " + g_app.playerData.score;
+			texts[2][0] =
+				"TIME  " + Math.floor(g_app.frameToSec(pd.restTimeCounter));
 
-			texts[2][0] = "NODES " + scene.world.childNodes.length;
+			if (g_app.testHud.parentNode) {
+				// デバッグ表示.
+				g_app.testHud.labels[1].text =
+					"N:" + scene.world.childNodes.length;
+				g_app.testHud.labels[2].text = 
+					"W:" + player.wallPushDir.x + "," + player.wallPushDir.y + " " +
+					(player.targetEnemy ? "L" : " ") + " " +
+					"";
+			}
+
 			//texts[1][0] = player.stateToString()
 			//texts[2][1] = "actives:" + mapCharaMgr.actives.length + " " +
 			//	"sleeps:" + mapCharaMgr.sleeps.length;

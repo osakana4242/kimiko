@@ -1614,20 +1614,36 @@ var jp;
 
             kimiko.TestHud = enchant.Class.create(enchant.Group, {
                 initialize: function () {
+                    var _this = this;
                     enchant.Group.call(this);
 
                     var group = this;
+
+                    /** 左寄せ. */
+                    function originLeft(spr) {
+                        spr.x += -label.width * (1.0 - label.scaleX) / 2;
+                        spr.y += -label.height * (1.0 - label.scaleY) / 2;
+                    }
+
+                    this.labels = [];
+                    var labelNum = 4;
+
+                    for (var i = 0; i < labelNum; ++i) {
+                        var label = new jp.osakana4242.utils.SpriteLabel(kimiko.g_app.fontS, "");
+                        label.x = DF.SC_W / labelNum * i;
+                        label.y = 0;
+                        label.width = DF.SC_W / labelNum;
+                        label.scaleX = 0.75;
+                        label.scaleY = 0.75;
+                        originLeft(label);
+                        this.labels.push(label);
+                    }
 
                     var fpsLabel = (function () {
                         function getTime() {
                             return new Date().getTime();
                         }
-                        var label = new jp.osakana4242.utils.SpriteLabel(kimiko.g_app.fontS, "");
-                        label.width = 160;
-                        label.scaleX = 0.75;
-                        label.scaleY = 0.75;
-                        label.x = -label.width * (1.0 - label.scaleX) / 2;
-                        label.y = -label.height * (1.0 - label.scaleY) / 2;
+                        var label = _this.labels[0];
 
                         var diffSum = 0;
                         var prevTime = getTime();
@@ -1655,7 +1671,10 @@ var jp;
                         });
                         return label;
                     })();
-                    group.addChild(fpsLabel);
+
+                    for (var i = 0; i < labelNum; ++i) {
+                        group.addChild(this.labels[i]);
+                    }
                 }
             });
 
@@ -4408,11 +4427,16 @@ var jp;
                         var pd = g_app.playerData;
                         var mapCharaMgr = this.mapCharaMgr;
                         var texts = this.statusTexts;
-                        var lifeText = g_app.stringUtil.mul("O", player.life.hp) + jp.osakana4242.utils.StringUtil.mul("_", player.life.hpMax - player.life.hp);
-                        texts[0][0] = "SC " + g_app.playerData.score + " " + "TIME " + Math.floor(g_app.frameToSec(pd.restTimeCounter));
-                        texts[1][0] = "LIFE " + lifeText + " " + "WALL " + player.wallPushDir.x + "," + player.wallPushDir.y + " " + (player.targetEnemy ? "LOCK" : "    ") + " " + "";
+                        var lifeText = g_app.stringUtil.mul("[@]", player.life.hp) + jp.osakana4242.utils.StringUtil.mul("[ ]", player.life.hpMax - player.life.hp);
+                        texts[0][0] = "LIFE  " + lifeText;
+                        texts[1][0] = "SCORE " + g_app.playerData.score;
+                        texts[2][0] = "TIME  " + Math.floor(g_app.frameToSec(pd.restTimeCounter));
 
-                        texts[2][0] = "NODES " + scene.world.childNodes.length;
+                        if (g_app.testHud.parentNode) {
+                            // デバッグ表示.
+                            g_app.testHud.labels[1].text = "N:" + scene.world.childNodes.length;
+                            g_app.testHud.labels[2].text = "W:" + player.wallPushDir.x + "," + player.wallPushDir.y + " " + (player.targetEnemy ? "L" : " ") + " " + "";
+                        }
 
                         for (var i = 0, iNum = texts.length; i < iNum; ++i) {
                             var line = texts[i].join(" ");

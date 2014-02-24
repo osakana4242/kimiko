@@ -301,16 +301,31 @@ module jp.osakana4242.kimiko {
 
 			var group = this;
 
+			/** 左寄せ. */
+			function originLeft(spr: any) {
+				spr.x += - label.width * (1.0 - label.scaleX) / 2;
+				spr.y += - label.height * (1.0 - label.scaleY) / 2;
+			}
+
+			this.labels = [];
+			var labelNum = 4;
+
+			for (var i = 0; i < labelNum; ++i) {
+				var label = new utils.SpriteLabel(g_app.fontS, "");
+				label.x = DF.SC_W / labelNum * i;
+				label.y = 0;
+				label.width = DF.SC_W / labelNum;
+				label.scaleX = 0.75;
+				label.scaleY = 0.75;
+				originLeft(label);
+				this.labels.push(label);
+			}
+
 			var fpsLabel = (() => {
 				function getTime() {
 					return new Date().getTime();
 				}
-				var label = new utils.SpriteLabel(g_app.fontS, "");
-				label.width = 160;
-				label.scaleX = 0.75;
-				label.scaleY = 0.75;
-				label.x = - label.width * (1.0 - label.scaleX) / 2;
-				label.y = - label.height * (1.0 - label.scaleY) / 2;
+				var label = this.labels[0];
 
 				var diffSum = 0;
 				var prevTime = getTime();
@@ -338,7 +353,10 @@ module jp.osakana4242.kimiko {
 				});
 				return label;
 			})();
-			group.addChild(fpsLabel);
+
+			for (var i = 0; i < labelNum; ++i) {
+				group.addChild(this.labels[i]);
+			}
 		},
 	});
 
