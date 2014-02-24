@@ -307,39 +307,33 @@ module jp.osakana4242.kimiko {
 				}
 				var label = new utils.SpriteLabel(g_app.fontS, "");
 				label.width = 160;
+				label.scaleX = 0.75;
+				label.scaleY = 0.75;
+				label.x = - label.width * (1.0 - label.scaleX) / 2;
+				label.y = - label.height * (1.0 - label.scaleY) / 2;
 
 				var diffSum = 0;
 				var prevTime = getTime();
 
-				var sampleCountMax = g_app.core.fps;
+				// 3秒間の平均FPSを算出する.
+				var sampleCountMax = g_app.core.fps * 3;
 				var sampleCount = 0;
-				var fpsMin = 9999;
-				var fpsMax = 0;
-				var fpsSum = 0;
+				var samples = [];
+				for (var i = 0; i < sampleCountMax - 1; ++i) {
+					samples.push(0);
+				}
+				var renderCounter = 0;
 
 				label.addEventListener(enchant.Event.RENDER, function() {
 					var nowTime = getTime();
-					var diffTime = nowTime - prevTime;
-					var realFps = (diffTime <= 0) ? 0 : 1000 / diffTime;
-					if (realFps < fpsMin) {
-						fpsMin = realFps;
-					}
-					if (fpsMax < realFps) {
-						fpsMax = realFps;
-					}
-					fpsSum += realFps;
-					++sampleCount;
+					var diffTime = Math.floor(nowTime - prevTime);
+					var realFps = 1000 * sampleCountMax / (diffSum + diffTime);
+					diffSum += - samples.shift() + diffTime;
+					samples.push(diffTime);
 					prevTime = nowTime;
-					if ( sampleCountMax <= sampleCount ) {
-						var fpsAve = fpsSum / sampleCount;
-						label.text = "FPS " + Math.floor(fpsAve) +
-							" MIN " + Math.floor(fpsMin) +
-							" MAX " + Math.floor(fpsMax);
-						sampleCount = 0;
-						fpsMin = 9999;
-						fpsMax = 0;
-						fpsSum = 0;
-						// TODO: ノード数の表示.
+					if (--renderCounter <= 0) {
+						label.text = "FPS " + Math.floor(realFps);
+						renderCounter = g_app.secToFrame(1.0);
 					}
 				});
 				return label;
