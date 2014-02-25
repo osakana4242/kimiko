@@ -601,8 +601,6 @@ module jp.osakana4242.kimiko.scenes {
 
 			if (g_app.testHud.parentNode) {
 				// デバッグ表示.
-				g_app.testHud.labels[1].text =
-					"N:" + scene.world.childNodes.length;
 				g_app.testHud.labels[2].text = 
 					"W:" + player.wallPushDir.x + "," + player.wallPushDir.y + " " +
 					(player.targetEnemy ? "L" : " ") + " " +

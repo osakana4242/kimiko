@@ -1675,6 +1675,25 @@ var jp;
                     for (var i = 0; i < labelNum; ++i) {
                         group.addChild(this.labels[i]);
                     }
+                },
+                onenterframe: function () {
+                    this.labels[1].text = "N:" + this.countNodes(kimiko.g_app.core.currentScene.childNodes);
+                },
+                /** ノード数をカウント. Groupは数えない. */
+                countNodes: function (nodes) {
+                    if (!nodes) {
+                        return 0;
+                    }
+                    var cnt = 0;
+                    for (var i = nodes.length - 1; 0 <= i; --i) {
+                        var node = nodes[i];
+                        if (node.childNodes) {
+                            cnt += this.countNodes(node.childNodes);
+                        } else {
+                            ++cnt;
+                        }
+                    }
+                    return cnt;
                 }
             });
 
@@ -4434,7 +4453,6 @@ var jp;
 
                         if (g_app.testHud.parentNode) {
                             // デバッグ表示.
-                            g_app.testHud.labels[1].text = "N:" + scene.world.childNodes.length;
                             g_app.testHud.labels[2].text = "W:" + player.wallPushDir.x + "," + player.wallPushDir.y + " " + (player.targetEnemy ? "L" : " ") + " " + "";
                         }
 

@@ -358,6 +358,28 @@ module jp.osakana4242.kimiko {
 				group.addChild(this.labels[i]);
 			}
 		},
+
+		onenterframe: function () {
+			this.labels[1].text =
+				"N:" + this.countNodes(g_app.core.currentScene.childNodes);
+		},
+
+		/** ノード数をカウント. Groupは数えない. */
+		countNodes: function (nodes: Array<any>) {
+			if (!nodes) {
+				return 0;
+			}
+			var cnt = 0;
+			for (var i = nodes.length - 1; 0 <= i; --i) {
+				var node = nodes[i];
+				if (node.childNodes) {
+					cnt += this.countNodes(node.childNodes);
+				} else {
+					++cnt;
+				}
+			}
+			return cnt;
+		},
 	});
 
 	export var LabeledButton = enchant.Class(enchant.Group, {
