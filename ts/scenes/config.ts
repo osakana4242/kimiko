@@ -22,11 +22,6 @@ module jp.osakana4242.kimiko.scenes {
 
 			var userConfig = g_app.storage.root.userConfig;
 
-			var difficulties = {
-				"1": "EASY",
-				"2": "MEDIUM",
-			};
-
 			var layouter = new kimiko.SpriteLayouter(this);
 
 			var itemDataList = [
@@ -34,7 +29,7 @@ module jp.osakana4242.kimiko.scenes {
 					"title": "DIFFICULTY",
 					"func": (item: any, diff: number) => {
 						userConfig.difficulty = g_app.numberUtil.trim(userConfig.difficulty + diff, 1, 2);
-						item.valueLabel.text = difficulties[userConfig.difficulty];
+						item.valueLabel.text = g_app.storage.getDifficultyName(userConfig.difficulty);
 					},
 				},
 				{

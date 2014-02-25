@@ -91,6 +91,14 @@ module jp.osakana4242.kimiko {
 			localStorage.setItem(Storage.storageKey, "");
 		}
 
+		public getDifficultyName(difficulty: number): string {
+			switch(difficulty) {
+			case 1: return "EASY";
+			case 2: return "MEDIUM";
+			default: return "?";
+			}
+		}
+
 		public getUserMapForUpdate(mapId: number) {
 			var userMap = this.root.userMaps[mapId];
 			if (!userMap) {

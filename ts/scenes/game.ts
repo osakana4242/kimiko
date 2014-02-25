@@ -165,15 +165,14 @@ module jp.osakana4242.kimiko.scenes {
 
 		},
 
-		// はじめから。
-		// スコアリセット、プレイヤーHP回復。
 		initPlayerStatus: function () {
 			var scene = this;
 			var pd = g_app.playerData;
+			pd.restTimeMax = g_app.secToFrame(180); // TODO: マップデータから持ってくる.
+			pd.restTimeCounter = pd.restTimeMax;
 			var player = this.player;
 			player.reset();
 			player.life.hpMax = pd.hpMax;
-			player.life.recover();
 			player.life.hp = pd.hp;
 			player.visible = true;
 			player.opacity = 1.0;
@@ -227,6 +226,10 @@ module jp.osakana4242.kimiko.scenes {
 			this.state();
 			this.updateStatusText();
 		},
+		
+		onenter: function () {
+			g_app.addTestHudTo(this);
+		},
 	
 		//---------------------------------------------------------------------------
 		// states..
@@ -251,12 +254,9 @@ module jp.osakana4242.kimiko.scenes {
 			scene.layouter.transition("normal", false);
 
 			scene.state = scene.stateNormal;
-			// scene.state = scene.stateGameClear;
+			// scene.state = scene.ntateGameClear;
 
 			g_app.sound.playBgm(Assets.SOUND_BGM, false);
-
-
-			g_app.addTestHudTo(this);
 		},
 					
 		stateNormal: function () {
@@ -301,6 +301,9 @@ module jp.osakana4242.kimiko.scenes {
 		stateGameClear: function () {
 			var pd = g_app.playerData;
 			//
+			pd.score += pd.timeToScore(Math.floor(g_app.frameToSec(pd.restTimeCounter)) * 10);
+			pd.restTimeCounter = 0;
+			//
 			var userMap = g_app.storage.getUserMapForUpdate(pd.mapId);
 			userMap.playCount += 1;
 			g_app.storage.save();
@@ -313,10 +316,8 @@ module jp.osakana4242.kimiko.scenes {
 			} else {
 				pd.mapId = mapOption.nextMapId;
 				//
-				pd.restTimeCounter += pd.restTimeMax;
 				this.state = this.stateWait;
 
-				var player = this.player;
 				var camera = this.camera;
 				this.fader.fadeOut2(g_app.secToFrame(0.5), camera.getTargetPosOnCamera(), () => {
 					this.state = this.stateGameStart;

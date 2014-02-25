@@ -675,14 +675,24 @@
                         _super.call(this);
                         this.font = font;
                         this.text = text;
-                        this.textAlign = "left";
+                        this._textAlign = "left";
                         this.width = this.textWidth;
                         this.height = this.textHeight;
+                    },
+                    textAlign: {
+                        get: function () {
+                            return this._textAlign;
+                        },
+                        set: function (value) {
+                            this._textAlign = value;
+                            this.redrawText();
+                        }
                     },
                     width: {
                         set: function (value) {
                             if (this.image && this.image.width < value) {
                                 this.image = new enchant.Surface(value, this.image.height);
+                                this.redrawText();
                             }
                             superWidthAccessor.set.call(this, value);
                         },
@@ -716,6 +726,9 @@
                         "get": function () {
                             return this._text;
                         }
+                    },
+                    redrawText: function () {
+                        this.drawText(this.text, this.font, this.textAlign, this.image);
                     },
                     drawText: function (txt, font, textAlign, destImage) {
                         var core = enchant.Core.instance;
@@ -1081,11 +1094,13 @@ var jp;
                     this.hpMax = DF.PLAYER_HP;
                     this.hp = this.hpMax;
                     this.score = 0;
-                    this.restTimeCounter = 0;
                     this.restTimeMax = 0;
-                    this.restTimeMax = jp.osakana4242.kimiko.g_app.secToFrame(180);
-                    this.restTimeCounter = this.restTimeMax;
+                    this.restTimeCounter = 0;
                     this.mapId = DF.MAP_ID_MIN;
+                };
+
+                PlayerData.prototype.timeToScore = function (time) {
+                    return time;
                 };
                 return PlayerData;
             })();
@@ -1154,6 +1169,17 @@ var jp;
 
                 Storage.prototype.clear = function () {
                     localStorage.setItem(Storage.storageKey, "");
+                };
+
+                Storage.prototype.getDifficultyName = function (difficulty) {
+                    switch (difficulty) {
+                        case 1:
+                            return "EASY";
+                        case 2:
+                            return "MEDIUM";
+                        default:
+                            return "?";
+                    }
                 };
 
                 Storage.prototype.getUserMapForUpdate = function (mapId) {
@@ -1520,9 +1546,7 @@ var jp;
                             var scene = new jp.osakana4242.kimiko.scenes.Title();
                             core.replaceScene(scene);
                         } else {
-                            kimiko.g_app.playerData.reset();
-                            kimiko.g_app.playerData.mapId = DF.MAP_ID_MAX;
-                            core.replaceScene(kimiko.g_app.gameScene);
+                            core.replaceScene(new jp.osakana4242.kimiko.scenes.GameClear());
                         }
                     });
                 };
@@ -3092,6 +3116,7 @@ var jp;
                         this.inputForce = new jp.osakana4242.utils.Vector2D();
                     },
                     reset: function () {
+                        this.targetEnemy = null;
                     },
                     onenterframe: function () {
                         var scene = this.scene;
@@ -3589,11 +3614,6 @@ var jp;
 
                         var userConfig = g_app.storage.root.userConfig;
 
-                        var difficulties = {
-                            "1": "EASY",
-                            "2": "MEDIUM"
-                        };
-
                         var layouter = new jp.osakana4242.kimiko.SpriteLayouter(this);
 
                         var itemDataList = [
@@ -3601,7 +3621,7 @@ var jp;
                                 "title": "DIFFICULTY",
                                 "func": function (item, diff) {
                                     userConfig.difficulty = g_app.numberUtil.trim(userConfig.difficulty + diff, 1, 2);
-                                    item.valueLabel.text = difficulties[userConfig.difficulty];
+                                    item.valueLabel.text = g_app.storage.getDifficultyName(userConfig.difficulty);
                                 }
                             },
                             {
@@ -4047,15 +4067,14 @@ var jp;
                         this.fader.setBlack(true);
                         this.fader.fadeOut(0);
                     },
-                    // はじめから。
-                    // スコアリセット、プレイヤーHP回復。
                     initPlayerStatus: function () {
                         var scene = this;
                         var pd = g_app.playerData;
+                        pd.restTimeMax = g_app.secToFrame(180); // TODO: マップデータから持ってくる.
+                        pd.restTimeCounter = pd.restTimeMax;
                         var player = this.player;
                         player.reset();
                         player.life.hpMax = pd.hpMax;
-                        player.life.recover();
                         player.life.hp = pd.hp;
                         player.visible = true;
                         player.opacity = 1.0;
@@ -4103,6 +4122,9 @@ var jp;
                         this.state();
                         this.updateStatusText();
                     },
+                    onenter: function () {
+                        g_app.addTestHudTo(this);
+                    },
                     //---------------------------------------------------------------------------
                     // states..
                     stateWait: function () {
@@ -4127,10 +4149,8 @@ var jp;
 
                         scene.state = scene.stateNormal;
 
-                        // scene.state = scene.stateGameClear;
+                        // scene.state = scene.ntateGameClear;
                         g_app.sound.playBgm(jp.osakana4242.kimiko.Assets.SOUND_BGM, false);
-
-                        g_app.addTestHudTo(this);
                     },
                     stateNormal: function () {
                         var player = this.player;
@@ -4180,6 +4200,10 @@ var jp;
                         var pd = g_app.playerData;
 
                         //
+                        pd.score += pd.timeToScore(Math.floor(g_app.frameToSec(pd.restTimeCounter)) * 10);
+                        pd.restTimeCounter = 0;
+
+                        //
                         var userMap = g_app.storage.getUserMapForUpdate(pd.mapId);
                         userMap.playCount += 1;
                         g_app.storage.save();
@@ -4194,10 +4218,8 @@ var jp;
                             pd.mapId = mapOption.nextMapId;
 
                             //
-                            pd.restTimeCounter += pd.restTimeMax;
                             this.state = this.stateWait;
 
-                            var player = this.player;
                             var camera = this.camera;
                             this.fader.fadeOut2(g_app.secToFrame(0.5), camera.getTargetPosOnCamera(), function () {
                                 _this.state = _this.stateGameStart;
@@ -4611,7 +4633,6 @@ var jp;
 
                 /**
                 GAME CLEAR!
-                REST TIME 999
                 SCORE 999
                 [SEND] | [RETRY]
                 
@@ -4626,69 +4647,81 @@ var jp;
                         var pd = g_app.playerData;
 
                         //
-                        var label1 = new enchant.Label("GAME CLEAR!");
-                        (function (label) {
-                            label.font = jp.osakana4242.kimiko.DF.FONT_M;
-                            label.width = jp.osakana4242.kimiko.DF.SC_W;
-                            label.height = 12;
-                            label.color = "rgb(255, 255, 255)";
-                            label.textAlign = "center";
+                        var label1 = (function () {
+                            var label = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "CONGRATULATIONS!");
                             var ax = (jp.osakana4242.kimiko.DF.SC1_W - label.width) / 2;
-                            var ay = 32 + 24 * 1;
+                            var ay = 40 + 20 * 0;
                             label.x = ax;
                             label.y = ay - 8;
-                            label.tl.hide().delay(g_app.secToFrame(0.5)).show().moveTo(ax, ay, g_app.secToFrame(0.5), enchant.Easing.SIN_EASEOUT);
-                        })(label1);
+                            label.opacity = 0;
+                            label.tl.delay(g_app.secToFrame(0.5)).show().moveTo(ax, ay, g_app.secToFrame(0.2), enchant.Easing.SIN_EASEOUT);
+                            return label;
+                        })();
+
+                        var label2 = (function () {
+                            var label = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "GAME CLEAR!");
+                            var ax = (jp.osakana4242.kimiko.DF.SC1_W - label.width) / 2;
+                            var ay = 40 + 20 * 1;
+                            label.x = ax;
+                            label.y = ay - 8;
+                            label.opacity = 0;
+                            label.tl.delay(g_app.secToFrame(0.7)).show().moveTo(ax, ay, g_app.secToFrame(0.2), enchant.Easing.SIN_EASEOUT);
+                            return label;
+                        })();
 
                         //
-                        var label2 = new enchant.Label("REST TIME " + Math.floor(g_app.frameToSec(pd.restTimeCounter)));
-                        (function (label) {
-                            label.font = jp.osakana4242.kimiko.DF.FONT_M;
-                            label.width = jp.osakana4242.kimiko.DF.SC_W;
-                            label.height = 12;
-                            label.color = "rgb(255, 255, 255)";
-                            label.textAlign = "center";
+                        var label3 = (function () {
+                            var label = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "SCORE: " + pd.score);
                             var ax = (jp.osakana4242.kimiko.DF.SC1_W - label.width) / 2;
-                            var ay = 32 + 24 * 2;
+                            var ay = 40 + 20 * 3;
                             label.x = ax;
                             label.y = ay - 8;
-                            label.tl.hide().delay(g_app.secToFrame(1.0)).show().moveTo(ax, ay, g_app.secToFrame(0.5), enchant.Easing.SIN_EASEOUT);
-                        })(label2);
+                            label.opacity = 0;
+                            label.tl.delay(g_app.secToFrame(1.5)).show().moveTo(ax, ay, g_app.secToFrame(0.2), enchant.Easing.SIN_EASEOUT);
+                            return label;
+                        })();
 
-                        var label3 = new enchant.Label("SCORE " + pd.score);
-                        (function (label) {
-                            label.font = jp.osakana4242.kimiko.DF.FONT_M;
-                            label.width = jp.osakana4242.kimiko.DF.SC_W;
-                            label.height = 12;
-                            label.color = "rgb(255, 255, 255)";
-                            label.textAlign = "center";
+                        //
+                        var label4 = (function () {
+                            var label = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "DIFFICULTY: " + g_app.storage.getDifficultyName(g_app.storage.root.userConfig.difficulty));
                             var ax = (jp.osakana4242.kimiko.DF.SC1_W - label.width) / 2;
-                            var ay = 32 + 24 * 3;
+                            var ay = 40 + 20 * 4;
                             label.x = ax;
                             label.y = ay - 8;
-                            label.tl.hide().delay(g_app.secToFrame(1.5)).show().moveTo(ax, ay, g_app.secToFrame(0.5), enchant.Easing.SIN_EASEOUT);
-                        })(label3);
+                            label.opacity = 0;
+                            label.tl.delay(g_app.secToFrame(2.0)).show().moveTo(ax, ay, g_app.secToFrame(0.2), enchant.Easing.SIN_EASEOUT);
+                            return label;
+                        })();
+
+                        var curtainTop = (function () {
+                            var spr = new enchant.Sprite(jp.osakana4242.kimiko.DF.SC2_W, 32);
+                            spr.backgroundColor = "rgb(0,0,0)";
+                            spr.x = 0;
+                            spr.y = -32;
+                            spr.tl.moveTo(0, 0, g_app.secToFrame(0.2));
+                            return spr;
+                        })();
+
+                        var curtainBottom = (function () {
+                            var spr = new enchant.Sprite(jp.osakana4242.kimiko.DF.SC2_W, jp.osakana4242.kimiko.DF.SC2_H);
+                            spr.backgroundColor = "rgb(0,0,0)";
+                            spr.x = 0;
+                            spr.y = jp.osakana4242.kimiko.DF.SC_H;
+                            spr.tl.moveTo(0, jp.osakana4242.kimiko.DF.SC1_H, g_app.secToFrame(0.2));
+                            return spr;
+                        })();
 
                         //
                         var layer1 = new enchant.Group();
                         layer1.addChild(label1);
                         layer1.addChild(label2);
                         layer1.addChild(label3);
+                        layer1.addChild(label4);
 
                         //
+                        scene.addChild(curtainTop);
+                        scene.addChild(curtainBottom);
                         scene.addChild(layer1);
-
-                        //
-                        scene.tl.delay(g_app.secToFrame(3.0)).waitUntil(function () {
-                            if (pd.restTimeCounter < g_app.secToFrame(1)) {
-                                return true;
-                            }
-                            pd.restTimeCounter -= g_app.secToFrame(1);
-                            pd.score += Math.floor(10);
-                            label2.text = "REST TIME " + Math.floor(g_app.frameToSec(pd.restTimeCounter));
-                            label3.text = "SCORE " + pd.score;
-                            return false;
-                        });
 
                         //
                         scene.addEventListener(enchant.Event.TOUCH_END, function () {

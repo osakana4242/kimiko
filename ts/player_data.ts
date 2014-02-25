@@ -24,11 +24,13 @@ module jp.osakana4242.kimiko {
 			this.hpMax= DF.PLAYER_HP;
 			this.hp = this.hpMax;
 			this.score= 0;
-			this.restTimeCounter= 0;
-			this.restTimeMax= 0;
-			this.restTimeMax = g_app.secToFrame(180);
-			this.restTimeCounter = this.restTimeMax;
+			this.restTimeMax = 0;
+			this.restTimeCounter = 0;
 			this.mapId= DF.MAP_ID_MIN;
+		}
+
+		public timeToScore(time: number): number {
+			return time;
 		}
 	}
 

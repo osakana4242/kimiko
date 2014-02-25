@@ -87,6 +87,7 @@ module jp.osakana4242.kimiko.game {
 			},
 
 			reset: function () {
+				this.targetEnemy = null;
 			},
 
 			onenterframe: function () {

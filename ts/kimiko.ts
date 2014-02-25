@@ -205,9 +205,7 @@ module jp.osakana4242.kimiko {
 					var scene = new jp.osakana4242.kimiko.scenes.Title();
 					core.replaceScene(scene);
 				} else {
-					g_app.playerData.reset();
-					g_app.playerData.mapId = DF.MAP_ID_MAX;
-					core.replaceScene(g_app.gameScene);
+					core.replaceScene(new jp.osakana4242.kimiko.scenes.GameClear());
 				}
 			});
 		}

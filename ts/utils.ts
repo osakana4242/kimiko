@@ -678,15 +678,26 @@ module jp.osakana4242.utils {
 				_super.call(this);
 				this.font = font;
 				this.text = text;
-				this.textAlign = "left";
+				this._textAlign = "left";
 				this.width = this.textWidth;
 				this.height = this.textHeight;
+			},
+
+			textAlign: {
+				get: function () {
+					return this._textAlign;
+				},
+				set: function (value: string) {
+					this._textAlign = value;
+					this.redrawText();
+				},
 			},
 
 			width: {
 				set: function (value: number) {
 					if (this.image && this.image.width < value) {
 						this.image = new enchant.Surface(value, this.image.height);
+						this.redrawText();
 					}
 					superWidthAccessor.set.call(this, value);
 				},
@@ -721,6 +732,10 @@ module jp.osakana4242.utils {
 				"get": function () {
 					return this._text;
 				},
+			},
+
+			redrawText: function() {
+				this.drawText(this.text, this.font, this.textAlign, this.image);
 			},
 
 			drawText: function (txt: string, font: SpriteFont, textAlign: string, destImage: any) {
