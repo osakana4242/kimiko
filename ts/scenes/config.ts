@@ -195,9 +195,19 @@ module jp.osakana4242.kimiko.scenes {
 			})();
 
 			var cursor = (() => {
-				var spr = new utils.SpriteLabel(g_app.fontS, "*");
+				var spr = new utils.SpriteLabel(g_app.fontS, " ");
 				spr.x = 0;
 				spr.y = 0;
+				var ptns = [
+					"v",
+					"-",
+					"^",
+					"-",
+				];
+				spr.onenterframe = function () {
+					var ptnIdx = Math.floor(spr.age / g_app.secToFrame(0.2)) % ptns.length;
+					spr.text = ptns[ptnIdx];
+				};
 				return spr;
 			})();
 

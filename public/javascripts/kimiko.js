@@ -3762,9 +3762,19 @@ var jp;
                         })();
 
                         var cursor = (function () {
-                            var spr = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "*");
+                            var spr = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, " ");
                             spr.x = 0;
                             spr.y = 0;
+                            var ptns = [
+                                "v",
+                                "-",
+                                "^",
+                                "-"
+                            ];
+                            spr.onenterframe = function () {
+                                var ptnIdx = Math.floor(spr.age / g_app.secToFrame(0.2)) % ptns.length;
+                                spr.text = ptns[ptnIdx];
+                            };
                             return spr;
                         })();
 
@@ -4705,18 +4715,16 @@ var jp;
 
                 scenes.GameOver = enchant.Class.create(enchant.Scene, {
                     initialize: function () {
+                        var _this = this;
                         enchant.Scene.call(this);
+
+                        this.fader = new jp.osakana4242.kimiko.scenes.Fader(this);
 
                         var scene = this;
 
                         //
-                        var label1 = new enchant.Label("GAME OVER");
+                        var label1 = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "GAME OVER");
                         (function (label) {
-                            label.font = jp.osakana4242.kimiko.DF.FONT_M;
-                            label.width = jp.osakana4242.kimiko.DF.SC_W;
-                            label.height = 12;
-                            label.color = "rgb(255, 255, 255)";
-                            label.textAlign = "center";
                             var ax = (jp.osakana4242.kimiko.DF.SC1_W - label.width) / 2;
                             var ay = (jp.osakana4242.kimiko.DF.SC1_H - label.height) / 2;
                             label.x = ax;
@@ -4733,8 +4741,15 @@ var jp;
 
                         //
                         scene.addEventListener(enchant.Event.TOUCH_END, function () {
-                            g_app.core.popScene();
+                            _this.touchEnabled = false;
+                            _this.fader.fadeOut(g_app.secToFrame(0.1), function () {
+                                g_app.core.popScene();
+                                g_app.core.replaceScene(new jp.osakana4242.kimiko.scenes.Title());
+                            });
                         });
+                    },
+                    onenter: function () {
+                        this.touchEnabled = true;
                     }
                 });
             })(kimiko.scenes || (kimiko.scenes = {}));
@@ -5054,6 +5069,7 @@ var jp;
                         ;
 
                         function gotoGameStart() {
+                            scene.touchEnabled = true;
                             g_app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_OK);
                             var pd = g_app.playerData;
                             pd.reset();
@@ -5063,6 +5079,9 @@ var jp;
                             });
                         }
                         ;
+                    },
+                    onenter: function () {
+                        this.touchEnabled = true;
                     }
                 });
             })(kimiko.scenes || (kimiko.scenes = {}));

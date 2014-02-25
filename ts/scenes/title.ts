@@ -159,6 +159,7 @@ module jp.osakana4242.kimiko.scenes {
 			};
 
 			function gotoGameStart() {
+				scene.touchEnabled = true;
 				g_app.sound.playSe(Assets.SOUND_SE_OK);
 				var pd = g_app.playerData;
 				pd.reset();
@@ -167,6 +168,10 @@ module jp.osakana4242.kimiko.scenes {
 					g_app.core.replaceScene(new scenes.GameStart());
 				});
 			};
+		},
+
+		onenter: function () {
+			this.touchEnabled = true;
 		},
 	});
 }
