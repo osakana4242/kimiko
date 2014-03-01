@@ -1174,9 +1174,9 @@ var jp;
                 Storage.prototype.getDifficultyName = function (difficulty) {
                     switch (difficulty) {
                         case 1:
-                            return "EASY";
+                            return "NORMAL";
                         case 2:
-                            return "MEDIUM";
+                            return "HARD";
                         default:
                             return "?";
                     }

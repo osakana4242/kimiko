@@ -93,8 +93,8 @@ module jp.osakana4242.kimiko {
 
 		public getDifficultyName(difficulty: number): string {
 			switch(difficulty) {
-			case 1: return "EASY";
-			case 2: return "MEDIUM";
+			case 1: return "NORMAL";
+			case 2: return "HARD";
 			default: return "?";
 			}
 		}
