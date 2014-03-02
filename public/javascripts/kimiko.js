@@ -885,6 +885,11 @@ var jp;
 
                 DF.ANIM_ID_CHARA002_WALK = 20;
                 DF.ANIM_ID_CHARA003_WALK = 30;
+                DF.ANIM_ID_CHARA004_WALK = 40;
+                DF.ANIM_ID_CHARA005_WALK = 50;
+                DF.ANIM_ID_CHARA006_WALK = 60;
+                DF.ANIM_ID_CHARA007_WALK = 70;
+                DF.ANIM_ID_CHARA008_WALK = 80;
 
                 DF.ANIM_ID_BULLET001 = 300;
                 DF.ANIM_ID_BULLET002 = 301;
@@ -1511,6 +1516,11 @@ var jp;
 
                         r(DF.ANIM_ID_CHARA002_WALK, Assets.IMAGE_CHARA002, 32, 32, 0.1, [0, 1, 2, 3]);
                         r(DF.ANIM_ID_CHARA003_WALK, Assets.IMAGE_CHARA003, 64, 64, 0.1, [0, 1, 2, 3]);
+                        r(DF.ANIM_ID_CHARA004_WALK, Assets.IMAGE_CHARA002, 32, 32, 0.1, [4]);
+                        r(DF.ANIM_ID_CHARA005_WALK, Assets.IMAGE_CHARA002, 32, 32, 0.1, [8]);
+                        r(DF.ANIM_ID_CHARA006_WALK, Assets.IMAGE_CHARA002, 32, 32, 0.1, [12]);
+                        r(DF.ANIM_ID_CHARA007_WALK, Assets.IMAGE_CHARA002, 32, 32, 0.1, [16]);
+                        r(DF.ANIM_ID_CHARA008_WALK, Assets.IMAGE_CHARA002, 32, 32, 0.1, [20]);
 
                         r(DF.ANIM_ID_BULLET001, Assets.IMAGE_BULLET, 16, 16, 0.1, [0, 1, 2, 3]);
                         r(DF.ANIM_ID_BULLET002, Assets.IMAGE_BULLET, 16, 16, 0.1, [4, 5, 6, 7]);
@@ -2171,19 +2181,53 @@ var jp;
                     }
                     EnemyBodys.body2 = body2;
 
-                    /** 飛行キャラ:小 */
-                    function body3(sprite) {
+                    /** 星型. */
+                    function body4(sprite) {
                         sprite.width = 32;
-                        sprite.height = 16;
-
-                        //sprite.anim.sequence = g_app.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
-                        sprite.backgroundColor = "rgb(255,48,48)";
-                        jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerMiddle(sprite, 28, 12));
+                        sprite.height = 32;
+                        sprite.anim.sequence = jp.osakana4242.kimiko.g_app.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA004_WALK);
+                        jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerBottom(sprite, 28, 28));
                     }
-                    EnemyBodys.body3 = body3;
+                    EnemyBodys.body4 = body4;
+
+                    /** 風船型. */
+                    function body5(sprite) {
+                        sprite.width = 32;
+                        sprite.height = 32;
+                        sprite.anim.sequence = jp.osakana4242.kimiko.g_app.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA005_WALK);
+                        jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerBottom(sprite, 28, 28));
+                    }
+                    EnemyBodys.body5 = body5;
+
+                    /** バネ型. */
+                    function body6(sprite) {
+                        sprite.width = 32;
+                        sprite.height = 32;
+                        sprite.anim.sequence = jp.osakana4242.kimiko.g_app.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA006_WALK);
+                        jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerBottom(sprite, 28, 28));
+                    }
+                    EnemyBodys.body6 = body6;
+
+                    /** 弾丸型. */
+                    function body7(sprite) {
+                        sprite.width = 32;
+                        sprite.height = 32;
+                        sprite.anim.sequence = jp.osakana4242.kimiko.g_app.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA007_WALK);
+                        jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerBottom(sprite, 28, 28));
+                    }
+                    EnemyBodys.body7 = body7;
+
+                    /** カニ型. */
+                    function body8(sprite) {
+                        sprite.width = 32;
+                        sprite.height = 32;
+                        sprite.anim.sequence = jp.osakana4242.kimiko.g_app.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA008_WALK);
+                        jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerBottom(sprite, 28, 28));
+                    }
+                    EnemyBodys.body8 = body8;
 
                     /** 中キャラ */
-                    function body4(sprite) {
+                    function body10(sprite) {
                         sprite.width = 48;
                         sprite.height = 48;
 
@@ -2191,7 +2235,7 @@ var jp;
                         sprite.backgroundColor = "rgb(255,48,48)";
                         jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerBottom(sprite, 32, 40));
                     }
-                    EnemyBodys.body4 = body4;
+                    EnemyBodys.body10 = body10;
                 })(game.EnemyBodys || (game.EnemyBodys = {}));
                 var EnemyBodys = game.EnemyBodys;
 
@@ -2269,11 +2313,15 @@ var jp;
                         var anchor = sprite.anchor;
                         sprite.weapon.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireA;
 
-                        sprite.tl.moveBy(-32 * 4 * 0.5, -32 * 3, jp.osakana4242.kimiko.g_app.secToFrame(0.5)).moveBy(-32 * 4 * 0.5, 32 * 3, jp.osakana4242.kimiko.g_app.secToFrame(0.5)).delay(jp.osakana4242.kimiko.g_app.secToFrame(0.25)).then(function () {
+                        sprite.tl.then(function () {
+                            sprite.scaleX = -1;
+                        }).moveBy(-32 * 4 * 0.5, -32 * 3, jp.osakana4242.kimiko.g_app.secToFrame(0.5)).moveBy(-32 * 4 * 0.5, 32 * 3, jp.osakana4242.kimiko.g_app.secToFrame(0.5)).delay(jp.osakana4242.kimiko.g_app.secToFrame(0.25)).then(function () {
                             if (2 <= sprite.enemyData.level) {
                                 sprite.weapon.lookAtPlayer();
                                 sprite.weapon.startFire();
                             }
+                        }).then(function () {
+                            sprite.scaleX = 1;
                         }).moveBy(32 * 4 * 0.5, -32 * 3, jp.osakana4242.kimiko.g_app.secToFrame(0.5)).moveBy(32 * 4 * 0.5, 32 * 3, jp.osakana4242.kimiko.g_app.secToFrame(0.5)).delay(jp.osakana4242.kimiko.g_app.secToFrame(0.25)).loop();
                     }
                     EnemyBrains.brain3 = brain3;
@@ -2284,11 +2332,15 @@ var jp;
                         var anchor = sprite.anchor;
                         sprite.weapon.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireA;
 
-                        sprite.tl.moveBy(-32 * 4 * 0.5, 32 * 3, jp.osakana4242.kimiko.g_app.secToFrame(0.5)).moveBy(-32 * 4 * 0.5, -32 * 3, jp.osakana4242.kimiko.g_app.secToFrame(0.5)).delay(jp.osakana4242.kimiko.g_app.secToFrame(0.25)).then(function () {
+                        sprite.tl.then(function () {
+                            sprite.scaleX = -1;
+                        }).moveBy(-32 * 4 * 0.5, 32 * 3, jp.osakana4242.kimiko.g_app.secToFrame(0.5)).moveBy(-32 * 4 * 0.5, -32 * 3, jp.osakana4242.kimiko.g_app.secToFrame(0.5)).delay(jp.osakana4242.kimiko.g_app.secToFrame(0.25)).then(function () {
                             if (2 <= sprite.enemyData.level) {
                                 sprite.weapon.lookAtPlayer();
                                 sprite.weapon.startFire();
                             }
+                        }).then(function () {
+                            sprite.scaleX = 1;
                         }).moveBy(32 * 4 * 0.5, 32 * 3, jp.osakana4242.kimiko.g_app.secToFrame(0.5)).moveBy(32 * 4 * 0.5, -32 * 3, jp.osakana4242.kimiko.g_app.secToFrame(0.5)).delay(jp.osakana4242.kimiko.g_app.secToFrame(0.25)).loop();
                     }
                     EnemyBrains.brain4 = brain4;
@@ -2338,7 +2390,10 @@ var jp;
                     function brain8(sprite) {
                         var anchor = sprite.anchor;
 
-                        sprite.tl.delay(jp.osakana4242.kimiko.g_app.secToFrame(0.5)).then(function () {
+                        sprite.tl.then(function () {
+                            var player = sprite.scene.player;
+                            sprite.scaleX = ((player.x - sprite.x) < 0) ? -1 : 1;
+                        }).delay(jp.osakana4242.kimiko.g_app.secToFrame(0.5)).then(function () {
                             var player = sprite.scene.player;
                             var dir = jp.osakana4242.utils.Vector2D.alloc(player.center.x - sprite.center.x, player.center.y - sprite.center.y);
                             var mag = jp.osakana4242.utils.Vector2D.magnitude(dir);
@@ -2347,6 +2402,7 @@ var jp;
                             dir.x = dir.x * dist / mag;
                             dir.y = 0;
                             var frame = Math.floor(dist / speed);
+                            sprite.scaleX = (dir.x < 0) ? -1 : 1;
 
                             sprite.tl.moveBy(dir.x, dir.y, frame).then(function () {
                                 sprite.life.kill();
@@ -2380,6 +2436,7 @@ var jp;
                                 dir.x = dir.x * dist / mag;
                                 dir.y = dir.y * dist / mag;
                                 var frame = (speed === 0) ? 1 : Math.max(Math.floor(dist / speed), 1);
+                                sprite.scaleX = (dir.x < 0) ? -1 : 1;
                                 sprite.tl.moveTo(sprite.x + dir.x, sprite.y + dir.y, frame).delay(jp.osakana4242.kimiko.g_app.secToFrame(0.2)).waitUntil(f1);
                                 isNext = true;
                             }
@@ -2528,7 +2585,7 @@ var jp;
                     0x3: {
                         hpMax: 2,
                         level: 1,
-                        body: EnemyBodys.body1,
+                        body: EnemyBodys.body6,
                         brain: EnemyBrains.brain3,
                         score: 100,
                         align: "center bottom"
@@ -2536,7 +2593,7 @@ var jp;
                     0x4: {
                         hpMax: 2,
                         level: 1,
-                        body: EnemyBodys.body1,
+                        body: EnemyBodys.body6,
                         brain: EnemyBrains.brain4,
                         score: 100,
                         align: "center top"
@@ -2544,7 +2601,7 @@ var jp;
                     0x5: {
                         hpMax: 16,
                         level: 1,
-                        body: EnemyBodys.body4,
+                        body: EnemyBodys.body10,
                         brain: EnemyBrains.brain5,
                         score: 100,
                         align: "center bottom"
@@ -2552,7 +2609,7 @@ var jp;
                     0x6: {
                         hpMax: 2,
                         level: 1,
-                        body: EnemyBodys.body1,
+                        body: EnemyBodys.body4,
                         brain: EnemyBrains.brain6,
                         score: 100,
                         align: "center middle"
@@ -2560,7 +2617,7 @@ var jp;
                     0x7: {
                         hpMax: 2,
                         level: 1,
-                        body: EnemyBodys.body1,
+                        body: EnemyBodys.body5,
                         brain: EnemyBrains.brain7,
                         score: 100,
                         align: "center middle"
@@ -2568,7 +2625,7 @@ var jp;
                     0x8: {
                         hpMax: 2,
                         level: 1,
-                        body: EnemyBodys.body1,
+                        body: EnemyBodys.body7,
                         brain: EnemyBrains.brain8,
                         score: 100,
                         align: "center middle"
@@ -2576,15 +2633,15 @@ var jp;
                     0x9: {
                         hpMax: 2,
                         level: 1,
-                        body: EnemyBodys.body1,
+                        body: EnemyBodys.body8,
                         brain: EnemyBrains.brain9,
                         score: 100,
-                        align: "center middle"
+                        align: "center bottom"
                     },
                     0xa: {
                         hpMax: 2,
                         level: 2,
-                        body: EnemyBodys.body1,
+                        body: EnemyBodys.body4,
                         brain: EnemyBrains.brain6,
                         score: 100,
                         align: "center middle"
@@ -2592,7 +2649,7 @@ var jp;
                     0xb: {
                         hpMax: 2,
                         level: 2,
-                        body: EnemyBodys.body1,
+                        body: EnemyBodys.body5,
                         brain: EnemyBrains.brain7,
                         score: 100,
                         align: "center middle"

@@ -24,17 +24,46 @@ module jp.osakana4242.kimiko.game {
 			sprite.weaponNum = 3;
 		}
 
-		/** 飛行キャラ:小 */
-		export function body3(sprite: any) {
+		/** 星型. */
+		export function body4(sprite: any) {
 			sprite.width = 32;
-			sprite.height = 16;
-			//sprite.anim.sequence = g_app.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
-			sprite.backgroundColor = "rgb(255,48,48)";
-			utils.Rect.copyFrom(sprite.collider.rect, utils.Collider.centerMiddle(sprite, 28, 12));
+			sprite.height = 32;
+			sprite.anim.sequence = g_app.getAnimFrames(DF.ANIM_ID_CHARA004_WALK);
+			utils.Rect.copyFrom(sprite.collider.rect, utils.Collider.centerBottom(sprite, 28, 28));
 		}
 
+		/** 風船型. */
+		export function body5(sprite: any) {
+			sprite.width = 32;
+			sprite.height = 32;
+			sprite.anim.sequence = g_app.getAnimFrames(DF.ANIM_ID_CHARA005_WALK);
+			utils.Rect.copyFrom(sprite.collider.rect, utils.Collider.centerBottom(sprite, 28, 28));
+		}
+
+		/** バネ型. */
+		export function body6(sprite: any) {
+			sprite.width = 32;
+			sprite.height = 32;
+			sprite.anim.sequence = g_app.getAnimFrames(DF.ANIM_ID_CHARA006_WALK);
+			utils.Rect.copyFrom(sprite.collider.rect, utils.Collider.centerBottom(sprite, 28, 28));
+		}
+
+		/** 弾丸型. */
+		export function body7(sprite: any) {
+			sprite.width = 32;
+			sprite.height = 32;
+			sprite.anim.sequence = g_app.getAnimFrames(DF.ANIM_ID_CHARA007_WALK);
+			utils.Rect.copyFrom(sprite.collider.rect, utils.Collider.centerBottom(sprite, 28, 28));
+		}
+		/** カニ型. */
+		export function body8(sprite: any) {
+			sprite.width = 32;
+			sprite.height = 32;
+			sprite.anim.sequence = g_app.getAnimFrames(DF.ANIM_ID_CHARA008_WALK);
+			utils.Rect.copyFrom(sprite.collider.rect, utils.Collider.centerBottom(sprite, 28, 28));
+		}
 		/** 中キャラ */
-		export function body4(sprite: any) {
+		export function body10(sprite: any) {
 			sprite.width = 48;
 			sprite.height = 48;
 			//sprite.anim.sequence = g_app.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
@@ -131,6 +160,7 @@ module jp.osakana4242.kimiko.game {
 			sprite.weapon.fireFunc = WeaponA.fireA;
 
 			sprite.tl.
+				then(() => { sprite.scaleX = -1; }).
 				moveBy( -32 * 4 * 0.5, -32 * 3, g_app.secToFrame( 0.5 ) ).
 				moveBy( -32 * 4 * 0.5,  32 * 3, g_app.secToFrame( 0.5 ) ).
 				delay( g_app.secToFrame( 0.25 ) ).
@@ -140,6 +170,7 @@ module jp.osakana4242.kimiko.game {
 						sprite.weapon.startFire();
 					}
 				}).
+				then(() => { sprite.scaleX = 1; }).
 				moveBy(  32 * 4 * 0.5, -32 * 3, g_app.secToFrame( 0.5 ) ).
 				moveBy(  32 * 4 * 0.5,  32 * 3, g_app.secToFrame( 0.5 ) ).
 				delay( g_app.secToFrame( 0.25 ) ).
@@ -153,6 +184,7 @@ module jp.osakana4242.kimiko.game {
 			sprite.weapon.fireFunc = WeaponA.fireA;
 
 			sprite.tl.
+				then(() => { sprite.scaleX = -1; }).
 				moveBy( -32 * 4 * 0.5,  32 * 3, g_app.secToFrame( 0.5 ) ).
 				moveBy( -32 * 4 * 0.5, -32 * 3, g_app.secToFrame( 0.5 ) ).
 				delay( g_app.secToFrame( 0.25 ) ).
@@ -162,6 +194,7 @@ module jp.osakana4242.kimiko.game {
 						sprite.weapon.startFire();
 					}
 				}).
+				then(() => { sprite.scaleX = 1; }).
 				moveBy(  32 * 4 * 0.5,  32 * 3, g_app.secToFrame( 0.5 ) ).
 				moveBy(  32 * 4 * 0.5, -32 * 3, g_app.secToFrame( 0.5 ) ).
 				delay( g_app.secToFrame( 0.25 ) ).
@@ -226,6 +259,10 @@ module jp.osakana4242.kimiko.game {
 			var anchor = sprite.anchor;
 
 			sprite.tl.
+				then(function () {
+					var player = sprite.scene.player;
+					sprite.scaleX = ((player.x - sprite.x) < 0) ? -1 : 1;
+				}).
 				delay(g_app.secToFrame(0.5)).
 				then(function () {
 					var player = sprite.scene.player;
@@ -239,6 +276,7 @@ module jp.osakana4242.kimiko.game {
 					dir.x = dir.x * dist / mag;
 					dir.y = 0;
 					var frame = Math.floor(dist / speed);
+					sprite.scaleX = (dir.x < 0) ? -1 : 1;
 					
 					sprite.tl.
 						moveBy(dir.x, dir.y, frame).
@@ -276,6 +314,7 @@ module jp.osakana4242.kimiko.game {
 					dir.x = dir.x * dist / mag;
 					dir.y = dir.y * dist / mag;
 					var frame = (speed === 0) ? 1 : Math.max(Math.floor(dist / speed), 1);
+					sprite.scaleX = (dir.x < 0) ? -1 : 1;
 					sprite.tl.
 						moveTo(sprite.x + dir.x, sprite.y + dir.y, frame).
 						delay(g_app.secToFrame(0.2)).
@@ -468,7 +507,7 @@ module jp.osakana4242.kimiko.game {
 		0x3: {
 			hpMax: 2,
 			level: 1,
-			body: EnemyBodys.body1,
+			body: EnemyBodys.body6,
 			brain: EnemyBrains.brain3,
 			score: 100,
 			align: "center bottom",
@@ -477,7 +516,7 @@ module jp.osakana4242.kimiko.game {
 		0x4: {
 			hpMax: 2,
 			level: 1,
-			body: EnemyBodys.body1,
+			body: EnemyBodys.body6,
 			brain: EnemyBrains.brain4,
 			score: 100,
 			align: "center top",
@@ -485,7 +524,7 @@ module jp.osakana4242.kimiko.game {
 		0x5: {
 			hpMax: 16,
 			level: 1,
-			body: EnemyBodys.body4,
+			body: EnemyBodys.body10,
 			brain: EnemyBrains.brain5,
 			score: 100,
 			align: "center bottom",
@@ -493,7 +532,7 @@ module jp.osakana4242.kimiko.game {
 		0x6: {
 			hpMax: 2,
 			level: 1,
-			body: EnemyBodys.body1,
+			body: EnemyBodys.body4,
 			brain: EnemyBrains.brain6,
 			score: 100,
 			align: "center middle",
@@ -501,7 +540,7 @@ module jp.osakana4242.kimiko.game {
 		0x7: {
 			hpMax: 2,
 			level: 1,
-			body: EnemyBodys.body1,
+			body: EnemyBodys.body5,
 			brain: EnemyBrains.brain7,
 			score: 100,
 			align: "center middle",
@@ -509,7 +548,7 @@ module jp.osakana4242.kimiko.game {
 		0x8: {
 			hpMax: 2,
 			level: 1,
-			body: EnemyBodys.body1,
+			body: EnemyBodys.body7,
 			brain: EnemyBrains.brain8,
 			score: 100,
 			align: "center middle",
@@ -517,15 +556,15 @@ module jp.osakana4242.kimiko.game {
 		0x9: {
 			hpMax: 2,
 			level: 1,
-			body: EnemyBodys.body1,
+			body: EnemyBodys.body8,
 			brain: EnemyBrains.brain9,
 			score: 100,
-			align: "center middle",
+			align: "center bottom",
 		},
 		0xa: {
 			hpMax: 2,
 			level: 2,
-			body: EnemyBodys.body1,
+			body: EnemyBodys.body4,
 			brain: EnemyBrains.brain6,
 			score: 100,
 			align: "center middle",
@@ -533,7 +572,7 @@ module jp.osakana4242.kimiko.game {
 		0xb: {
 			hpMax: 2,
 			level: 2,
-			body: EnemyBodys.body1,
+			body: EnemyBodys.body5,
 			brain: EnemyBrains.brain7,
 			score: 100,
 			align: "center middle",

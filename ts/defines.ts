@@ -61,6 +61,11 @@ module jp.osakana4242.kimiko {
 
 		export var ANIM_ID_CHARA002_WALK = 20;
 		export var ANIM_ID_CHARA003_WALK = 30;
+		export var ANIM_ID_CHARA004_WALK = 40;
+		export var ANIM_ID_CHARA005_WALK = 50;
+		export var ANIM_ID_CHARA006_WALK = 60;
+		export var ANIM_ID_CHARA007_WALK = 70;
+		export var ANIM_ID_CHARA008_WALK = 80;
 
 		export var ANIM_ID_BULLET001 = 300;
 		export var ANIM_ID_BULLET002 = 301;
