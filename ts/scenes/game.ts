@@ -618,68 +618,112 @@ module jp.osakana4242.kimiko.scenes {
 			}
 		},
 
-		checkMapCollision: function (player, onTrim: (x: number, y: number) => void, onIntersect: (tile: number, x: number, y: number) => void) {
-			// 地形とプレイヤーの衝突判定.
-			// 自分の周囲の地形を調べる.
-			var collider: utils.Collider = player.collider;
-			var pRelRect = collider.getRelRect();
-			var prect: utils.IRect = collider.getRect();
+		/**
+			スプライトと地形の衝突判定.
+			衝突してたら、スプライトの位置を補正する.
+		*/
+		checkMapCollision: function (
+			spr: any,
+			onTrim: (x: number, y: number) => void,
+			onIntersect: (tile: number, x: number, y: number) => void) {
+
+			var sprRect: utils.IRect = spr.collider.getRect();
+			var sprForceX = spr.force.x;
+			var sprForceY = spr.force.y;
+
 			var map = this.map;
 			var xDiff = map.tileWidth;
 			var yDiff = map.tileHeight;
-			var xMin = prect.x;
-			var yMin = prect.y;
-			var xMax = prect.x + prect.width + (xDiff - 1);
-			var yMax = prect.y + prect.height + (yDiff - 1);
-			var hoge = 8;
-			var rect = utils.Rect.alloc();
+
+			// スプライトの4隅.
+			var xMin = sprRect.x;
+			var yMin = sprRect.y;
+			var xMax = sprRect.x + sprRect.width + (xDiff - 1);
+			var yMax = sprRect.y + sprRect.height + (yDiff - 1);
+			//
+			var tileRect = utils.Rect.alloc();
+			tileRect.width = map.tileWidth;
+			tileRect.height = map.tileHeight;
 			try {
 				for (var y = yMin; y < yMax; y += yDiff) {
 					for (var x = xMin; x < xMax; x += xDiff) {
-						rect.reset(
-							Math.floor(x / map.tileWidth) * map.tileWidth,
-							Math.floor(y / map.tileHeight) * map.tileHeight,
-							map.tileWidth,
-							map.tileHeight
-						);
-						if (!utils.Rect.intersect(prect, rect)) {
+						tileRect.x = Math.floor(x / map.tileWidth) * map.tileWidth;
+						tileRect.y = Math.floor(y / map.tileHeight) * map.tileHeight;
+						if (!utils.Rect.intersect(sprRect, tileRect)) {
 							continue;
 						}
 						if (onIntersect) {
-							onIntersect.call(player, map.checkTile(x, y), x, y);
+							onIntersect.call(spr, map.checkTile(x, y), x, y);
 						}
 						if (!map.hitTest(x, y)) {
 							continue;
 						}
-						// TODO: たま消しのときは無駄になってしまうので省略したい
-						if (!map.hitTest(x, y - yDiff) && 0 <= player.force.y && prect.y <= rect.y + hoge) {
-							// top
-							player.y = rect.y - prect.height - pRelRect.y;
-							onTrim.call(player, 0, 1);
-							player.force.y = 0;
-							//player.isOnMap = true;
-						} else if (!map.hitTest(x, y + yDiff) && player.force.y <= 0 && rect.y + rect.height - hoge < prect.y + prect.height) {
-							// bottom
-							player.y = rect.y + rect.height - pRelRect.y;
-							onTrim.call(player, 0, -1);
-							player.force.y = 0;
-						} else if (!map.hitTest(x - xDiff, y) && 0 <= player.force.x && prect.x <= rect.x + hoge) {
-							// left
-							player.x = rect.x - prect.width - pRelRect.x;
-							onTrim.call(player, 1, 0);
-						} else if (!map.hitTest(x + xDiff, y) && player.force.x <= 0 && rect.x + rect.width - hoge < prect.x + prect.width) {
-							// right
-							player.x = rect.x + rect.width - pRelRect.x;
-							onTrim.call(player, -1, 0);
+
+						// 4方向のうち、どの方向に補正するか、重みづけをする.
+						/** 補正距離. */
+						var addX = 0;
+						var addY = 0;
+						/** 補正するか. */
+						var isTrimX = false;
+						var isTrimY = false;
+						// X.
+						if (0 <= sprForceX) {
+							// to left.
+							if (map.hitTest(x - xDiff, y)) {
+								//
+							} else {
+								addX = (tileRect.x - sprRect.width) - sprRect.x;
+								isTrimX = true;
+							}
+						} else {
+							// to right.
+							if (map.hitTest(x + xDiff, y)) {
+								//
+							} else {
+								addX =  (tileRect.x + tileRect.width) - sprRect.x;
+								isTrimX = true;
+							}
 						}
-						if (!player.parentNode) {
+						// Y.
+						if (0 <= sprForceY) {
+							// to top.
+							if (map.hitTest(x, y - yDiff)) {
+								//
+							} else {
+								addY = (tileRect.y - sprRect.height) - sprRect.y;
+								isTrimY = true;
+							}
+						} else {
+							// to bottom.
+							if (map.hitTest(x, y + yDiff)) {
+								//
+							} else {
+								addY = (tileRect.y + tileRect.height) - sprRect.y;
+								isTrimY = true;
+							}
+						}
+
+						// 補正距離が短い軸で補正する.
+						var cmp = addX * addX - addY * addY;
+						if (isTrimX && (!isTrimY || cmp < 0)) {
+							spr.x += addX;
+							sprRect.x += addX;
+							onTrim.call(spr, g_app.numberUtil.sign(-addX), 0);
+						} else {
+							spr.y += addY;
+							sprRect.y += addY;
+							onTrim.call(spr, 0, g_app.numberUtil.sign(-addY));
+						}
+
+						if (!spr.parentNode) {
 							// 死んでたら帰る.
 							return;
 						}
+
 					}
 				}
 			} finally {
-				utils.Rect.free(rect);
+				utils.Rect.free(tileRect);
 			}
 		},
 

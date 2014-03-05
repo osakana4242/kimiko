@@ -24,6 +24,8 @@ module jp.osakana4242.kimiko.game {
 		},
 
 		onenterframe: function () {
+			this.oldX = this.x;
+			this.oldY = this.y;
 			this.x += this.force.x;
 			this.y += this.force.y;
 			var scene = this.scene;

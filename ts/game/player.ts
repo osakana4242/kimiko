@@ -23,6 +23,9 @@ module jp.osakana4242.kimiko.game {
 					var animSquat = g_app.getAnimFrames(DF.ANIM_ID_CHARA001_SQUAT);
 					var animDead = g_app.getAnimFrames(DF.ANIM_ID_CHARA001_DEAD);
 					this.anim.sequence = animWalk;
+
+					var oldX = 0;
+					var oldY = 0;
 	
 					var colliderA = utils.Collider.centerBottom(this, 12, 28);
 					var colliderB = utils.Collider.centerBottom(this, 12, 14);
@@ -217,6 +220,7 @@ module jp.osakana4242.kimiko.game {
 				} else if (this.wallPushDir.y < 0) {
 					this.scaleY = -1;
 					nextBodyStyle = this.bodyStyles.squat;
+					// nextBodyStyle = this.bodyStyles.stand;
 				} else if (!utils.Vector2D.equals(this.inputForce, utils.Vector2D.zero)) {
 					nextBodyStyle = this.bodyStyles.walk;
 				} else {
@@ -236,6 +240,8 @@ module jp.osakana4242.kimiko.game {
 
 			stepMove: function () {
 				var scene = this.scene;
+				this.oldX = this.x;
+				this.oldY = this.y;
 
 				if (!this.targetEnemy) {
 					if (0 !== this.inputForce.x) {
