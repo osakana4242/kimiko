@@ -624,7 +624,9 @@ module jp.osakana4242.kimiko.scenes {
 		*/
 		checkMapCollision: function (
 			spr: any,
+			/** 距離補正されたら呼ばれる. */
 			onTrim: (x: number, y: number) => void,
+			/** タイルに重なったら呼ばれる. */
 			onIntersect: (tile: number, x: number, y: number) => void) {
 
 			var sprRect: utils.IRect = spr.collider.getRect();
@@ -667,7 +669,7 @@ module jp.osakana4242.kimiko.scenes {
 						var isTrimX = false;
 						var isTrimY = false;
 						// X.
-						if (0 <= sprForceX) {
+						if (0 < sprForceX) {
 							// to left.
 							if (map.hitTest(x - xDiff, y)) {
 								//
@@ -675,7 +677,7 @@ module jp.osakana4242.kimiko.scenes {
 								addX = (tileRect.x - sprRect.width) - sprRect.x;
 								isTrimX = true;
 							}
-						} else {
+						} else if (sprForceX < 0) {
 							// to right.
 							if (map.hitTest(x + xDiff, y)) {
 								//
@@ -685,7 +687,7 @@ module jp.osakana4242.kimiko.scenes {
 							}
 						}
 						// Y.
-						if (0 <= sprForceY) {
+						if (0 < sprForceY) {
 							// to top.
 							if (map.hitTest(x, y - yDiff)) {
 								//
@@ -693,7 +695,7 @@ module jp.osakana4242.kimiko.scenes {
 								addY = (tileRect.y - sprRect.height) - sprRect.y;
 								isTrimY = true;
 							}
-						} else {
+						} else if (sprForceY < 0) {
 							// to bottom.
 							if (map.hitTest(x, y + yDiff)) {
 								//
@@ -709,7 +711,7 @@ module jp.osakana4242.kimiko.scenes {
 							spr.x += addX;
 							sprRect.x += addX;
 							onTrim.call(spr, g_app.numberUtil.sign(-addX), 0);
-						} else {
+						} else if (isTrimY) {
 							spr.y += addY;
 							sprRect.y += addY;
 							onTrim.call(spr, 0, g_app.numberUtil.sign(-addY));

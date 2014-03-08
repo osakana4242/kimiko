@@ -4580,7 +4580,9 @@ var jp;
                     スプライトと地形の衝突判定.
                     衝突してたら、スプライトの位置を補正する.
                     */
-                    checkMapCollision: function (spr, onTrim, onIntersect) {
+                    checkMapCollision: function (spr, /** 距離補正されたら呼ばれる. */
+                    onTrim, /** タイルに重なったら呼ばれる. */
+                    onIntersect) {
                         var sprRect = spr.collider.getRect();
                         var sprForceX = spr.force.x;
                         var sprForceY = spr.force.y;
@@ -4624,7 +4626,7 @@ var jp;
                                     var isTrimY = false;
 
                                     // X.
-                                    if (0 <= sprForceX) {
+                                    if (0 < sprForceX) {
                                         // to left.
                                         if (map.hitTest(x - xDiff, y)) {
                                             //
@@ -4632,7 +4634,7 @@ var jp;
                                             addX = (tileRect.x - sprRect.width) - sprRect.x;
                                             isTrimX = true;
                                         }
-                                    } else {
+                                    } else if (sprForceX < 0) {
                                         // to right.
                                         if (map.hitTest(x + xDiff, y)) {
                                             //
@@ -4643,7 +4645,7 @@ var jp;
                                     }
 
                                     // Y.
-                                    if (0 <= sprForceY) {
+                                    if (0 < sprForceY) {
                                         // to top.
                                         if (map.hitTest(x, y - yDiff)) {
                                             //
@@ -4651,7 +4653,7 @@ var jp;
                                             addY = (tileRect.y - sprRect.height) - sprRect.y;
                                             isTrimY = true;
                                         }
-                                    } else {
+                                    } else if (sprForceY < 0) {
                                         // to bottom.
                                         if (map.hitTest(x, y + yDiff)) {
                                             //
@@ -4667,7 +4669,7 @@ var jp;
                                         spr.x += addX;
                                         sprRect.x += addX;
                                         onTrim.call(spr, g_app.numberUtil.sign(-addX), 0);
-                                    } else {
+                                    } else if (isTrimY) {
                                         spr.y += addY;
                                         sprRect.y += addY;
                                         onTrim.call(spr, 0, g_app.numberUtil.sign(-addY));
