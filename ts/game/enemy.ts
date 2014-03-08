@@ -92,6 +92,8 @@ module jp.osakana4242.kimiko.game {
 					dir.x = dir.x * dist / mag;
 					dir.y = dir.y * dist / mag;
 					var frame = Math.floor(dist / speed);
+
+					sprite.lookAtPlayer();
 					
 					sprite.tl.
 						moveBy(dir.x, dir.y, frame).
@@ -134,6 +136,8 @@ module jp.osakana4242.kimiko.game {
 					dir.x = dir.x * dist / mag;
 					dir.y = dir.y * dist / mag;
 					var frame = (speed === 0) ? 1 : Math.max(Math.floor(dist / speed), 1);
+
+					sprite.lookAtPlayer();
 					
 					sprite.tl.
 						moveTo(sprite.x + dir.x, sprite.y + dir.y, frame).
@@ -217,6 +221,7 @@ module jp.osakana4242.kimiko.game {
 			sprite.weapon.fireFunc = WeaponA.fireA;
 
 			var fire = function () {
+				sprite.lookAtPlayer();
 				if (2 <= sprite.enemyData.level) {
 					sprite.weapon.lookAtPlayer();
 					sprite.weapon.startFire();
@@ -224,13 +229,17 @@ module jp.osakana4242.kimiko.game {
 			};
 
 			sprite.tl.
-				moveTo(anchor.x + 32 * -0.5, anchor.y + 32 * -0.5, g_app.secToFrame(0.5)).
-				moveTo(anchor.x + 32 *  0.5, anchor.y + 32 * -0.5, g_app.secToFrame(0.5)).
-				moveTo(anchor.x + 32 * -0.5, anchor.y + 32 *  0.5, g_app.secToFrame(0.5)).
-				moveTo(anchor.x + 32 *  0.0, anchor.y + 32 *  0.0, g_app.secToFrame(0.5)).
-				then(fire).
-				moveTo(anchor.x + 32 *  0.5, anchor.y + 32 *  0.5, g_app.secToFrame(0.5)).
-				loop();
+				then(() => {
+					sprite.lookAtPlayer();
+					sprite.tl.
+						moveTo(anchor.x + 32 * -0.5, anchor.y + 32 * -0.5, g_app.secToFrame(0.5)).
+						moveTo(anchor.x + 32 *  0.5, anchor.y + 32 * -0.5, g_app.secToFrame(0.5)).
+						moveTo(anchor.x + 32 * -0.5, anchor.y + 32 *  0.5, g_app.secToFrame(0.5)).
+						moveTo(anchor.x + 32 *  0.0, anchor.y + 32 *  0.0, g_app.secToFrame(0.5)).
+						then(fire).
+						moveTo(anchor.x + 32 *  0.5, anchor.y + 32 *  0.5, g_app.secToFrame(0.5)).
+						loop();
+				});
 		}
 
 		/** ホバリング.*/
@@ -239,6 +248,7 @@ module jp.osakana4242.kimiko.game {
 			sprite.weapon.fireFunc = WeaponA.fireA;
 
 			var fire = function () {
+				sprite.lookAtPlayer();
 				if (2 <= sprite.enemyData.level) {
 					sprite.weapon.lookAtPlayer();
 					sprite.weapon.startFire();
@@ -247,6 +257,7 @@ module jp.osakana4242.kimiko.game {
 
 			var totalFrame = g_app.secToFrame(2.0);
 			sprite.tl.
+				then(sprite.lookAtPlayer).
 				moveTo(anchor.x, anchor.y + 32 *  1, totalFrame * 0.5, Easing.LINEAR).
 				then(fire).
 				moveTo(anchor.x, anchor.y + 32 * -1, totalFrame * 0.5, Easing.LINEAR).
@@ -259,10 +270,7 @@ module jp.osakana4242.kimiko.game {
 			var anchor = sprite.anchor;
 
 			sprite.tl.
-				then(function () {
-					var player = sprite.scene.player;
-					sprite.scaleX = ((player.x - sprite.x) < 0) ? -1 : 1;
-				}).
+				then(sprite.lookAtPlayer).
 				delay(g_app.secToFrame(0.5)).
 				then(function () {
 					var player = sprite.scene.player;
@@ -276,7 +284,8 @@ module jp.osakana4242.kimiko.game {
 					dir.x = dir.x * dist / mag;
 					dir.y = 0;
 					var frame = Math.floor(dist / speed);
-					sprite.scaleX = (dir.x < 0) ? -1 : 1;
+
+					sprite.lookAtPlayer();
 					
 					sprite.tl.
 						moveBy(dir.x, dir.y, frame).
@@ -314,7 +323,7 @@ module jp.osakana4242.kimiko.game {
 					dir.x = dir.x * dist / mag;
 					dir.y = dir.y * dist / mag;
 					var frame = (speed === 0) ? 1 : Math.max(Math.floor(dist / speed), 1);
-					sprite.scaleX = (dir.x < 0) ? -1 : 1;
+					sprite.lookAtPlayer();
 					sprite.tl.
 						moveTo(sprite.x + dir.x, sprite.y + dir.y, frame).
 						delay(g_app.secToFrame(0.2)).
@@ -632,6 +641,19 @@ module jp.osakana4242.kimiko.game {
 
 			//
 			this.visible = false;
+		},
+		
+		lookAtPlayer: function() {
+			if (!this.scene) {
+				return;
+			}
+			var player = this.scene.player;
+			this.lookAtPosition(player.center);
+		},
+
+		lookAtPosition: function(pos: utils.IVector2D) {
+			var distX = pos.x - this.center.x;
+			this.scaleX = distX < 0 ? -1 : 1;
 		},
 
 	});

@@ -2254,6 +2254,8 @@ var jp;
                             dir.y = dir.y * dist / mag;
                             var frame = Math.floor(dist / speed);
 
+                            sprite.lookAtPlayer();
+
                             sprite.tl.moveBy(dir.x, dir.y, frame).then(function () {
                                 sprite.life.kill();
                             });
@@ -2292,6 +2294,8 @@ var jp;
                                 dir.x = dir.x * dist / mag;
                                 dir.y = dir.y * dist / mag;
                                 var frame = (speed === 0) ? 1 : Math.max(Math.floor(dist / speed), 1);
+
+                                sprite.lookAtPlayer();
 
                                 sprite.tl.moveTo(sprite.x + dir.x, sprite.y + dir.y, frame).then(function () {
                                     if (2 <= sprite.enemyData.level) {
@@ -2359,13 +2363,17 @@ var jp;
                         sprite.weapon.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireA;
 
                         var fire = function () {
+                            sprite.lookAtPlayer();
                             if (2 <= sprite.enemyData.level) {
                                 sprite.weapon.lookAtPlayer();
                                 sprite.weapon.startFire();
                             }
                         };
 
-                        sprite.tl.moveTo(anchor.x + 32 * -0.5, anchor.y + 32 * -0.5, jp.osakana4242.kimiko.g_app.secToFrame(0.5)).moveTo(anchor.x + 32 * 0.5, anchor.y + 32 * -0.5, jp.osakana4242.kimiko.g_app.secToFrame(0.5)).moveTo(anchor.x + 32 * -0.5, anchor.y + 32 * 0.5, jp.osakana4242.kimiko.g_app.secToFrame(0.5)).moveTo(anchor.x + 32 * 0.0, anchor.y + 32 * 0.0, jp.osakana4242.kimiko.g_app.secToFrame(0.5)).then(fire).moveTo(anchor.x + 32 * 0.5, anchor.y + 32 * 0.5, jp.osakana4242.kimiko.g_app.secToFrame(0.5)).loop();
+                        sprite.tl.then(function () {
+                            sprite.lookAtPlayer();
+                            sprite.tl.moveTo(anchor.x + 32 * -0.5, anchor.y + 32 * -0.5, jp.osakana4242.kimiko.g_app.secToFrame(0.5)).moveTo(anchor.x + 32 * 0.5, anchor.y + 32 * -0.5, jp.osakana4242.kimiko.g_app.secToFrame(0.5)).moveTo(anchor.x + 32 * -0.5, anchor.y + 32 * 0.5, jp.osakana4242.kimiko.g_app.secToFrame(0.5)).moveTo(anchor.x + 32 * 0.0, anchor.y + 32 * 0.0, jp.osakana4242.kimiko.g_app.secToFrame(0.5)).then(fire).moveTo(anchor.x + 32 * 0.5, anchor.y + 32 * 0.5, jp.osakana4242.kimiko.g_app.secToFrame(0.5)).loop();
+                        });
                     }
                     EnemyBrains.brain6 = brain6;
 
@@ -2375,6 +2383,7 @@ var jp;
                         sprite.weapon.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireA;
 
                         var fire = function () {
+                            sprite.lookAtPlayer();
                             if (2 <= sprite.enemyData.level) {
                                 sprite.weapon.lookAtPlayer();
                                 sprite.weapon.startFire();
@@ -2382,7 +2391,7 @@ var jp;
                         };
 
                         var totalFrame = jp.osakana4242.kimiko.g_app.secToFrame(2.0);
-                        sprite.tl.moveTo(anchor.x, anchor.y + 32 * 1, totalFrame * 0.5, Easing.LINEAR).then(fire).moveTo(anchor.x, anchor.y + 32 * -1, totalFrame * 0.5, Easing.LINEAR).then(fire).loop();
+                        sprite.tl.then(sprite.lookAtPlayer).moveTo(anchor.x, anchor.y + 32 * 1, totalFrame * 0.5, Easing.LINEAR).then(fire).moveTo(anchor.x, anchor.y + 32 * -1, totalFrame * 0.5, Easing.LINEAR).then(fire).loop();
                     }
                     EnemyBrains.brain7 = brain7;
 
@@ -2390,10 +2399,7 @@ var jp;
                     function brain8(sprite) {
                         var anchor = sprite.anchor;
 
-                        sprite.tl.then(function () {
-                            var player = sprite.scene.player;
-                            sprite.scaleX = ((player.x - sprite.x) < 0) ? -1 : 1;
-                        }).delay(jp.osakana4242.kimiko.g_app.secToFrame(0.5)).then(function () {
+                        sprite.tl.then(sprite.lookAtPlayer).delay(jp.osakana4242.kimiko.g_app.secToFrame(0.5)).then(function () {
                             var player = sprite.scene.player;
                             var dir = jp.osakana4242.utils.Vector2D.alloc(player.center.x - sprite.center.x, player.center.y - sprite.center.y);
                             var mag = jp.osakana4242.utils.Vector2D.magnitude(dir);
@@ -2402,7 +2408,8 @@ var jp;
                             dir.x = dir.x * dist / mag;
                             dir.y = 0;
                             var frame = Math.floor(dist / speed);
-                            sprite.scaleX = (dir.x < 0) ? -1 : 1;
+
+                            sprite.lookAtPlayer();
 
                             sprite.tl.moveBy(dir.x, dir.y, frame).then(function () {
                                 sprite.life.kill();
@@ -2436,7 +2443,7 @@ var jp;
                                 dir.x = dir.x * dist / mag;
                                 dir.y = dir.y * dist / mag;
                                 var frame = (speed === 0) ? 1 : Math.max(Math.floor(dist / speed), 1);
-                                sprite.scaleX = (dir.x < 0) ? -1 : 1;
+                                sprite.lookAtPlayer();
                                 sprite.tl.moveTo(sprite.x + dir.x, sprite.y + dir.y, frame).delay(jp.osakana4242.kimiko.g_app.secToFrame(0.2)).waitUntil(f1);
                                 isNext = true;
                             }
@@ -2707,6 +2714,17 @@ var jp;
 
                         //
                         this.visible = false;
+                    },
+                    lookAtPlayer: function () {
+                        if (!this.scene) {
+                            return;
+                        }
+                        var player = this.scene.player;
+                        this.lookAtPosition(player.center);
+                    },
+                    lookAtPosition: function (pos) {
+                        var distX = pos.x - this.center.x;
+                        this.scaleX = distX < 0 ? -1 : 1;
                     }
                 });
             })(kimiko.game || (kimiko.game = {}));
