@@ -29,8 +29,8 @@ module jp.osakana4242.kimiko.game {
 	
 					var colliderA = utils.Collider.centerBottom(this, 12, 28);
 					var colliderB = utils.Collider.centerBottom(this, 12, 14);
-					var muzzlePosUp = new utils.Vector2D( 32, 12 );
-					var muzzlePosDown = new utils.Vector2D( 32, 24 );
+					var muzzlePosUp = new utils.Vector2D( 36, 12 );
+					var muzzlePosDown = new utils.Vector2D( 36, 24 );
 
 					return {
 						"stand": {
@@ -209,7 +209,6 @@ module jp.osakana4242.kimiko.game {
 			
 			updateBodyStyle: function () {
 				// body style
-				this.scaleY = 1;
 				var nextBodyStyle = this.bodyStyle;
 				if (this.life.isDead) {
 					nextBodyStyle = this.bodyStyles.dead;
@@ -218,13 +217,15 @@ module jp.osakana4242.kimiko.game {
 					// 横の移動量が規定範囲内 + 接地した状態で地面方向に力がかかってる状態.
 					nextBodyStyle = this.bodyStyles.squat;
 				} else if (this.wallPushDir.y < 0) {
-					this.scaleY = -1;
 					nextBodyStyle = this.bodyStyles.squat;
 					// nextBodyStyle = this.bodyStyles.stand;
 				} else if (!utils.Vector2D.equals(this.inputForce, utils.Vector2D.zero)) {
 					nextBodyStyle = this.bodyStyles.walk;
 				} else {
 					nextBodyStyle = this.bodyStyles.stand;
+				}
+				if (this.wallPushDir.y !== 0) {
+					this.scaleY = this.wallPushDir.y < 0 ? -1 : 1;
 				}
 
 				if (this.bodyStyle !== nextBodyStyle) {
@@ -260,8 +261,13 @@ module jp.osakana4242.kimiko.game {
 				if (0 < this.gravityHoldCounter) {
 					--this.gravityHoldCounter;
 				} else {
-					var gravityMax = g_app.dpsToDpf(60 * 8)
-					this.force.y = Math.min(this.force.y + g_app.dpsToDpf(DF.GRAVITY), gravityMax);
+					if (this.scaleY < 0) {
+						var gravityMin = - g_app.dpsToDpf(60 * 10)
+						this.force.y = Math.max(this.force.y - g_app.dpsToDpf(DF.GRAVITY), gravityMin);
+					} else {
+						var gravityMax = g_app.dpsToDpf(60 * 10)
+						this.force.y = Math.min(this.force.y + g_app.dpsToDpf(DF.GRAVITY), gravityMax);
+					}
 				}
 	
 				var totalMx = this.force.x;

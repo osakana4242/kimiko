@@ -170,6 +170,9 @@ module jp.osakana4242.kimiko {
 				r(DF.ANIM_ID_CHARA006_WALK,  Assets.IMAGE_CHARA002, 32, 32, 0.1, [12]);
 				r(DF.ANIM_ID_CHARA007_WALK,  Assets.IMAGE_CHARA002, 32, 32, 0.1, [16]);
 				r(DF.ANIM_ID_CHARA008_WALK,  Assets.IMAGE_CHARA002, 32, 32, 0.1, [20]);
+				r(DF.ANIM_ID_CHARA009_WALK,  Assets.IMAGE_CHARA002, 32, 32, 0.1, [24]);
+				r(DF.ANIM_ID_CHARA010_WALK,  Assets.IMAGE_CHARA002, 32, 32, 0.1, [28]);
+				r(DF.ANIM_ID_CHARA011_WALK,  Assets.IMAGE_CHARA004, 48, 48, 0.1, [0]);
 
 				r(DF.ANIM_ID_BULLET001,      Assets.IMAGE_BULLET,   16, 16, 0.1, [0, 1, 2, 3]);
 				r(DF.ANIM_ID_BULLET002,      Assets.IMAGE_BULLET,   16, 16, 0.1, [4, 5, 6, 7]);

@@ -835,6 +835,7 @@ var jp;
                 Assets.IMAGE_CHARA001 = "./images/chara001.png";
                 Assets.IMAGE_CHARA002 = "./images/chara002.png";
                 Assets.IMAGE_CHARA003 = "./images/chara003.png";
+                Assets.IMAGE_CHARA004 = "./images/chara004.png";
                 Assets.IMAGE_BULLET = "./images/bullet.png";
                 Assets.IMAGE_EFFECT = "./images/bullet.png";
                 Assets.IMAGE_COLLIDER = "./images/collider.png";
@@ -890,6 +891,9 @@ var jp;
                 DF.ANIM_ID_CHARA006_WALK = 60;
                 DF.ANIM_ID_CHARA007_WALK = 70;
                 DF.ANIM_ID_CHARA008_WALK = 80;
+                DF.ANIM_ID_CHARA009_WALK = 90;
+                DF.ANIM_ID_CHARA010_WALK = 100;
+                DF.ANIM_ID_CHARA011_WALK = 110;
 
                 DF.ANIM_ID_BULLET001 = 300;
                 DF.ANIM_ID_BULLET002 = 301;
@@ -1521,6 +1525,9 @@ var jp;
                         r(DF.ANIM_ID_CHARA006_WALK, Assets.IMAGE_CHARA002, 32, 32, 0.1, [12]);
                         r(DF.ANIM_ID_CHARA007_WALK, Assets.IMAGE_CHARA002, 32, 32, 0.1, [16]);
                         r(DF.ANIM_ID_CHARA008_WALK, Assets.IMAGE_CHARA002, 32, 32, 0.1, [20]);
+                        r(DF.ANIM_ID_CHARA009_WALK, Assets.IMAGE_CHARA002, 32, 32, 0.1, [24]);
+                        r(DF.ANIM_ID_CHARA010_WALK, Assets.IMAGE_CHARA002, 32, 32, 0.1, [28]);
+                        r(DF.ANIM_ID_CHARA011_WALK, Assets.IMAGE_CHARA004, 48, 48, 0.1, [0]);
 
                         r(DF.ANIM_ID_BULLET001, Assets.IMAGE_BULLET, 16, 16, 0.1, [0, 1, 2, 3]);
                         r(DF.ANIM_ID_BULLET002, Assets.IMAGE_BULLET, 16, 16, 0.1, [4, 5, 6, 7]);
@@ -2226,16 +2233,32 @@ var jp;
                     }
                     EnemyBodys.body8 = body8;
 
-                    /** 中キャラ */
-                    function body10(sprite) {
-                        sprite.width = 48;
-                        sprite.height = 48;
+                    /** クラウド型. */
+                    function body9(sprite) {
+                        sprite.width = 32;
+                        sprite.height = 32;
+                        sprite.anim.sequence = jp.osakana4242.kimiko.g_app.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA009_WALK);
+                        jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerBottom(sprite, 28, 28));
+                    }
+                    EnemyBodys.body9 = body9;
 
-                        //sprite.anim.sequence = g_app.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
-                        sprite.backgroundColor = "rgb(255,48,48)";
-                        jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerBottom(sprite, 32, 40));
+                    /** プロペラ耳型. */
+                    function body10(sprite) {
+                        sprite.width = 32;
+                        sprite.height = 32;
+                        sprite.anim.sequence = jp.osakana4242.kimiko.g_app.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA010_WALK);
+                        jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerBottom(sprite, 28, 28));
                     }
                     EnemyBodys.body10 = body10;
+
+                    /** 中キャラ */
+                    function body11(sprite) {
+                        sprite.width = 48;
+                        sprite.height = 48;
+                        sprite.anim.sequence = jp.osakana4242.kimiko.g_app.getAnimFrames(jp.osakana4242.kimiko.DF.ANIM_ID_CHARA011_WALK);
+                        jp.osakana4242.utils.Rect.copyFrom(sprite.collider.rect, jp.osakana4242.utils.Collider.centerBottom(sprite, 32, 40));
+                    }
+                    EnemyBodys.body11 = body11;
                 })(game.EnemyBodys || (game.EnemyBodys = {}));
                 var EnemyBodys = game.EnemyBodys;
 
@@ -2244,7 +2267,7 @@ var jp;
                     function brain1(sprite) {
                         var anchor = sprite.anchor;
 
-                        sprite.tl.delay(jp.osakana4242.kimiko.g_app.secToFrame(0.5)).then(function () {
+                        sprite.tl.then(sprite.lookAtPlayer).delay(jp.osakana4242.kimiko.g_app.secToFrame(0.5)).then(function () {
                             var player = sprite.scene.player;
                             var dir = jp.osakana4242.utils.Vector2D.alloc(player.center.x - sprite.center.x, player.center.y - sprite.center.y);
                             var mag = jp.osakana4242.utils.Vector2D.magnitude(dir);
@@ -2568,7 +2591,7 @@ var jp;
                     0x0: {
                         hpMax: 2,
                         level: 1,
-                        body: EnemyBodys.body1,
+                        body: EnemyBodys.body9,
                         brain: EnemyBrains.brain1,
                         score: 100,
                         align: "center middle"
@@ -2576,7 +2599,7 @@ var jp;
                     0x1: {
                         hpMax: 2,
                         level: 1,
-                        body: EnemyBodys.body1,
+                        body: EnemyBodys.body9,
                         brain: EnemyBrains.brain1,
                         score: 100,
                         align: "center middle"
@@ -2584,7 +2607,7 @@ var jp;
                     0x2: {
                         hpMax: 2,
                         level: 1,
-                        body: EnemyBodys.body1,
+                        body: EnemyBodys.body10,
                         brain: EnemyBrains.brain2,
                         score: 100,
                         align: "center middle"
@@ -2608,7 +2631,7 @@ var jp;
                     0x5: {
                         hpMax: 16,
                         level: 1,
-                        body: EnemyBodys.body10,
+                        body: EnemyBodys.body11,
                         brain: EnemyBrains.brain5,
                         score: 100,
                         align: "center bottom"
@@ -2753,6 +2776,7 @@ var jp;
                         this.force = new jp.osakana4242.utils.Vector2D();
                         this.force.x = 0;
                         this.force.y = 0;
+                        this.oldPos = new jp.osakana4242.utils.Vector2D();
                         this.collider = (function () {
                             var c = new jp.osakana4242.utils.Collider();
                             c.parent = _this;
@@ -2761,9 +2785,12 @@ var jp;
                         })();
                     },
                     onenterframe: function () {
-                        this.x += this.force.x;
-                        this.y += this.force.y;
+                        this.force.x = this.x - this.oldPos.x;
+                        this.force.y = this.y - this.oldPos.y;
+                        jp.osakana4242.utils.Vector2D.copyFrom(this.oldPos, this);
 
+                        // this.x += this.force.x;
+                        // this.y += this.force.y;
                         var camera = this.scene.camera;
 
                         if (this.ageMax < this.age) {
@@ -3135,8 +3162,8 @@ var jp;
 
                             var colliderA = jp.osakana4242.utils.Collider.centerBottom(_this, 12, 28);
                             var colliderB = jp.osakana4242.utils.Collider.centerBottom(_this, 12, 14);
-                            var muzzlePosUp = new jp.osakana4242.utils.Vector2D(32, 12);
-                            var muzzlePosDown = new jp.osakana4242.utils.Vector2D(32, 24);
+                            var muzzlePosUp = new jp.osakana4242.utils.Vector2D(36, 12);
+                            var muzzlePosDown = new jp.osakana4242.utils.Vector2D(36, 24);
 
                             return {
                                 "stand": {
@@ -3312,7 +3339,6 @@ var jp;
                     },
                     updateBodyStyle: function () {
                         // body style
-                        this.scaleY = 1;
                         var nextBodyStyle = this.bodyStyle;
                         if (this.life.isDead) {
                             nextBodyStyle = this.bodyStyles.dead;
@@ -3321,13 +3347,15 @@ var jp;
                             // 横の移動量が規定範囲内 + 接地した状態で地面方向に力がかかってる状態.
                             nextBodyStyle = this.bodyStyles.squat;
                         } else if (this.wallPushDir.y < 0) {
-                            this.scaleY = -1;
                             nextBodyStyle = this.bodyStyles.squat;
                             // nextBodyStyle = this.bodyStyles.stand;
                         } else if (!jp.osakana4242.utils.Vector2D.equals(this.inputForce, jp.osakana4242.utils.Vector2D.zero)) {
                             nextBodyStyle = this.bodyStyles.walk;
                         } else {
                             nextBodyStyle = this.bodyStyles.stand;
+                        }
+                        if (this.wallPushDir.y !== 0) {
+                            this.scaleY = this.wallPushDir.y < 0 ? -1 : 1;
                         }
 
                         if (this.bodyStyle !== nextBodyStyle) {
@@ -3361,8 +3389,13 @@ var jp;
                         if (0 < this.gravityHoldCounter) {
                             --this.gravityHoldCounter;
                         } else {
-                            var gravityMax = g_app.dpsToDpf(60 * 8);
-                            this.force.y = Math.min(this.force.y + g_app.dpsToDpf(jp.osakana4242.kimiko.DF.GRAVITY), gravityMax);
+                            if (this.scaleY < 0) {
+                                var gravityMin = -g_app.dpsToDpf(60 * 10);
+                                this.force.y = Math.max(this.force.y - g_app.dpsToDpf(jp.osakana4242.kimiko.DF.GRAVITY), gravityMin);
+                            } else {
+                                var gravityMax = g_app.dpsToDpf(60 * 10);
+                                this.force.y = Math.min(this.force.y + g_app.dpsToDpf(jp.osakana4242.kimiko.DF.GRAVITY), gravityMax);
+                            }
                         }
 
                         var totalMx = this.force.x;

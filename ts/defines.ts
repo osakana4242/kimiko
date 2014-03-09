@@ -11,6 +11,7 @@ module jp.osakana4242.kimiko {
 		export var IMAGE_CHARA001 = "./images/chara001.png";
 		export var IMAGE_CHARA002 = "./images/chara002.png";
 		export var IMAGE_CHARA003 = "./images/chara003.png";
+		export var IMAGE_CHARA004 = "./images/chara004.png";
 		export var IMAGE_BULLET = "./images/bullet.png";
 		export var IMAGE_EFFECT = "./images/bullet.png";
 		export var IMAGE_COLLIDER = "./images/collider.png";
@@ -66,6 +67,9 @@ module jp.osakana4242.kimiko {
 		export var ANIM_ID_CHARA006_WALK = 60;
 		export var ANIM_ID_CHARA007_WALK = 70;
 		export var ANIM_ID_CHARA008_WALK = 80;
+		export var ANIM_ID_CHARA009_WALK = 90;
+		export var ANIM_ID_CHARA010_WALK = 100;
+		export var ANIM_ID_CHARA011_WALK = 110;
 
 		export var ANIM_ID_BULLET001 = 300;
 		export var ANIM_ID_BULLET002 = 301;

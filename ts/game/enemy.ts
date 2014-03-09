@@ -62,12 +62,25 @@ module jp.osakana4242.kimiko.game {
 			sprite.anim.sequence = g_app.getAnimFrames(DF.ANIM_ID_CHARA008_WALK);
 			utils.Rect.copyFrom(sprite.collider.rect, utils.Collider.centerBottom(sprite, 28, 28));
 		}
-		/** 中キャラ */
+		/** クラウド型. */
+		export function body9(sprite: any) {
+			sprite.width = 32;
+			sprite.height = 32;
+			sprite.anim.sequence = g_app.getAnimFrames(DF.ANIM_ID_CHARA009_WALK);
+			utils.Rect.copyFrom(sprite.collider.rect, utils.Collider.centerBottom(sprite, 28, 28));
+		}
+		/** プロペラ耳型. */
 		export function body10(sprite: any) {
+			sprite.width = 32;
+			sprite.height = 32;
+			sprite.anim.sequence = g_app.getAnimFrames(DF.ANIM_ID_CHARA010_WALK);
+			utils.Rect.copyFrom(sprite.collider.rect, utils.Collider.centerBottom(sprite, 28, 28));
+		}
+		/** 中キャラ */
+		export function body11(sprite: any) {
 			sprite.width = 48;
 			sprite.height = 48;
-			//sprite.anim.sequence = g_app.getAnimFrames(DF.ANIM_ID_CHARA002_WALK);
-			sprite.backgroundColor = "rgb(255,48,48)";
+			sprite.anim.sequence = g_app.getAnimFrames(DF.ANIM_ID_CHARA011_WALK);
 			utils.Rect.copyFrom(sprite.collider.rect, utils.Collider.centerBottom(sprite, 32, 40));
 		}
 	}
@@ -79,6 +92,7 @@ module jp.osakana4242.kimiko.game {
 			var anchor = sprite.anchor;
 
 			sprite.tl.
+				then(sprite.lookAtPlayer).
 				delay(g_app.secToFrame(0.5)).
 				then(function () {
 					var player = sprite.scene.player;
@@ -489,7 +503,7 @@ module jp.osakana4242.kimiko.game {
 		0x0: {
 			hpMax: 2,
 			level: 1,
-			body: EnemyBodys.body1,
+			body: EnemyBodys.body9,
 			brain: EnemyBrains.brain1,
 			score: 100,
 			align: "center middle",
@@ -498,7 +512,7 @@ module jp.osakana4242.kimiko.game {
 		0x1: {
 			hpMax: 2,
 			level: 1,
-			body: EnemyBodys.body1,
+			body: EnemyBodys.body9,
 			brain: EnemyBrains.brain1,
 			score: 100,
 			align: "center middle",
@@ -507,7 +521,7 @@ module jp.osakana4242.kimiko.game {
 		0x2: {
 			hpMax: 2,
 			level: 1,
-			body: EnemyBodys.body1,
+			body: EnemyBodys.body10,
 			brain: EnemyBrains.brain2,
 			score: 100,
 			align: "center middle",
@@ -533,7 +547,7 @@ module jp.osakana4242.kimiko.game {
 		0x5: {
 			hpMax: 16,
 			level: 1,
-			body: EnemyBodys.body10,
+			body: EnemyBodys.body11,
 			brain: EnemyBrains.brain5,
 			score: 100,
 			align: "center bottom",

@@ -15,6 +15,7 @@ module jp.osakana4242.kimiko.game {
 			this.force = new utils.Vector2D();
 			this.force.x = 0;
 			this.force.y = 0;
+			this.oldPos = new utils.Vector2D();
 			this.collider = (() => {
 				var c = new utils.Collider();
 				c.parent = this;
@@ -24,8 +25,12 @@ module jp.osakana4242.kimiko.game {
 		},
 
 		onenterframe: function () {
-			this.x += this.force.x;
-			this.y += this.force.y;
+			this.force.x = this.x - this.oldPos.x;
+			this.force.y = this.y - this.oldPos.y;
+			utils.Vector2D.copyFrom(this.oldPos, this);
+			
+			// this.x += this.force.x;
+			// this.y += this.force.y;
 
 			var camera = this.scene.camera;
 			
