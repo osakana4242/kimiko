@@ -96,6 +96,11 @@ module jp.osakana4242.kimiko.game {
 				onDead.call(this.sprite);
 			}
 		}
+
+		public resetCounter() {
+			this.ghostFrameCounter = 0;
+			this.damageFrameCounter = 0;
+		}
 	}
 }
 

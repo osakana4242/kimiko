@@ -1559,11 +1559,12 @@ var jp;
                         kimiko.g_app.testHud = new kimiko.TestHud();
                         kimiko.g_app.gameScene = new jp.osakana4242.kimiko.scenes.Game();
                         kimiko.g_app.pauseScene = new jp.osakana4242.kimiko.scenes.Pause();
-                        if (true) {
+                        if (false) {
                             var scene = new jp.osakana4242.kimiko.scenes.Title();
                             core.replaceScene(scene);
                         } else {
-                            core.replaceScene(new jp.osakana4242.kimiko.scenes.GameClear());
+                            core.replaceScene(new jp.osakana4242.kimiko.scenes.GameOver());
+                            //core.replaceScene(new jp.osakana4242.kimiko.scenes.GameClear());
                         }
                     });
                 };
@@ -2946,6 +2947,11 @@ var jp;
                             onDead.call(this.sprite);
                         }
                     };
+
+                    Life.prototype.resetCounter = function () {
+                        this.ghostFrameCounter = 0;
+                        this.damageFrameCounter = 0;
+                    };
                     return Life;
                 })();
                 game.Life = Life;
@@ -3222,8 +3228,20 @@ var jp;
                         /** 入力された移動距離. */
                         this.inputForce = new jp.osakana4242.utils.Vector2D();
                     },
-                    reset: function () {
+                    /** ステージ開始時用の状態初期化. */
+                    reset: function (pd) {
+                        this.life.resetCounter();
+                        this.life.hpMax = pd.hpMax;
+                        this.life.hp = pd.hp;
+
+                        this.bodyStyle = this.bodyStyles.stand;
                         this.targetEnemy = null;
+                        this.gravityHoldCounter = 0;
+                        this.dirX = 1;
+                        this.scaleX = 1.0;
+                        this.scaleY = 1.0;
+                        this.opacity = 1.0;
+                        this.visible = true;
                     },
                     onenterframe: function () {
                         var scene = this.scene;
@@ -3350,9 +3368,23 @@ var jp;
                             nextBodyStyle = this.bodyStyles.squat;
                             // nextBodyStyle = this.bodyStyles.stand;
                         } else if (!jp.osakana4242.utils.Vector2D.equals(this.inputForce, jp.osakana4242.utils.Vector2D.zero)) {
+                            if (this.bodyStyle === this.bodyStyles.squat) {
+                                if (this.inputForce.y * this.scaleY < 0) {
+                                    nextBodyStyle = this.bodyStyles.walk;
+                                } else {
+                                    nextBodyStyle = this.bodyStyles.squat;
+                                }
+                            } else {
+                                nextBodyStyle = this.bodyStyles.walk;
+                            }
                             nextBodyStyle = this.bodyStyles.walk;
                         } else {
-                            nextBodyStyle = this.bodyStyles.stand;
+                            if (this.bodyStyle === this.bodyStyles.squat) {
+                                //nextBodyStyle = this.bodyStyles.squat;
+                                nextBodyStyle = this.bodyStyles.stand;
+                            } else {
+                                nextBodyStyle = this.bodyStyles.stand;
+                            }
                         }
                         if (this.wallPushDir.y !== 0) {
                             this.scaleY = this.wallPushDir.y < 0 ? -1 : 1;
@@ -3400,6 +3432,8 @@ var jp;
 
                         var totalMx = this.force.x;
                         var totalMy = this.force.y;
+                        var oldForceX = this.force.x;
+                        var oldForceY = this.force.y;
 
                         // 壁衝突状態リセット.
                         jp.osakana4242.utils.Vector2D.copyFrom(this.wallPushDir, jp.osakana4242.utils.Vector2D.zero);
@@ -3433,6 +3467,13 @@ var jp;
                                 my = 0;
                                 totalMy = 0;
                             }
+                        }
+
+                        if (oldForceX !== this.force.x) {
+                            this.touchStartAnchor.x += this.force.x - oldForceX + g_app.numberUtil.sign(oldForceX);
+                        }
+                        if (oldForceY !== this.force.y) {
+                            this.touchStartAnchor.y += this.force.y - oldForceY + g_app.numberUtil.sign(oldForceY);
                         }
 
                         //
@@ -4189,11 +4230,7 @@ var jp;
                         pd.restTimeMax = g_app.secToFrame(180); // TODO: マップデータから持ってくる.
                         pd.restTimeCounter = pd.restTimeMax;
                         var player = this.player;
-                        player.reset();
-                        player.life.hpMax = pd.hpMax;
-                        player.life.hp = pd.hp;
-                        player.visible = true;
-                        player.opacity = 1.0;
+                        player.reset(pd);
                     },
                     clear: function () {
                         this.ownBulletPool.freeAll();
@@ -4234,12 +4271,12 @@ var jp;
                         }
                         player.useGravity = true;
                     },
+                    onenter: function () {
+                        g_app.addTestHudTo(this);
+                    },
                     onenterframe: function () {
                         this.state();
                         this.updateStatusText();
-                    },
-                    onenter: function () {
-                        g_app.addTestHudTo(this);
                     },
                     //---------------------------------------------------------------------------
                     // states..
@@ -4301,8 +4338,11 @@ var jp;
                         userMap.playCount += 1;
                         g_app.storage.save();
 
-                        //
+                        // ステータス初期化.
+                        // リトライ用にmapIdのみ持ち越し.
+                        var mapId = pd.mapId;
                         pd.reset();
+                        pd.mapId = mapId;
 
                         //
                         g_app.core.pushScene(new jp.osakana4242.kimiko.scenes.GameOver());
@@ -4913,7 +4953,6 @@ var jp;
 
                 scenes.GameOver = enchant.Class.create(enchant.Scene, {
                     initialize: function () {
-                        var _this = this;
                         enchant.Scene.call(this);
 
                         this.fader = new jp.osakana4242.kimiko.scenes.Fader(this);
@@ -4921,33 +4960,70 @@ var jp;
                         var scene = this;
 
                         //
-                        var label1 = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "GAME OVER");
-                        (function (label) {
+                        this.layouter = new jp.osakana4242.kimiko.SpriteLayouter(this);
+                        this.layouter.layout = (function () {
+                            var list = [
+                                ["spriteName", "layoutName", "visible", "delay", "x", "y"],
+                                ["retryBtn", "hide", false, 0.1 * 0, 80, 140 - 10],
+                                ["toTitleBtn", "hide", false, 0.1 * 1, 80, 200 - 10],
+                                ["retryBtn", "normal", true, 0.1 * 0, 80, 140],
+                                ["toTitleBtn", "normal", true, 0.1 * 1, 80, 200]
+                            ];
+                            return g_app.labeledValuesToObjects(list);
+                        })();
+
+                        this.bg = (function () {
+                            var spr = new enchant.Sprite(jp.osakana4242.kimiko.DF.SC_W, jp.osakana4242.kimiko.DF.SC_H);
+                            spr.backgroundColor = "#000";
+                            spr.opacity = 0.5;
+                            return spr;
+                        })();
+
+                        this.gameOverLabel = (function () {
+                            var label = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "GAME OVER");
                             var ax = (jp.osakana4242.kimiko.DF.SC1_W - label.width) / 2;
-                            var ay = (jp.osakana4242.kimiko.DF.SC1_H - label.height) / 2;
+                            var ay = 80;
                             label.x = ax;
                             label.y = ay;
                             label.tl.moveTo(ax + 0, ay + 8, g_app.secToFrame(1.0), enchant.Easing.SIN_EASEINOUT).moveTo(ax + 0, ay - 8, g_app.secToFrame(1.0), enchant.Easing.SIN_EASEINOUT).loop();
-                        })(label1);
+                            return label;
+                        })();
 
                         //
-                        var layer1 = new enchant.Group();
-                        layer1.addChild(label1);
-
-                        //
-                        scene.addChild(layer1);
-
-                        //
-                        scene.addEventListener(enchant.Event.TOUCH_END, function () {
-                            _this.touchEnabled = false;
-                            _this.fader.fadeOut(g_app.secToFrame(0.1), function () {
-                                g_app.core.popScene();
+                        this.toTitleBtn = this.layouter.sprites["toTitleBtn"] = (function () {
+                            var label = new jp.osakana4242.kimiko.LabeledButton(160, 48, "TO TITLE");
+                            label.addEventListener(enchant.Event.TOUCH_END, function () {
+                                g_app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_OK);
+                                g_app.gameScene.state = g_app.gameScene.stateGameStart;
                                 g_app.core.replaceScene(new jp.osakana4242.kimiko.scenes.Title());
                             });
-                        });
+                            return label;
+                        })();
+
+                        this.retryBtn = this.layouter.sprites["retryBtn"] = (function () {
+                            var label = new jp.osakana4242.kimiko.LabeledButton(160, 48, "RETRY");
+                            label.addEventListener(enchant.Event.TOUCH_END, function () {
+                                g_app.core.popScene();
+                            });
+                            return label;
+                        })();
+
+                        //
+                        scene.addChild(this.bg);
+                        scene.addChild(this.gameOverLabel);
+                        scene.addChild(this.toTitleBtn);
+                        scene.addChild(this.retryBtn);
+
+                        this.layouter.transition("hide", false);
                     },
                     onenter: function () {
-                        this.touchEnabled = true;
+                        var _this = this;
+                        this.tl.delay(g_app.secToFrame(0.5)).then(function () {
+                            _this.layouter.transition("normal", true);
+                        });
+                    },
+                    onexit: function () {
+                        this.layouter.transition("hide", false);
                     }
                 });
             })(kimiko.scenes || (kimiko.scenes = {}));

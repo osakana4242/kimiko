@@ -89,8 +89,20 @@ module jp.osakana4242.kimiko.game {
 
 			},
 
-			reset: function () {
+			/** ステージ開始時用の状態初期化. */
+			reset: function (pd: kimiko.PlayerData) {
+				this.life.resetCounter();
+				this.life.hpMax = pd.hpMax;
+				this.life.hp = pd.hp;
+
+				this.bodyStyle = this.bodyStyles.stand;
 				this.targetEnemy = null;
+				this.gravityHoldCounter = 0;
+				this.dirX = 1;
+				this.scaleX = 1.0;
+				this.scaleY = 1.0;
+				this.opacity = 1.0;
+				this.visible = true;
 			},
 
 			onenterframe: function () {
@@ -220,9 +232,23 @@ module jp.osakana4242.kimiko.game {
 					nextBodyStyle = this.bodyStyles.squat;
 					// nextBodyStyle = this.bodyStyles.stand;
 				} else if (!utils.Vector2D.equals(this.inputForce, utils.Vector2D.zero)) {
+					if (this.bodyStyle === this.bodyStyles.squat) {
+						if (this.inputForce.y * this.scaleY < 0) {
+							nextBodyStyle = this.bodyStyles.walk;
+						} else {
+							nextBodyStyle = this.bodyStyles.squat;
+						}
+					} else {
+						nextBodyStyle = this.bodyStyles.walk;
+					}
 					nextBodyStyle = this.bodyStyles.walk;
 				} else {
-					nextBodyStyle = this.bodyStyles.stand;
+					if (this.bodyStyle === this.bodyStyles.squat) {
+						//nextBodyStyle = this.bodyStyles.squat;
+						nextBodyStyle = this.bodyStyles.stand;
+					} else {
+						nextBodyStyle = this.bodyStyles.stand;
+					}
 				}
 				if (this.wallPushDir.y !== 0) {
 					this.scaleY = this.wallPushDir.y < 0 ? -1 : 1;
@@ -272,6 +298,8 @@ module jp.osakana4242.kimiko.game {
 	
 				var totalMx = this.force.x;
 				var totalMy = this.force.y;
+				var oldForceX = this.force.x;
+				var oldForceY = this.force.y;
 
 				// 壁衝突状態リセット.
 				utils.Vector2D.copyFrom(this.wallPushDir, utils.Vector2D.zero);
@@ -304,6 +332,13 @@ module jp.osakana4242.kimiko.game {
 						my = 0;
 						totalMy = 0;
 					}
+				}
+				
+				if (oldForceX !== this.force.x) {
+					this.touchStartAnchor.x += this.force.x - oldForceX + g_app.numberUtil.sign(oldForceX);
+				}
+				if (oldForceY !== this.force.y) {
+					this.touchStartAnchor.y += this.force.y - oldForceY + g_app.numberUtil.sign(oldForceY);
 				}
 
 				//
