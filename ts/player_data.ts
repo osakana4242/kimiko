@@ -23,7 +23,7 @@ module jp.osakana4242.kimiko {
 		public reset(): void {
 			this.hpMax= DF.PLAYER_HP;
 			this.hp = this.hpMax;
-			this.score= 0;
+			this.score = 0;
 			this.restTimeMax = 0;
 			this.restTimeCounter = 0;
 			this.mapId= DF.MAP_ID_MIN;
@@ -31,6 +31,11 @@ module jp.osakana4242.kimiko {
 
 		public timeToScore(time: number): number {
 			return time;
+		}
+
+		/** 結果送信用のテキスト. */
+		public get resultText(): string {
+			return "SCORE: " + this.score;
 		}
 	}
 

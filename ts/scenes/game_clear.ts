@@ -22,6 +22,8 @@ module jp.osakana4242.kimiko.scenes {
 			var scene = this;
 			var pd = g_app.playerData;
 			//
+			scene.fader = new Fader(scene);
+			//
 			var label1 = (() => {
 				var label = new utils.SpriteLabel(g_app.fontS, "CONGRATULATIONS!");
 				var ax = (DF.SC1_W - label.width) / 2;
@@ -78,6 +80,25 @@ module jp.osakana4242.kimiko.scenes {
 				return label;
 			})();
 
+			var label5 = (() => {
+				var label = new utils.SpriteLabel(g_app.fontS, "TOUCH SCREEN");
+				var ax = (DF.SC1_W - label.width) / 2;
+				var ay = 40 + 20 * 6;
+				label.x = ax;
+				label.y = ay;
+				label.opacity = 0;
+				label.tl.
+					delay(g_app.secToFrame(3.0)).
+					then(() => {
+						label.tl.loop().
+							show().
+							delay(g_app.secToFrame(0.5)).
+							hide().
+							delay(g_app.secToFrame(0.5));
+					});
+				return label;
+			})();
+
 			var curtainTop = (() => {
 				var spr = new enchant.Sprite(DF.SC2_W, 32);
 				spr.backgroundColor = "rgb(0,0,0)";
@@ -102,16 +123,40 @@ module jp.osakana4242.kimiko.scenes {
 			layer1.addChild(label2); 
 			layer1.addChild(label3);
 			layer1.addChild(label4);
+			layer1.addChild(label5);
 			//
 			scene.addChild(curtainTop);
 			scene.addChild(curtainBottom);
 			scene.addChild(layer1);
 			//
-			scene.addEventListener(enchant.Event.TOUCH_END, () => {
+			scene.tl.
+				delay(g_app.secToFrame(3.0)).
+				then(() => {
+					// TOUCH SCREEN が表示されてから押せるようにする.
+					scene.addEventListener(enchant.Event.TOUCH_END, () => {
+						if (!scene.fader.isOpend) {
+							return;
+						}
+						g_app.sound.playSe(Assets.SOUND_SE_OK);
+						scene.toNext();
+					});
+				});
+		},
+
+		toNext: function () {
+			var scene = this;
+			scene.fader.fadeOut(g_app.secToFrame(0.1), () => {
+				var gameEndMenu = new jp.osakana4242.kimiko.scenes.GameEndMenu();
+				gameEndMenu.isFromGameClear = true;
 				g_app.core.popScene();
-				g_app.core.replaceScene(new jp.osakana4242.kimiko.scenes.Title());
+				g_app.core.replaceScene(gameEndMenu);
 			});
-		}
+		},
+
+		onenter: function () {
+			var scene = this;
+			scene.fader.setBlack(false);
+		},
 	});
 
 }

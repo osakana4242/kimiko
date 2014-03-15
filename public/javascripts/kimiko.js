@@ -1111,6 +1111,15 @@ var jp;
                 PlayerData.prototype.timeToScore = function (time) {
                     return time;
                 };
+
+                Object.defineProperty(PlayerData.prototype, "resultText", {
+                    /** 結果送信用のテキスト. */
+                    get: function () {
+                        return "SCORE: " + this.score;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
                 return PlayerData;
             })();
             kimiko.PlayerData = PlayerData;
@@ -1559,12 +1568,13 @@ var jp;
                         kimiko.g_app.testHud = new kimiko.TestHud();
                         kimiko.g_app.gameScene = new jp.osakana4242.kimiko.scenes.Game();
                         kimiko.g_app.pauseScene = new jp.osakana4242.kimiko.scenes.Pause();
-                        if (false) {
+                        if (true) {
                             var scene = new jp.osakana4242.kimiko.scenes.Title();
                             core.replaceScene(scene);
                         } else {
-                            core.replaceScene(new jp.osakana4242.kimiko.scenes.GameOver());
-                            //core.replaceScene(new jp.osakana4242.kimiko.scenes.GameClear());
+                            //core.replaceScene(new jp.osakana4242.kimiko.scenes.SendResult());
+                            core.replaceScene(new jp.osakana4242.kimiko.scenes.GameClear());
+                            //core.replaceScene(new jp.osakana4242.kimiko.scenes.GameOver());
                         }
                     });
                 };
@@ -1828,6 +1838,7 @@ var jp;
                         this.film = (function () {
                             var spr = new enchant.Sprite(jp.osakana4242.kimiko.DF.SC_W, jp.osakana4242.kimiko.DF.SC_H);
                             spr.backgroundColor = "rgb(0, 0, 0)";
+                            spr.touchEnabled = true;
                             return spr;
                         })();
                     }
@@ -1844,6 +1855,14 @@ var jp;
                         }
                         return film;
                     };
+
+                    Object.defineProperty(Fader.prototype, "isOpend", {
+                        get: function () {
+                            return this.film.opacity === 0.0 && this.film.tl.queue.length === 0;
+                        },
+                        enumerable: true,
+                        configurable: true
+                    });
 
                     Fader.prototype.setBlack = function (isBlack) {
                         if (isBlack) {
@@ -4337,14 +4356,6 @@ var jp;
                         var userMap = g_app.storage.getUserMapForUpdate(pd.mapId);
                         userMap.playCount += 1;
                         g_app.storage.save();
-
-                        // ステータス初期化.
-                        // リトライ用にmapIdのみ持ち越し.
-                        var mapId = pd.mapId;
-                        pd.reset();
-                        pd.mapId = mapId;
-
-                        //
                         g_app.core.pushScene(new jp.osakana4242.kimiko.scenes.GameOver());
                         this.state = this.stateGameStart;
                     },
@@ -4852,6 +4863,9 @@ var jp;
                         var pd = g_app.playerData;
 
                         //
+                        scene.fader = new jp.osakana4242.kimiko.scenes.Fader(scene);
+
+                        //
                         var label1 = (function () {
                             var label = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "CONGRATULATIONS!");
                             var ax = (jp.osakana4242.kimiko.DF.SC1_W - label.width) / 2;
@@ -4898,6 +4912,19 @@ var jp;
                             return label;
                         })();
 
+                        var label5 = (function () {
+                            var label = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "TOUCH SCREEN");
+                            var ax = (jp.osakana4242.kimiko.DF.SC1_W - label.width) / 2;
+                            var ay = 40 + 20 * 6;
+                            label.x = ax;
+                            label.y = ay;
+                            label.opacity = 0;
+                            label.tl.delay(g_app.secToFrame(3.0)).then(function () {
+                                label.tl.loop().show().delay(g_app.secToFrame(0.5)).hide().delay(g_app.secToFrame(0.5));
+                            });
+                            return label;
+                        })();
+
                         var curtainTop = (function () {
                             var spr = new enchant.Sprite(jp.osakana4242.kimiko.DF.SC2_W, 32);
                             spr.backgroundColor = "rgb(0,0,0)";
@@ -4922,6 +4949,7 @@ var jp;
                         layer1.addChild(label2);
                         layer1.addChild(label3);
                         layer1.addChild(label4);
+                        layer1.addChild(label5);
 
                         //
                         scene.addChild(curtainTop);
@@ -4929,10 +4957,162 @@ var jp;
                         scene.addChild(layer1);
 
                         //
-                        scene.addEventListener(enchant.Event.TOUCH_END, function () {
-                            g_app.core.popScene();
-                            g_app.core.replaceScene(new jp.osakana4242.kimiko.scenes.Title());
+                        scene.tl.delay(g_app.secToFrame(3.0)).then(function () {
+                            // TOUCH SCREEN が表示されてから押せるようにする.
+                            scene.addEventListener(enchant.Event.TOUCH_END, function () {
+                                if (!scene.fader.isOpend) {
+                                    return;
+                                }
+                                g_app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_OK);
+                                scene.toNext();
+                            });
                         });
+                    },
+                    toNext: function () {
+                        var scene = this;
+                        scene.fader.fadeOut(g_app.secToFrame(0.1), function () {
+                            var gameEndMenu = new jp.osakana4242.kimiko.scenes.GameEndMenu();
+                            gameEndMenu.isFromGameClear = true;
+                            g_app.core.popScene();
+                            g_app.core.replaceScene(gameEndMenu);
+                        });
+                    },
+                    onenter: function () {
+                        var scene = this;
+                        scene.fader.setBlack(false);
+                    }
+                });
+            })(kimiko.scenes || (kimiko.scenes = {}));
+            var scenes = kimiko.scenes;
+        })(osakana4242.kimiko || (osakana4242.kimiko = {}));
+        var kimiko = osakana4242.kimiko;
+    })(jp.osakana4242 || (jp.osakana4242 = {}));
+    var osakana4242 = jp.osakana4242;
+})(jp || (jp = {}));
+/// <reference path="../kimiko.ts" />
+
+var jp;
+(function (jp) {
+    (function (osakana4242) {
+        (function (kimiko) {
+            (function (scenes) {
+                var g_app = jp.osakana4242.kimiko.g_app;
+
+                scenes.GameEndMenu = enchant.Class.create(enchant.Scene, {
+                    initialize: function () {
+                        var _this = this;
+                        enchant.Scene.call(this);
+
+                        var scene = this;
+
+                        //
+                        scene.fader = new jp.osakana4242.kimiko.scenes.Fader(scene);
+
+                        //
+                        this.layouter = new jp.osakana4242.kimiko.SpriteLayouter(this);
+                        this.layouter.layout = (function () {
+                            var list = [
+                                ["spriteName", "layoutName", "visible", "delay", "x", "y"],
+                                ["scoreLabel", "hide", false, 0.1 * 0, 160, 40 - 10],
+                                ["toSendResultBtn", "hide", false, 0.1 * 1, 80, 80 - 10],
+                                ["retryBtn", "hide", false, 0.1 * 2, 80, 160 - 10],
+                                ["toTitleBtn", "hide", false, 0.1 * 3, 80, 220 - 10],
+                                ["scoreLabel", "normal", true, 0.1 * 0, 160, 40],
+                                ["toSendResultBtn", "normal", true, 0.1 * 1, 80, 80],
+                                ["retryBtn", "normal", true, 0.1 * 2, 80, 160],
+                                ["toTitleBtn", "normal", true, 0.1 * 3, 80, 220]
+                            ];
+                            return g_app.labeledValuesToObjects(list);
+                        })();
+
+                        this.bg = (function () {
+                            var spr = new enchant.Sprite(jp.osakana4242.kimiko.DF.SC_W, jp.osakana4242.kimiko.DF.SC_H);
+                            spr.backgroundColor = "#000";
+                            return spr;
+                        })();
+
+                        this.scoreLabel = this.layouter.sprites["scoreLabel"] = (function () {
+                            var group = new enchant.Group();
+                            var label = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "SCORE: " + g_app.playerData.score);
+                            label.x = -label.width * 0.5;
+                            group.addChild(label);
+                            return group;
+                        })();
+
+                        this.toTitleBtn = this.layouter.sprites["toTitleBtn"] = (function () {
+                            var label = new jp.osakana4242.kimiko.LabeledButton(160, 48, "TO TITLE");
+                            label.addEventListener(enchant.Event.TOUCH_END, function () {
+                                g_app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_OK);
+                                scene.fader.fadeOut(g_app.secToFrame(0.1), function () {
+                                    g_app.gameScene.state = g_app.gameScene.stateGameStart;
+                                    g_app.core.replaceScene(new jp.osakana4242.kimiko.scenes.Title());
+                                });
+                            });
+                            return label;
+                        })();
+
+                        this.retryBtn = this.layouter.sprites["retryBtn"] = (function () {
+                            var label = new jp.osakana4242.kimiko.LabeledButton(160, 48, "RETRY");
+                            label.addEventListener(enchant.Event.TOUCH_END, function () {
+                                g_app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_OK);
+
+                                g_app.gameScene.state = g_app.gameScene.stateGameStart;
+                                if (_this.isFromGameClear) {
+                                    // from GameClear
+                                    // 最初のステージから.
+                                    var pd = g_app.playerData;
+                                    pd.reset();
+
+                                    //
+                                    scene.fader.fadeOut(g_app.secToFrame(0.3), function () {
+                                        g_app.core.replaceScene(new jp.osakana4242.kimiko.scenes.GameStart());
+                                    });
+                                } else {
+                                    // from GameOver
+                                    // ゲームオーバーになったステージから.
+                                    var pd = g_app.playerData;
+                                    var mapId = pd.mapId;
+                                    pd.reset();
+                                    pd.mapId = mapId;
+
+                                    //
+                                    scene.fader.fadeOut(g_app.secToFrame(0.1), function () {
+                                        g_app.core.replaceScene(g_app.gameScene);
+                                    });
+                                }
+                            });
+                            return label;
+                        })();
+
+                        this.toSendResultBtn = this.layouter.sprites["toSendResultBtn"] = (function () {
+                            var label = new jp.osakana4242.kimiko.LabeledButton(160, 48, "SEND RESULT !");
+                            label.addEventListener(enchant.Event.TOUCH_END, function () {
+                                g_app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_OK);
+                                scene.fader.fadeOut(g_app.secToFrame(0.1), function () {
+                                    g_app.core.replaceScene(new jp.osakana4242.kimiko.scenes.SendResult());
+                                });
+                            });
+                            return label;
+                        })();
+
+                        //
+                        scene.addChild(this.bg);
+                        scene.addChild(this.scoreLabel);
+                        scene.addChild(this.toSendResultBtn);
+                        scene.addChild(this.retryBtn);
+                        scene.addChild(this.toTitleBtn);
+
+                        this.layouter.transition("hide", false);
+
+                        this.isFromGameClear = false;
+                    },
+                    onenter: function () {
+                        this.fader.setBlack(true);
+                        this.fader.fadeIn(g_app.secToFrame(0.1));
+                        this.layouter.transition("normal", true);
+                    },
+                    onexit: function () {
+                        this.layouter.transition("hide", false);
                     }
                 });
             })(kimiko.scenes || (kimiko.scenes = {}));
@@ -4955,23 +5135,10 @@ var jp;
                     initialize: function () {
                         enchant.Scene.call(this);
 
-                        this.fader = new jp.osakana4242.kimiko.scenes.Fader(this);
-
                         var scene = this;
+                        scene.fader = new jp.osakana4242.kimiko.scenes.Fader(scene);
 
                         //
-                        this.layouter = new jp.osakana4242.kimiko.SpriteLayouter(this);
-                        this.layouter.layout = (function () {
-                            var list = [
-                                ["spriteName", "layoutName", "visible", "delay", "x", "y"],
-                                ["retryBtn", "hide", false, 0.1 * 0, 80, 140 - 10],
-                                ["toTitleBtn", "hide", false, 0.1 * 1, 80, 200 - 10],
-                                ["retryBtn", "normal", true, 0.1 * 0, 80, 140],
-                                ["toTitleBtn", "normal", true, 0.1 * 1, 80, 200]
-                            ];
-                            return g_app.labeledValuesToObjects(list);
-                        })();
-
                         this.bg = (function () {
                             var spr = new enchant.Sprite(jp.osakana4242.kimiko.DF.SC_W, jp.osakana4242.kimiko.DF.SC_H);
                             spr.backgroundColor = "#000";
@@ -4990,40 +5157,36 @@ var jp;
                         })();
 
                         //
-                        this.toTitleBtn = this.layouter.sprites["toTitleBtn"] = (function () {
-                            var label = new jp.osakana4242.kimiko.LabeledButton(160, 48, "TO TITLE");
-                            label.addEventListener(enchant.Event.TOUCH_END, function () {
-                                g_app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_OK);
-                                g_app.gameScene.state = g_app.gameScene.stateGameStart;
-                                g_app.core.replaceScene(new jp.osakana4242.kimiko.scenes.Title());
-                            });
-                            return label;
-                        })();
-
-                        this.retryBtn = this.layouter.sprites["retryBtn"] = (function () {
-                            var label = new jp.osakana4242.kimiko.LabeledButton(160, 48, "RETRY");
-                            label.addEventListener(enchant.Event.TOUCH_END, function () {
-                                g_app.core.popScene();
-                            });
-                            return label;
-                        })();
-
                         //
                         scene.addChild(this.bg);
                         scene.addChild(this.gameOverLabel);
-                        scene.addChild(this.toTitleBtn);
-                        scene.addChild(this.retryBtn);
 
-                        this.layouter.transition("hide", false);
+                        scene.addEventListener(enchant.Event.TOUCH_END, function () {
+                            if (!scene.fader.isOpend) {
+                                return;
+                            }
+                            g_app.sound.playSe(jp.osakana4242.kimiko.Assets.SOUND_SE_OK);
+                            scene.toNext();
+                        });
+                    },
+                    toNext: function () {
+                        var scene = this;
+                        scene.fader.fadeOut(g_app.secToFrame(0.1), function () {
+                            var gameEndMenu = new jp.osakana4242.kimiko.scenes.GameEndMenu();
+                            gameEndMenu.isFromGameClear = false;
+                            g_app.core.popScene();
+                            g_app.core.replaceScene(gameEndMenu);
+                        });
                     },
                     onenter: function () {
-                        var _this = this;
-                        this.tl.delay(g_app.secToFrame(0.5)).then(function () {
-                            _this.layouter.transition("normal", true);
+                        var scene = this;
+                        scene.fader.setBlack(false);
+
+                        scene.tl.delay(g_app.secToFrame(3.0)).then(function () {
+                            scene.toNext();
                         });
                     },
                     onexit: function () {
-                        this.layouter.transition("hide", false);
                     }
                 });
             })(kimiko.scenes || (kimiko.scenes = {}));
@@ -5174,6 +5337,119 @@ var jp;
                     },
                     onexit: function () {
                         this.layouter.transition("hide", false);
+                    }
+                });
+            })(kimiko.scenes || (kimiko.scenes = {}));
+            var scenes = kimiko.scenes;
+        })(osakana4242.kimiko || (osakana4242.kimiko = {}));
+        var kimiko = osakana4242.kimiko;
+    })(jp.osakana4242 || (jp.osakana4242 = {}));
+    var osakana4242 = jp.osakana4242;
+})(jp || (jp = {}));
+/// <reference path="../kimiko.ts" />
+
+var jp;
+(function (jp) {
+    (function (osakana4242) {
+        (function (kimiko) {
+            (function (scenes) {
+                var g_app = jp.osakana4242.kimiko.g_app;
+
+                /** 結果送信画面 */
+                scenes.SendResult = enchant.Class.create(enchant.Scene, {
+                    initialize: function () {
+                        enchant.Scene.call(this);
+
+                        var scene = this;
+
+                        //
+                        scene.fader = new jp.osakana4242.kimiko.scenes.Fader(scene);
+
+                        //
+                        this.bg = (function () {
+                            var spr = new enchant.Sprite(jp.osakana4242.kimiko.DF.SC_W, jp.osakana4242.kimiko.DF.SC_H);
+                            spr.backgroundColor = "#000";
+                            return spr;
+                        })();
+
+                        this.workingIcon = (function () {
+                            var ptns = [
+                                "[-     ]",
+                                "[*-    ]",
+                                "[-*>   ]",
+                                "[  -*> ]",
+                                "[    -*]",
+                                "[     -]"
+                            ];
+                            var spr = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, ptns[0]);
+                            var ax = (jp.osakana4242.kimiko.DF.SC1_W - spr.width) / 2;
+                            var ay = 140;
+                            spr.x = ax;
+                            spr.y = ay;
+                            spr.addEventListener(enchant.Event.ENTER_FRAME, function () {
+                                var ptnIdx = Math.floor(spr.age / g_app.secToFrame(0.1)) % ptns.length;
+                                spr.text = ptns[ptnIdx];
+                            });
+                            return spr;
+                        })();
+
+                        this.workingLabel = (function () {
+                            var label = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "SENDING..");
+                            var ax = (jp.osakana4242.kimiko.DF.SC1_W - label.width) / 2;
+                            var ay = 160;
+                            label.x = ax;
+                            label.y = ay;
+                            return label;
+                        })();
+
+                        this.scoreLabel = (function () {
+                            var label = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "SCORE: " + g_app.playerData.score);
+                            var ax = (jp.osakana4242.kimiko.DF.SC1_W - label.width) / 2;
+                            var ay = 200;
+                            label.x = ax;
+                            label.y = ay;
+                            return label;
+                        })();
+
+                        //
+                        scene.addChild(this.bg);
+                        scene.addChild(this.workingIcon);
+                        scene.addChild(this.workingLabel);
+                        scene.addChild(this.scoreLabel);
+                    },
+                    onenter: function () {
+                        var _this = this;
+                        var scene = this;
+                        scene.fader.fadeIn(g_app.secToFrame(0.1));
+                        scene.tl.delay(g_app.secToFrame(1.0)).then(function () {
+                            var pd = g_app.playerData;
+                            _this.sendScoreToNineLeap(pd.score, pd.resultText);
+                        });
+                    },
+                    onexit: function () {
+                    },
+                    /** 結果送信処理. */
+                    sendScoreToNineLeap: function (score, result) {
+                        try  {
+                            if (location.hostname != 'r.jsgames.jp') {
+                                // Do nothing.
+                                this.tl.delay(g_app.secToFrame(3.0)).then(function () {
+                                    g_app.core.replaceScene(new jp.osakana4242.kimiko.scenes.Title());
+                                });
+                            } else {
+                                var id = location.pathname.match(/^\/games\/(\d+)/)[1];
+                                location.replace([
+                                    'http://9leap.net/games/', id, '/result',
+                                    '?score=', encodeURIComponent(score),
+                                    '&result=', encodeURIComponent(result)
+                                ].join(''));
+                            }
+                        } catch (ex) {
+                            console.log("ex: " + ex);
+                            this.workingIcon.visible = false;
+                            this.workingLabel.text = "ERROR..";
+                            this.workingLabel.x = (jp.osakana4242.kimiko.DF.SC1_W - this.workingLabel.textWidth) * 0.5;
+                        }
                     }
                 });
             })(kimiko.scenes || (kimiko.scenes = {}));

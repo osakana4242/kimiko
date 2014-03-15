@@ -285,12 +285,6 @@ module jp.osakana4242.kimiko.scenes {
 			var userMap = g_app.storage.getUserMapForUpdate(pd.mapId);
 			userMap.playCount += 1;
 			g_app.storage.save();
-			// ステータス初期化.
-			// リトライ用にmapIdのみ持ち越し.
-			var mapId = pd.mapId;
-			pd.reset();
-			pd.mapId = mapId;
-			//
 			g_app.core.pushScene(new GameOver());
 			this.state = this.stateGameStart;
 		},

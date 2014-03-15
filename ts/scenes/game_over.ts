@@ -11,24 +11,10 @@ module jp.osakana4242.kimiko.scenes {
 		initialize: function () {
 			enchant.Scene.call(this);
 
-			this.fader = new Fader(this);
 			
 			var scene = this;
+			scene.fader = new Fader(scene);
 			//
-			this.layouter = new kimiko.SpriteLayouter(this);
-			this.layouter.layout = (() => {
-				var list = [
-					[ "spriteName", "layoutName", "visible", "delay",  "x",  "y", ],
-
-					[ "retryBtn",   "hide",       false,     0.1 * 0,  80,    140 - 10, ],
-					[ "toTitleBtn", "hide",       false,     0.1 * 1,  80,    200 - 10, ],
-
-					[ "retryBtn",   "normal",     true,      0.1 * 0,  80,    140, ],
-					[ "toTitleBtn", "normal",     true,      0.1 * 1,  80,    200, ],
-				];
-				return g_app.labeledValuesToObjects(list);
-			})();
-
 			this.bg = (() => {
 				var spr = new enchant.Sprite(DF.SC_W, DF.SC_H);
 				spr.backgroundColor = "#000";
@@ -49,43 +35,42 @@ module jp.osakana4242.kimiko.scenes {
 				return label;
 			})();
 			//
-			this.toTitleBtn = this.layouter.sprites["toTitleBtn"] = (() => {
-				var label = new LabeledButton(160, 48, "TO TITLE");
-				label.addEventListener(enchant.Event.TOUCH_END, () => {
-					g_app.sound.playSe(Assets.SOUND_SE_OK);
-					g_app.gameScene.state = g_app.gameScene.stateGameStart;
-					g_app.core.replaceScene(new scenes.Title());
-				});
-				return label;
-			})();
-
-			this.retryBtn = this.layouter.sprites["retryBtn"] = (() => {
-				var label = new LabeledButton(160, 48, "RETRY");
-				label.addEventListener(enchant.Event.TOUCH_END, () => {
-					g_app.core.popScene();
-				});
-				return label;
-			})();
 			//
 			scene.addChild(this.bg); 
 			scene.addChild(this.gameOverLabel); 
-			scene.addChild(this.toTitleBtn);
-			scene.addChild(this.retryBtn);
 
-			this.layouter.transition("hide", false);
+			scene.addEventListener(enchant.Event.TOUCH_END, () => {
+				if (!scene.fader.isOpend) {
+					return;
+				}
+				g_app.sound.playSe(Assets.SOUND_SE_OK);
+				scene.toNext();
+			});
 
 		},
 
+		toNext: function() {
+			var scene = this;
+			scene.fader.fadeOut(g_app.secToFrame(0.1), () => {
+				var gameEndMenu = new jp.osakana4242.kimiko.scenes.GameEndMenu();
+				gameEndMenu.isFromGameClear = false;
+				g_app.core.popScene();
+				g_app.core.replaceScene(gameEndMenu);
+			});
+		},
+
 		onenter: function() {
-			this.tl.
-				delay(g_app.secToFrame(0.5)).
+			var scene = this;
+			scene.fader.setBlack(false);
+
+			scene.tl.
+				delay(g_app.secToFrame(3.0)).
 				then(() => {
-					this.layouter.transition("normal", true);
+					scene.toNext();
 				});
 		},
 
 		onexit: function() {
-			this.layouter.transition("hide", false);
 		},
 	});
 

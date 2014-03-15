@@ -22,6 +22,7 @@ module jp.osakana4242.kimiko.scenes {
 			this.film = (() => {
 				var spr = new enchant.Sprite(DF.SC_W, DF.SC_H);
 				spr.backgroundColor = "rgb(0, 0, 0)";
+				spr.touchEnabled = true;
 				return spr;
 			})();
 		}
@@ -40,6 +41,10 @@ module jp.osakana4242.kimiko.scenes {
 			return film;
 		}
 
+		get isOpend(): boolean {
+			return this.film.opacity === 0.0 && this.film.tl.queue.length === 0;
+		}
+
 		setBlack(isBlack: boolean):void {
 			if (isBlack) {
 				var film = this.addFilm();
@@ -49,7 +54,7 @@ module jp.osakana4242.kimiko.scenes {
 				film.opacity = 0.0;
 			}
 		}
-		
+	
 		fadeIn(fadeFrame: number, callback: () => void = null): void {
 			var film = this.addFilm();
 			film.tl.
