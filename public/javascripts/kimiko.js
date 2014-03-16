@@ -1458,6 +1458,7 @@ var jp;
                     kimiko.g_app.sound.setBgmEnabled(kimiko.g_app.storage.root.userConfig.isBgmEnabled);
                     kimiko.g_app.sound.setSeEnabled(kimiko.g_app.storage.root.userConfig.isSeEnabled);
 
+                    enchant.ENV.SOUND_ENABLED_ON_MOBILE_SAFARI = kimiko.g_app.env.isSoundEnabled;
                     var core = new enchant.Core(DF.SC_W, DF.SC_H);
                     core.fps = kimiko.g_app.storage.root.userConfig.fps;
 

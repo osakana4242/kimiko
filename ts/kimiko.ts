@@ -86,6 +86,7 @@ module jp.osakana4242.kimiko {
 			g_app.sound.setBgmEnabled(g_app.storage.root.userConfig.isBgmEnabled);
 			g_app.sound.setSeEnabled(g_app.storage.root.userConfig.isSeEnabled);
 
+			enchant.ENV.SOUND_ENABLED_ON_MOBILE_SAFARI = g_app.env.isSoundEnabled;
 			var core: any = new enchant.Core(DF.SC_W, DF.SC_H);
 			core.fps = g_app.storage.root.userConfig.fps;
 			// preload
@@ -107,7 +108,7 @@ module jp.osakana4242.kimiko {
 				}
 				core.preload(newPath);
 			}
-			
+
 			// sound
 			(() => {
 				var SOUND_INFOS = [
