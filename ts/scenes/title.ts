@@ -23,7 +23,7 @@ module jp.osakana4242.kimiko.scenes {
 				}
 			} else {
 				for (var key in g_app.storage.root.userMaps) {
-					if (DF.MAP_OPTIONS[key]) {
+					if ( DF.MAP_OPTIONS[key]) {
 						mapIds.push(parseInt(key));
 					}
 				}
@@ -35,7 +35,7 @@ module jp.osakana4242.kimiko.scenes {
 			var title = (() => {
 				var spr = new utils.SpriteLabel(g_app.fontS, "KIMIKO'S NIGHTMARE");
 				spr.x = (DF.SC_W- spr.width) / 2;
-				spr.y = 8;
+				spr.y = 30;
 				return spr;
 			})();
 
@@ -84,10 +84,14 @@ module jp.osakana4242.kimiko.scenes {
 				return spr;
 			})();
 
+			function getMapTitle(mapId: number) {
+				return "STAGE " + Math.floor(mapId / 100) + "-" + (mapId % 100);
+			}
+
 			function updateMapLabel() {
 				var mapId = mapIds[mapIdsIdx];
-				mapLabel.text = "MAP " + mapId;
-				mapLabel2.text = DF.MAP_OPTIONS[mapId].title;
+				mapLabel2.text = getMapTitle(mapId);
+				// mapLabel.text = DF.MAP_OPTIONS[mapId].title;
 
 				mapLabel.x = (DF.SC_W - mapLabel.width) / 2;
 				mapLabel2.x = (DF.SC_W - mapLabel2.width) / 2;
@@ -177,6 +181,11 @@ module jp.osakana4242.kimiko.scenes {
 					g_app.core.replaceScene(new scenes.GameStart());
 				});
 			};
+
+			mapLabel.visible = 2 <= mapIds.length;
+			mapLabel2.visible = 2 <= mapIds.length;
+			leftBtn.visible = 2 <= mapIds.length;
+			rightBtn.visible = 2 <= mapIds.length;
 		},
 
 		onenter: function () {

@@ -154,6 +154,12 @@ module jp.osakana4242.kimiko.scenes {
 				return g_app.labeledValuesToObjects(list);
 			})();
 
+			this.bg = (() => {
+				var spr = new enchant.Sprite(DF.SC_W, DF.SC_H);
+				spr.image = g_app.core.assets[Assets.IMAGE_COMMON_BG];
+				return spr;
+			})();
+
 			layouter.sprites["titleLabel"] = (() => {
 				var spr = new utils.SpriteLabel(g_app.fontS, "CONFIG");
 				return spr;
@@ -207,7 +213,7 @@ module jp.osakana4242.kimiko.scenes {
 			})();
 
 			//
-			scene.backgroundColor = "rgb( 128, 128, 32)";
+			scene.addChild(this.bg);
 			//
 			var menuGroup = new enchant.Group();
 			menuGroup.x = 80;

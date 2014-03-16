@@ -18,7 +18,7 @@ module jp.osakana4242.kimiko.scenes {
 			//
 			this.bg = (() => {
 				var spr = new enchant.Sprite(DF.SC_W, DF.SC_H);
-				spr.backgroundColor = "#000";
+				spr.image = g_app.core.assets[Assets.IMAGE_COMMON_BG];
 				return spr;
 			})();
 

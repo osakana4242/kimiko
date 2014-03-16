@@ -831,6 +831,7 @@ var jp;
             (function (Assets) {
                 Assets.IMAGE_FONT_S = "./images/font_s.png";
                 Assets.IMAGE_GAME_START_BG = "./images/game_start_bg.png";
+                Assets.IMAGE_COMMON_BG = "./images/common_bg.png";
                 Assets.IMAGE_MAP = "./images/map.png";
                 Assets.IMAGE_CHARA001 = "./images/chara001.png";
                 Assets.IMAGE_CHARA002 = "./images/chara002.png";
@@ -3923,6 +3924,12 @@ var jp;
                             return g_app.labeledValuesToObjects(list);
                         })();
 
+                        this.bg = (function () {
+                            var spr = new enchant.Sprite(DF.SC_W, DF.SC_H);
+                            spr.image = g_app.core.assets[jp.osakana4242.kimiko.Assets.IMAGE_COMMON_BG];
+                            return spr;
+                        })();
+
                         layouter.sprites["titleLabel"] = (function () {
                             var spr = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "CONFIG");
                             return spr;
@@ -3984,7 +3991,7 @@ var jp;
                         })();
 
                         //
-                        scene.backgroundColor = "rgb( 128, 128, 32)";
+                        scene.addChild(this.bg);
 
                         //
                         var menuGroup = new enchant.Group();
@@ -5041,7 +5048,7 @@ var jp;
 
                         this.bg = (function () {
                             var spr = new enchant.Sprite(jp.osakana4242.kimiko.DF.SC_W, jp.osakana4242.kimiko.DF.SC_H);
-                            spr.backgroundColor = "#000";
+                            spr.image = g_app.core.assets[jp.osakana4242.kimiko.Assets.IMAGE_COMMON_BG];
                             return spr;
                         })();
 
@@ -5384,7 +5391,7 @@ var jp;
                         //
                         this.bg = (function () {
                             var spr = new enchant.Sprite(jp.osakana4242.kimiko.DF.SC_W, jp.osakana4242.kimiko.DF.SC_H);
-                            spr.backgroundColor = "#000";
+                            spr.image = g_app.core.assets[jp.osakana4242.kimiko.Assets.IMAGE_COMMON_BG];
                             return spr;
                         })();
 
@@ -5512,7 +5519,7 @@ var jp;
                         var title = (function () {
                             var spr = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "KIMIKO'S NIGHTMARE");
                             spr.x = (DF.SC_W - spr.width) / 2;
-                            spr.y = 8;
+                            spr.y = 30;
                             return spr;
                         })();
 
@@ -5558,11 +5565,15 @@ var jp;
                             return spr;
                         })();
 
+                        function getMapTitle(mapId) {
+                            return "STAGE " + Math.floor(mapId / 100) + "-" + (mapId % 100);
+                        }
+
                         function updateMapLabel() {
                             var mapId = mapIds[mapIdsIdx];
-                            mapLabel.text = "MAP " + mapId;
-                            mapLabel2.text = DF.MAP_OPTIONS[mapId].title;
+                            mapLabel2.text = getMapTitle(mapId);
 
+                            // mapLabel.text = DF.MAP_OPTIONS[mapId].title;
                             mapLabel.x = (DF.SC_W - mapLabel.width) / 2;
                             mapLabel2.x = (DF.SC_W - mapLabel2.width) / 2;
                         }
@@ -5654,6 +5665,11 @@ var jp;
                             });
                         }
                         ;
+
+                        mapLabel.visible = 2 <= mapIds.length;
+                        mapLabel2.visible = 2 <= mapIds.length;
+                        leftBtn.visible = 2 <= mapIds.length;
+                        rightBtn.visible = 2 <= mapIds.length;
                     },
                     onenter: function () {
                         this.touchEnabled = true;

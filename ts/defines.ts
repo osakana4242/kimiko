@@ -7,6 +7,7 @@ module jp.osakana4242.kimiko {
 	export module Assets {
 		export var IMAGE_FONT_S = "./images/font_s.png";
 		export var IMAGE_GAME_START_BG = "./images/game_start_bg.png";
+		export var IMAGE_COMMON_BG = "./images/common_bg.png";
 		export var IMAGE_MAP = "./images/map.png";
 		export var IMAGE_CHARA001 = "./images/chara001.png";
 		export var IMAGE_CHARA002 = "./images/chara002.png";
