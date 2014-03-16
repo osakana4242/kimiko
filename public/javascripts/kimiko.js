@@ -935,6 +935,9 @@ var jp;
                 DF.MAP_ID_MIN = 101;
                 DF.MAP_ID_MAX = 104;
 
+                /**
+                BBBBCC
+                */
                 DF.MAP_OPTIONS = {
                     101: {
                         "title": "tutorial",
@@ -955,31 +958,31 @@ var jp;
                         "title": "tutorial",
                         "backgroundColor": "rgb(32,196,255)",
                         // ドアなし.
-                        "nextMapId": 104,
+                        "nextMapId": 201,
                         "exitType": "door"
                     },
-                    104: {
+                    201: {
                         "title": "station",
                         "backgroundColor": "rgb(32,196,255)",
                         // ドアなし.
-                        "nextMapId": 105,
+                        "nextMapId": 202,
                         "exitType": "door"
                     },
-                    105: {
+                    202: {
                         "title": "station",
                         "backgroundColor": "rgb(32,196,255)",
                         // ドアなし.
-                        "nextMapId": 106,
+                        "nextMapId": 203,
                         "exitType": "door"
                     },
-                    106: {
+                    203: {
                         "title": "station",
                         "backgroundColor": "rgb(32,196,255)",
                         // ドアなし.
-                        "nextMapId": 107,
+                        "nextMapId": 204,
                         "exitType": "door"
                     },
-                    107: {
+                    204: {
                         "title": "boss",
                         "backgroundColor": "rgb(196,32,32)",
                         // ドアなし
@@ -987,37 +990,37 @@ var jp;
                         "nextMapId": 0,
                         "exitType": "enemy_zero"
                     },
-                    202: {
+                    900102: {
                         "title": "trace",
                         "backgroundColor": "rgb(32,32,32)",
                         "nextMapId": 0,
                         "exitType": "door"
                     },
-                    206: {
+                    900106: {
                         "title": "bunbun",
                         "backgroundColor": "rgb(32,32,32)",
                         "nextMapId": 0,
                         "exitType": "door"
                     },
-                    207: {
+                    900107: {
                         "title": "hovering",
                         "backgroundColor": "rgb(32,32,32)",
                         "nextMapId": 0,
                         "exitType": "door"
                     },
-                    208: {
+                    900108: {
                         "title": "horizontal move",
                         "backgroundColor": "rgb(32,32,32)",
                         "nextMapId": 0,
                         "exitType": "door"
                     },
-                    209: {
+                    900109: {
                         "title": "horizontal trace",
                         "backgroundColor": "rgb(32,32,32)",
                         "nextMapId": 0,
                         "exitType": "door"
                     },
-                    301: {
+                    900101: {
                         "title": "test",
                         "backgroundColor": "rgb(32,32,32)",
                         "nextMapId": 0,
@@ -1150,7 +1153,13 @@ var jp;
                             "difficulty": 1,
                             "isUiRight": true
                         },
-                        "userMaps": {}
+                        "userMaps": {
+                            101: {
+                                "mapId": 101,
+                                "score": 0,
+                                "playCount": 0
+                            }
+                        }
                     };
                     this.root = this.defaultRoot;
                 }
@@ -4371,13 +4380,17 @@ var jp;
                         pd.restTimeCounter = 0;
 
                         //
+                        var mapOption = this.mapOption;
                         var userMap = g_app.storage.getUserMapForUpdate(pd.mapId);
                         userMap.playCount += 1;
+                        if (mapOption.nextMapId !== 0) {
+                            // 次のマップデータを作成.
+                            g_app.storage.getUserMapForUpdate(mapOption.nextMapId);
+                        }
                         g_app.storage.save();
 
                         //
                         pd.hp = this.player.life.hp;
-                        var mapOption = this.mapOption;
                         if (mapOption.nextMapId === 0) {
                             g_app.core.pushScene(new jp.osakana4242.kimiko.scenes.GameClear());
                             this.state = this.stateGameStart;
@@ -4978,6 +4991,7 @@ var jp;
                         });
                     },
                     onenter: function () {
+                        g_app.sound.stopBgm();
                         var scene = this;
                         scene.fader.setBlack(false);
                     }
@@ -5107,6 +5121,7 @@ var jp;
                         this.isFromGameClear = false;
                     },
                     onenter: function () {
+                        g_app.sound.stopBgm();
                         this.fader.setBlack(true);
                         this.fader.fadeIn(g_app.secToFrame(0.1));
                         this.layouter.transition("normal", true);
@@ -5179,6 +5194,7 @@ var jp;
                         });
                     },
                     onenter: function () {
+                        g_app.sound.stopBgm();
                         var scene = this;
                         scene.fader.setBlack(false);
 
@@ -5477,8 +5493,17 @@ var jp;
 
                         var scene = this;
                         var mapIds = [];
-                        for (var key in DF.MAP_OPTIONS) {
-                            mapIds.push(parseInt(key));
+
+                        if (g_app.config.isTestMapEnabled) {
+                            for (var key in DF.MAP_OPTIONS) {
+                                mapIds.push(parseInt(key));
+                            }
+                        } else {
+                            for (var key in g_app.storage.root.userMaps) {
+                                if (DF.MAP_OPTIONS[key]) {
+                                    mapIds.push(parseInt(key));
+                                }
+                            }
                         }
 
                         var mapIdsIdx = 0;

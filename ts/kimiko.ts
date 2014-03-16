@@ -21,6 +21,7 @@ module jp.osakana4242.kimiko {
 	var Assets = jp.osakana4242.kimiko.Assets;
 
 	export interface IConfig {
+		isTestMapEnabled: boolean;
 		isClearStorage: boolean;
 		fps: number;
 		isSoundEnabled: boolean;

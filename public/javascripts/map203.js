@@ -1,4 +1,4 @@
-jp.osakana4242.kimiko.mapData106 =
+jp.osakana4242.kimiko.mapData203 =
 
 {
 "width":80,

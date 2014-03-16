@@ -115,6 +115,7 @@ module jp.osakana4242.kimiko.scenes {
 		},
 
 		onenter: function() {
+			g_app.sound.stopBgm();
 			this.fader.setBlack(true);
 			this.fader.fadeIn(g_app.secToFrame(0.1));
 			this.layouter.transition("normal", true);

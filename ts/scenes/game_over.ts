@@ -60,6 +60,7 @@ module jp.osakana4242.kimiko.scenes {
 		},
 
 		onenter: function() {
+			g_app.sound.stopBgm();
 			var scene = this;
 			scene.fader.setBlack(false);
 

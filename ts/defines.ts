@@ -109,6 +109,9 @@ module jp.osakana4242.kimiko {
 		export var MAP_ID_MIN = 101;
 		export var MAP_ID_MAX = 104;
 
+		/**
+			BBBBCC
+		*/
 		export var MAP_OPTIONS = {
 			101: {
 				"title": "tutorial",
@@ -129,31 +132,31 @@ module jp.osakana4242.kimiko {
 				"title": "tutorial",
 				"backgroundColor": "rgb(32,196,255)",
 				// ドアなし.
-				"nextMapId": 104,
+				"nextMapId": 201,
 				"exitType": "door",
 			},
-			104: {
+			201: {
 				"title": "station",
 				"backgroundColor": "rgb(32,196,255)",
 				// ドアなし.
-				"nextMapId": 105,
+				"nextMapId": 202,
 				"exitType": "door",
 			},
-			105: {
+			202: {
 				"title": "station",
 				"backgroundColor": "rgb(32,196,255)",
 				// ドアなし.
-				"nextMapId": 106,
+				"nextMapId": 203,
 				"exitType": "door",
 			},
-			106: {
+			203: {
 				"title": "station",
 				"backgroundColor": "rgb(32,196,255)",
 				// ドアなし.
-				"nextMapId": 107,
+				"nextMapId": 204,
 				"exitType": "door",
 			},
-			107: {
+			204: {
 				"title": "boss",
 				"backgroundColor": "rgb(196,32,32)",
 				// ドアなし
@@ -161,37 +164,37 @@ module jp.osakana4242.kimiko {
 				"nextMapId": 0,
 				"exitType": "enemy_zero",
 			},
-			202: {
+			900102: {
 				"title": "trace",
 				"backgroundColor": "rgb(32,32,32)",
 				"nextMapId": 0,
 				"exitType": "door",
 			},
-			206: {
+			900106: {
 				"title": "bunbun",
 				"backgroundColor": "rgb(32,32,32)",
 				"nextMapId": 0,
 				"exitType": "door",
 			},
-			207: {
+			900107: {
 				"title": "hovering",
 				"backgroundColor": "rgb(32,32,32)",
 				"nextMapId": 0,
 				"exitType": "door",
 			},
-			208: {
+			900108: {
 				"title": "horizontal move",
 				"backgroundColor": "rgb(32,32,32)",
 				"nextMapId": 0,
 				"exitType": "door",
 			},
-			209: {
+			900109: {
 				"title": "horizontal trace",
 				"backgroundColor": "rgb(32,32,32)",
 				"nextMapId": 0,
 				"exitType": "door",
 			},
-			301: {
+			900101: {
 				"title": "test",
 				"backgroundColor": "rgb(32,32,32)",
 				"nextMapId": 0,

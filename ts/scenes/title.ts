@@ -16,8 +16,17 @@ module jp.osakana4242.kimiko.scenes {
 
 			var scene = this;
 			var mapIds = [];
+
+			if (g_app.config.isTestMapEnabled) {
 			for (var key in DF.MAP_OPTIONS) {
-				mapIds.push(parseInt(key));
+					mapIds.push(parseInt(key));
+				}
+			} else {
+				for (var key in g_app.storage.root.userMaps) {
+					if (DF.MAP_OPTIONS[key]) {
+						mapIds.push(parseInt(key));
+					}
+				}
 			}
 
 			var mapIdsIdx = 0;

@@ -52,7 +52,13 @@ module jp.osakana4242.kimiko {
 					"difficulty": 1,
 					"isUiRight": true,
 				},
-				"userMaps": {},
+				"userMaps": {
+					101: {
+						"mapId": 101,
+						"score": 0,
+						"playCount": 0,
+					},
+				},
 			};
 			this.root = this.defaultRoot;
 		}

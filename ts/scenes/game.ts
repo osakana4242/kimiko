@@ -298,12 +298,16 @@ module jp.osakana4242.kimiko.scenes {
 			pd.score += pd.timeToScore(Math.floor(g_app.frameToSec(pd.restTimeCounter)) * 10);
 			pd.restTimeCounter = 0;
 			//
+			var mapOption: IMapOption = this.mapOption;
 			var userMap = g_app.storage.getUserMapForUpdate(pd.mapId);
 			userMap.playCount += 1;
+			if (mapOption.nextMapId !== 0) {
+				// 次のマップデータを作成.
+				g_app.storage.getUserMapForUpdate(mapOption.nextMapId);
+			}
 			g_app.storage.save();
 			//
 			pd.hp = this.player.life.hp;
-			var mapOption: IMapOption = this.mapOption;
 			if (mapOption.nextMapId === 0) {
 				g_app.core.pushScene(new GameClear());
 				this.state = this.stateGameStart;
