@@ -360,17 +360,17 @@ module jp.osakana4242.kimiko.game {
 			// 発砲の予備動作.
 			function runup() {
 				return sprite.tl.
+					delay(g_app.secToFrame(1.0)).
 					moveBy(0, -24, g_app.secToFrame(0.2), Easing.CUBIC_EASEOUT).
 					moveBy(0,  24, g_app.secToFrame(0.2), Easing.CUBIC_EASEOUT).
 					moveBy(0, -8, g_app.secToFrame(0.1), Easing.CUBIC_EASEOUT).
-					moveBy(0, 8, g_app.secToFrame(0.1), Easing.CUBIC_EASEOUT).
-					delay(g_app.secToFrame(0.5));
+					moveBy(0, 8, g_app.secToFrame(0.1), Easing.CUBIC_EASEOUT);
 			}
 
 			function fireToPlayer() {
 				var wp: WeaponA = sprite.weapons[0];
 				wp.fireCount = 5;
-				wp.wayNum = 4;
+				wp.wayNum = 2;
 				wp.fireInterval = g_app.secToFrame(0.5);
 				wp.speed = g_app.dpsToDpf(3 * DF.BASE_FPS);
 				wp.fireFunc = WeaponA.fireC;
@@ -413,7 +413,7 @@ module jp.osakana4242.kimiko.game {
 			function fireToPlayer3() {
 				var wp: WeaponA = sprite.weapons[0];
 				wp.fireCount = 1;
-				wp.wayNum = 6;
+				wp.wayNum = 4;
 				wp.fireInterval = g_app.secToFrame(0.5);
 				wp.speed = g_app.dpsToDpf(1 * DF.BASE_FPS);
 				wp.fireFunc = WeaponA.fireA;
@@ -434,7 +434,6 @@ module jp.osakana4242.kimiko.game {
 			function fire1() {
 				return runup().
 					then(fireToPlayer).
-					moveBy(8, 0, g_app.secToFrame(0.5), Easing.CUBIC_EASEOUT).
 					delay(g_app.secToFrame(0.5)).
 					waitUntil(waitFire);
 			}
@@ -448,41 +447,50 @@ module jp.osakana4242.kimiko.game {
 			function fire3() {
 				return runup().
 					then(fireToPlayer3).
-					moveBy(8, 0, g_app.secToFrame(0.5), Easing.CUBIC_EASEOUT).
 					delay(g_app.secToFrame(0.5)).
 					waitUntil(waitFire);
 			}
 
 			var top = sprite.anchor.y - 96;
 			var bottom = sprite.anchor.y;
-			var left = sprite.anchor.x - 200;
+			var left = sprite.anchor.x - 224;
 			var right = sprite.anchor.x + 0;
 			sprite.x = right;
 			sprite.y = top;
 			sprite.tl.
+				then(sprite.lookAtPlayer).
 				delay(g_app.secToFrame(1.0)).
 				moveTo(right, bottom, g_app.secToFrame(2.0)).
 				scaleTo(-1.0, 1.0, 1).
 				delay(g_app.secToFrame(0.5)).
 				then(function () {
 					sprite.tl.
+						moveBy(   32,     0, g_app.secToFrame(1.0), Easing.CUBIC_EASEIN).
 						moveTo(left, bottom, g_app.secToFrame(0.5), Easing.CUBIC_EASEIN).
 						scaleTo(1.0, 1.0, 1);
 					fire2().
 						moveTo(left, top, g_app.secToFrame(1.0));
 					fire1().
-						moveTo(right, top, g_app.secToFrame(0.5), Easing.CUBIC_EASEIN).
+						moveBy(  -32,      0, g_app.secToFrame(1.0), Easing.CUBIC_EASEIN).
+						moveTo(right,    top, g_app.secToFrame(0.5), Easing.CUBIC_EASEIN).
 						scaleTo(-1.0, 1.0, 1);
 					fire2().
 						moveTo(right, bottom, g_app.secToFrame(1.0));
 					fire1().
-						moveTo(left, top, g_app.secToFrame(2.0));
+						moveTo(left,     top, g_app.secToFrame(2.0)).
+						then(sprite.lookAtRight);
 					fire3().
-						moveTo(right, top, g_app.secToFrame(0.5), Easing.CUBIC_EASEIN);
+						moveBy(  -32,      0, g_app.secToFrame(1.0), Easing.CUBIC_EASEIN).
+						moveTo(right,    top, g_app.secToFrame(0.5), Easing.CUBIC_EASEIN).
+						then(sprite.lookAtLeft);
 					fire3().
-						moveTo(left, top, g_app.secToFrame(0.5), Easing.CUBIC_EASEIN);
+						moveBy(   32,      0, g_app.secToFrame(1.0), Easing.CUBIC_EASEIN).
+						moveTo(left,     top, g_app.secToFrame(0.5), Easing.CUBIC_EASEIN).
+						then(sprite.lookAtRight);
 					fire3().
-						moveTo(right, top, g_app.secToFrame(0.5));
+						moveBy(  -32,      0, g_app.secToFrame(1.0), Easing.CUBIC_EASEIN).
+						moveTo(right,    top, g_app.secToFrame(0.5)).
+						then(sprite.lookAtLeft);
 					fire3().
 						delay(g_app.secToFrame(1.0)).
 						moveTo(right, bottom, g_app.secToFrame(2.0)).
@@ -668,6 +676,14 @@ module jp.osakana4242.kimiko.game {
 		lookAtPosition: function(pos: utils.IVector2D) {
 			var distX = pos.x - this.center.x;
 			this.scaleX = distX < 0 ? -1 : 1;
+		},
+
+		lookAtLeft: function() {
+			this.scaleX = -1;
+		},
+
+		lookAtRight: function() {
+			this.scaleX = 1;
 		},
 
 	});

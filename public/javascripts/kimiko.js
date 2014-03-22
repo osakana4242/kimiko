@@ -2525,13 +2525,13 @@ var jp;
 
                         // 発砲の予備動作.
                         function runup() {
-                            return sprite.tl.moveBy(0, -24, jp.osakana4242.kimiko.g_app.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, 24, jp.osakana4242.kimiko.g_app.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, -8, jp.osakana4242.kimiko.g_app.secToFrame(0.1), Easing.CUBIC_EASEOUT).moveBy(0, 8, jp.osakana4242.kimiko.g_app.secToFrame(0.1), Easing.CUBIC_EASEOUT).delay(jp.osakana4242.kimiko.g_app.secToFrame(0.5));
+                            return sprite.tl.delay(jp.osakana4242.kimiko.g_app.secToFrame(1.0)).moveBy(0, -24, jp.osakana4242.kimiko.g_app.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, 24, jp.osakana4242.kimiko.g_app.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, -8, jp.osakana4242.kimiko.g_app.secToFrame(0.1), Easing.CUBIC_EASEOUT).moveBy(0, 8, jp.osakana4242.kimiko.g_app.secToFrame(0.1), Easing.CUBIC_EASEOUT);
                         }
 
                         function fireToPlayer() {
                             var wp = sprite.weapons[0];
                             wp.fireCount = 5;
-                            wp.wayNum = 4;
+                            wp.wayNum = 2;
                             wp.fireInterval = jp.osakana4242.kimiko.g_app.secToFrame(0.5);
                             wp.speed = jp.osakana4242.kimiko.g_app.dpsToDpf(3 * jp.osakana4242.kimiko.DF.BASE_FPS);
                             wp.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireC;
@@ -2573,7 +2573,7 @@ var jp;
                         function fireToPlayer3() {
                             var wp = sprite.weapons[0];
                             wp.fireCount = 1;
-                            wp.wayNum = 6;
+                            wp.wayNum = 4;
                             wp.fireInterval = jp.osakana4242.kimiko.g_app.secToFrame(0.5);
                             wp.speed = jp.osakana4242.kimiko.g_app.dpsToDpf(1 * jp.osakana4242.kimiko.DF.BASE_FPS);
                             wp.fireFunc = jp.osakana4242.kimiko.game.WeaponA.fireA;
@@ -2592,7 +2592,7 @@ var jp;
                         }
 
                         function fire1() {
-                            return runup().then(fireToPlayer).moveBy(8, 0, jp.osakana4242.kimiko.g_app.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(jp.osakana4242.kimiko.g_app.secToFrame(0.5)).waitUntil(waitFire);
+                            return runup().then(fireToPlayer).delay(jp.osakana4242.kimiko.g_app.secToFrame(0.5)).waitUntil(waitFire);
                         }
 
                         function fire2() {
@@ -2600,24 +2600,24 @@ var jp;
                         }
 
                         function fire3() {
-                            return runup().then(fireToPlayer3).moveBy(8, 0, jp.osakana4242.kimiko.g_app.secToFrame(0.5), Easing.CUBIC_EASEOUT).delay(jp.osakana4242.kimiko.g_app.secToFrame(0.5)).waitUntil(waitFire);
+                            return runup().then(fireToPlayer3).delay(jp.osakana4242.kimiko.g_app.secToFrame(0.5)).waitUntil(waitFire);
                         }
 
                         var top = sprite.anchor.y - 96;
                         var bottom = sprite.anchor.y;
-                        var left = sprite.anchor.x - 200;
+                        var left = sprite.anchor.x - 224;
                         var right = sprite.anchor.x + 0;
                         sprite.x = right;
                         sprite.y = top;
-                        sprite.tl.delay(jp.osakana4242.kimiko.g_app.secToFrame(1.0)).moveTo(right, bottom, jp.osakana4242.kimiko.g_app.secToFrame(2.0)).scaleTo(-1.0, 1.0, 1).delay(jp.osakana4242.kimiko.g_app.secToFrame(0.5)).then(function () {
-                            sprite.tl.moveTo(left, bottom, jp.osakana4242.kimiko.g_app.secToFrame(0.5), Easing.CUBIC_EASEIN).scaleTo(1.0, 1.0, 1);
+                        sprite.tl.then(sprite.lookAtPlayer).delay(jp.osakana4242.kimiko.g_app.secToFrame(1.0)).moveTo(right, bottom, jp.osakana4242.kimiko.g_app.secToFrame(2.0)).scaleTo(-1.0, 1.0, 1).delay(jp.osakana4242.kimiko.g_app.secToFrame(0.5)).then(function () {
+                            sprite.tl.moveBy(32, 0, jp.osakana4242.kimiko.g_app.secToFrame(1.0), Easing.CUBIC_EASEIN).moveTo(left, bottom, jp.osakana4242.kimiko.g_app.secToFrame(0.5), Easing.CUBIC_EASEIN).scaleTo(1.0, 1.0, 1);
                             fire2().moveTo(left, top, jp.osakana4242.kimiko.g_app.secToFrame(1.0));
-                            fire1().moveTo(right, top, jp.osakana4242.kimiko.g_app.secToFrame(0.5), Easing.CUBIC_EASEIN).scaleTo(-1.0, 1.0, 1);
+                            fire1().moveBy(-32, 0, jp.osakana4242.kimiko.g_app.secToFrame(1.0), Easing.CUBIC_EASEIN).moveTo(right, top, jp.osakana4242.kimiko.g_app.secToFrame(0.5), Easing.CUBIC_EASEIN).scaleTo(-1.0, 1.0, 1);
                             fire2().moveTo(right, bottom, jp.osakana4242.kimiko.g_app.secToFrame(1.0));
-                            fire1().moveTo(left, top, jp.osakana4242.kimiko.g_app.secToFrame(2.0));
-                            fire3().moveTo(right, top, jp.osakana4242.kimiko.g_app.secToFrame(0.5), Easing.CUBIC_EASEIN);
-                            fire3().moveTo(left, top, jp.osakana4242.kimiko.g_app.secToFrame(0.5), Easing.CUBIC_EASEIN);
-                            fire3().moveTo(right, top, jp.osakana4242.kimiko.g_app.secToFrame(0.5));
+                            fire1().moveTo(left, top, jp.osakana4242.kimiko.g_app.secToFrame(2.0)).then(sprite.lookAtRight);
+                            fire3().moveBy(-32, 0, jp.osakana4242.kimiko.g_app.secToFrame(1.0), Easing.CUBIC_EASEIN).moveTo(right, top, jp.osakana4242.kimiko.g_app.secToFrame(0.5), Easing.CUBIC_EASEIN).then(sprite.lookAtLeft);
+                            fire3().moveBy(32, 0, jp.osakana4242.kimiko.g_app.secToFrame(1.0), Easing.CUBIC_EASEIN).moveTo(left, top, jp.osakana4242.kimiko.g_app.secToFrame(0.5), Easing.CUBIC_EASEIN).then(sprite.lookAtRight);
+                            fire3().moveBy(-32, 0, jp.osakana4242.kimiko.g_app.secToFrame(1.0), Easing.CUBIC_EASEIN).moveTo(right, top, jp.osakana4242.kimiko.g_app.secToFrame(0.5)).then(sprite.lookAtLeft);
                             fire3().delay(jp.osakana4242.kimiko.g_app.secToFrame(1.0)).moveTo(right, bottom, jp.osakana4242.kimiko.g_app.secToFrame(2.0)).loop();
                         });
                     }
@@ -2786,6 +2786,12 @@ var jp;
                     lookAtPosition: function (pos) {
                         var distX = pos.x - this.center.x;
                         this.scaleX = distX < 0 ? -1 : 1;
+                    },
+                    lookAtLeft: function () {
+                        this.scaleX = -1;
+                    },
+                    lookAtRight: function () {
+                        this.scaleX = 1;
                     }
                 });
             })(kimiko.game || (kimiko.game = {}));
