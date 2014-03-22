@@ -102,8 +102,9 @@ module jp.osakana4242.kimiko {
 		export var MAP_TILE_EMPTY = -1;
 		export var MAP_TILE_COLLISION_MIN = 0;
 		export var MAP_TILE_COLLISION_MAX = 15;
+		export var MAP_TILE_GROUND_MAX = 39;
 		export var MAP_TILE_PLAYER_POS = 40;
-		export var MAP_TILE_DOOR_OPEN = 41;
+		export var MAP_TILE_DOOR_OPEN = 32;
 		export var MAP_TILE_DOOR_CLOSE = -1;
 		export var MAP_TILE_CHARA_MIN = 48;
 		
@@ -195,7 +196,13 @@ module jp.osakana4242.kimiko {
 				"nextMapId": 0,
 				"exitType": "door",
 			},
-			900101: {
+			900201: {
+				"title": "test",
+				"backgroundColor": "rgb(32,32,32)",
+				"nextMapId": 0,
+				"exitType": "door",
+			},
+			900202: {
 				"title": "test",
 				"backgroundColor": "rgb(32,32,32)",
 				"nextMapId": 0,

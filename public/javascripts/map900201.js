@@ -1,4 +1,4 @@
-jp.osakana4242.kimiko.mapData900201 =
+jp.osakana4242.kimiko.mapData900202 =
 
 
 {

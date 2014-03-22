@@ -327,19 +327,41 @@ module jp.osakana4242.kimiko.scenes {
 		//---------------------------------------------------------------------------
 		
 		loadMapData: function (mapData: utils.IMapData) {
-			var map = this.map;
+			var scene = this;
+			var map = scene.map;
 			var mapOption: IMapOption = DF.MAP_OPTIONS[g_app.playerData.mapId];
 			for (var key in mapOption) {
-				this.mapOption[key] = mapOption[key];
+				scene.mapOption[key] = mapOption[key];
 			}
-			this.backgroundColor = mapOption.backgroundColor;
+			scene.backgroundColor = mapOption.backgroundColor;
 
-			function cloneTiles(tiles: number[][]) {
+			function cloneTiles(tiles: number[][]): number[][] {
 				var a = [];
 				for (var y = 0, yNum = tiles.length; y < yNum; ++y) {
 					a.push(tiles[y].slice(0));
 				}
 				return a;
+			}
+
+			function filterTiles(tiles: number[][], filter: (tile: number) => boolean): number[][] {
+				var a = [];
+				for (var y = 0, yNum = tiles.length; y < yNum; ++y) {
+					var b = tiles[y].slice(0);
+					for (var x = 0, xNum = tiles[y].length; x < xNum; ++x) {
+						var tile = b[x];
+						if (!filter(tile)) {
+							b[x] = -1;
+						}
+					}
+					a.push(b);
+				}
+				return a;
+			}
+
+			function filterNormalTiles(tiles: number[][]): number[][] {
+				return filterTiles(tiles, (tile: number) => {
+					return tile < DF.MAP_TILE_GROUND_MAX;
+				});
 			}
 
 			function eachTiles(tiles: number[][], func: (value: number, x: number, y: number, tiles: number[][]) => void) {
@@ -353,11 +375,11 @@ module jp.osakana4242.kimiko.scenes {
 			(() => {
 				// 1: レイヤーをクローンしてトビラを削除する.
 				// 2: 条件をみたしたらクローンしたレイヤーのトビラを復活させる.
-				
+
 				var mapWork: any = {};
-				mapWork.groundTilesOrig = mapData.layers[0].tiles;
+				mapWork.groundTilesOrig = filterNormalTiles(mapData.layers[0].tiles);
 				mapWork.groundTiles = cloneTiles(mapWork.groundTilesOrig);
-				this.mapWork = mapWork;
+				scene.mapWork = mapWork;
 			
 				var tiles = mapWork.groundTiles;
 				
@@ -387,10 +409,13 @@ module jp.osakana4242.kimiko.scenes {
 
 			// 敵, スタート地点.
 			(() => {
-				var mapCharaMgr: game.MapCharaManager = this.mapCharaMgr;
-				var layer = mapData.layers[1];
+				var mapCharaMgr: game.MapCharaManager = scene.mapCharaMgr;
 				var enemyIdx = 0;
-				eachTiles(layer.tiles, (charaId, x, y, tiles) => {
+				eachTiles(mapData.layers[0].tiles, loadChara);
+				if (2 <= mapData.layers.length) {
+					eachTiles(mapData.layers[1].tiles, loadChara);
+				}
+				function loadChara(charaId, x, y, tiles) {
 					if (charaId === -1) {
 						return;
 					}
@@ -398,7 +423,7 @@ module jp.osakana4242.kimiko.scenes {
 					var top = y * DF.MAP_TILE_H;
 
 					if (charaId === DF.MAP_TILE_PLAYER_POS) {
-						var player = this.player;
+						var player = scene.player;
 						player.x = left + (DF.MAP_TILE_W - player.width) / 2;
 						player.y = top + (DF.MAP_TILE_H - player.height);
 					} else if (DF.MAP_TILE_CHARA_MIN <= charaId) {
@@ -459,16 +484,16 @@ module jp.osakana4242.kimiko.scenes {
 						mapCharaMgr.addSleep(enemy);
 					}
 
-				});
+				};
 
 			})();
-			var camera = this.camera;
+			var camera = scene.camera;
 			camera.limitRect.x = 0;
 			camera.limitRect.y = 0;
 			camera.limitRect.width = map.width;
 			camera.limitRect.height = map.height;// + (DF.SC1_H / 2);
 			
-			var player = this.player;
+			var player = scene.player;
 			utils.Rect.copyFrom(player.limitRect, camera.limitRect);
 			player.startMap();
 
