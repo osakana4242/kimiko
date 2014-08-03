@@ -74,9 +74,27 @@
 		<canvas id="buffer" width="256" height="256"></canvas>
 		<canvas id="character" width="128" height="128"></canvas>
 		<p><label>テクスチャサイズ</label>
-			<select id="tex-width"><option value="128">128</option><option value="256" selected="">256</option><option value="512">512</option><option value="1024">1024</option></select>
+			<select id="tex-width">
+				<option value="32">32</option>
+				<option value="64">64</option>
+				<option value="128">128</option>
+				<option value="256" selected="">256</option>
+				<option value="512">512</option>
+				<option value="1024">1024</option>
+				<option value="2048">2048</option>
+				<option value="4096">4096</option>
+			</select>
 			x
-			<select id="tex-height"><option value="128">128</option><option value="256" selected="">256</option><option value="512">512</option><option value="1024">1024</option></select>
+			<select id="tex-height">
+				<option value="32">32</option>
+				<option value="64">64</option>
+				<option value="128">128</option>
+				<option value="256" selected="">256</option>
+				<option value="512">512</option>
+				<option value="1024">1024</option>
+				<option value="2048">2048</option>
+				<option value="4096">4096</option>
+			</select>
 		</p>
 		<p><label>フォント</label><input type="text" id="font" value="Quicksand"><input type="button" id="load" value="load"></p>
 		<p><label>テキスト</label><input type="text" id="text" value="0123456789abcdefghijklmnopqrstu"><input type="button" id="opt" value="重複文字の削除"></p>

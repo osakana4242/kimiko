@@ -21,6 +21,7 @@ module jp.osakana4242.kimiko.scenes {
 			
 			var scene = this;
 			var pd = g_app.playerData;
+			var lifeBonus = pd.hp * DF.SCORE_LIFE;
 			//
 			scene.fader = new Fader(scene);
 			//
@@ -53,8 +54,8 @@ module jp.osakana4242.kimiko.scenes {
 			})();
 			//
 			var label3 = (() => {
-				var label = new utils.SpriteLabel(g_app.fontS, "SCORE: " + pd.score);
-				var ax = (DF.SC1_W - label.width) / 2;
+				var label = new utils.SpriteLabel(g_app.fontS, "SCORE:");
+				var ax = (DF.SC1_W * 0.25 - label.width * 0.5);
 				var ay = 40 + 20 * 3;
 				label.x = ax;
 				label.y = ay - 8;
@@ -67,7 +68,21 @@ module jp.osakana4242.kimiko.scenes {
 			})();
 			//
 			var label4 = (() => {
-				var label = new utils.SpriteLabel(g_app.fontS, "DIFFICULTY: " + g_app.storage.getDifficultyName(g_app.storage.root.userConfig.difficulty));
+				var label = new utils.SpriteLabel(g_app.fontS, utils.NumberUtil.toPaddingString(pd.score, " ", 8));
+				var ax = (DF.SC1_W - label.width) / 2;
+				var ay = 40 + 20 * 3;
+				label.x = ax;
+				label.y = ay - 8;
+				label.opacity = 0;
+				label.tl.
+					delay(g_app.secToFrame(1.5)).
+					show().
+					moveTo(ax, ay, g_app.secToFrame(0.2), enchant.Easing.SIN_EASEOUT);
+				return label;
+			})();
+			//
+			var label5 = (() => {
+				var label = new utils.SpriteLabel(g_app.fontS, "LIFE BONUS: @x" + pd.hp + " = " + lifeBonus);
 				var ax = (DF.SC1_W - label.width) / 2;
 				var ay = 40 + 20 * 4;
 				label.x = ax;
@@ -76,14 +91,33 @@ module jp.osakana4242.kimiko.scenes {
 				label.tl.
 					delay(g_app.secToFrame(2.0)).
 					show().
+					moveTo(ax, ay, g_app.secToFrame(0.2), enchant.Easing.SIN_EASEOUT).
+					then(() => {
+						pd.score += lifeBonus;
+						label4.text = utils.NumberUtil.toPaddingString(pd.score, " ", 8);
+						//label3.x = (DF.SC1_W - label3.font.getTextWidth(label3.text)) / 2;
+					});
+				return label;
+			})();
+			//
+			var label6 = (() => {
+				var label = new utils.SpriteLabel(g_app.fontS, "DIFFICULTY: " + g_app.storage.getDifficultyName(g_app.storage.root.userConfig.difficulty));
+				var ax = (DF.SC1_W - label.width) / 2;
+				var ay = 40 + 20 * 5;
+				label.x = ax;
+				label.y = ay - 8;
+				label.opacity = 0;
+				label.tl.
+					delay(g_app.secToFrame(2.5)).
+					show().
 					moveTo(ax, ay, g_app.secToFrame(0.2), enchant.Easing.SIN_EASEOUT);
 				return label;
 			})();
 
-			var label5 = (() => {
+			var label7 = (() => {
 				var label = new utils.SpriteLabel(g_app.fontS, "TOUCH SCREEN");
 				var ax = (DF.SC1_W - label.width) / 2;
-				var ay = 40 + 20 * 6;
+				var ay = 40 + 20 * 7;
 				label.x = ax;
 				label.y = ay;
 				label.opacity = 0;
@@ -124,6 +158,8 @@ module jp.osakana4242.kimiko.scenes {
 			layer1.addChild(label3);
 			layer1.addChild(label4);
 			layer1.addChild(label5);
+			layer1.addChild(label6);
+			layer1.addChild(label7);
 			//
 			scene.addChild(curtainTop);
 			scene.addChild(curtainBottom);

@@ -16,17 +16,43 @@ module jp.osakana4242.utils {
 				1 :
 				-1;
 		}
+
+		export function toPaddingString(v: number, c: string, count: number) {
+			return StringUtil.addPadding(v.toString(), c, count);
+		}
 	}
 		
 	export module StringUtil {
-		/** 文字列を指定回数繰り返す.文字列に数値を掛け算. */
+		var _cacheThreshold = 16;
+		var _mulCache = {};
+
+		/** 文字列を指定回数繰り返す.文字列に数値を掛け算.
+			一部の計算結果はキャッシュする.
+		*/
 		export function mul(v: string, count: number): string {
-			var ret = "";
-			while (count !== 0) {
+			var ret = ((_cacheThreshold <= count) || !_mulCache[v])
+				? null
+				: _mulCache[v][count] || null;
+			if (ret) {
+				console.log("mul cache hit!");
+				return ret;
+			}
+			ret = "";
+
+			for (var i = count -1; 0 <= i; --i) {
 				ret += v;
-				--count;
+			}
+
+			if (count < _cacheThreshold) {
+				_mulCache[v] =  _mulCache[v] || {};
+				_mulCache[v][count] = ret;
 			}
 			return ret;
+		}
+
+		export function addPadding(v: string, c: string, count: number) {
+			var cc = StringUtil.mul(c, count);
+			return (cc + v).slice(-cc.length);
 		}
 
 	}

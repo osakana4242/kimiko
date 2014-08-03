@@ -89,6 +89,8 @@ module jp.osakana4242.kimiko {
 		export var PLAYER_HP = 3;
 		// 最大連射数.
 		export var PLAYER_BULLET_NUM = 1;
+		/** ライフ一つ分のスコアボーナス */
+		export var SCORE_LIFE = 300;
 
 		export var FONT_M: string = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
 		export var FONT_L: string = '24px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
@@ -153,7 +155,7 @@ module jp.osakana4242.kimiko {
 			},
 			203: {
 				"title": "station",
-				"backgroundColor": "rgb(32,196,255)",
+				"backgroundColor": "rgb(196,128,32)",
 				// ドアなし.
 				"nextMapId": 204,
 				"exitType": "door",

@@ -12,20 +12,46 @@
                     return (0 <= v) ? 1 : -1;
                 }
                 NumberUtil.sign = sign;
+
+                function toPaddingString(v, c, count) {
+                    return StringUtil.addPadding(v.toString(), c, count);
+                }
+                NumberUtil.toPaddingString = toPaddingString;
             })(utils.NumberUtil || (utils.NumberUtil = {}));
             var NumberUtil = utils.NumberUtil;
 
             (function (StringUtil) {
-                /** 文字列を指定回数繰り返す.文字列に数値を掛け算. */
+                var _cacheThreshold = 16;
+                var _mulCache = {};
+
+                /** 文字列を指定回数繰り返す.文字列に数値を掛け算.
+                一部の計算結果はキャッシュする.
+                */
                 function mul(v, count) {
-                    var ret = "";
-                    while (count !== 0) {
+                    var ret = ((_cacheThreshold <= count) || !_mulCache[v]) ? null : _mulCache[v][count] || null;
+                    if (ret) {
+                        console.log("mul cache hit!");
+                        return ret;
+                    }
+                    ret = "";
+
+                    for (var i = count - 1; 0 <= i; --i) {
                         ret += v;
-                        --count;
+                    }
+
+                    if (count < _cacheThreshold) {
+                        _mulCache[v] = _mulCache[v] || {};
+                        _mulCache[v][count] = ret;
                     }
                     return ret;
                 }
                 StringUtil.mul = mul;
+
+                function addPadding(v, c, count) {
+                    var cc = StringUtil.mul(c, count);
+                    return (cc + v).slice(-cc.length);
+                }
+                StringUtil.addPadding = addPadding;
             })(utils.StringUtil || (utils.StringUtil = {}));
             var StringUtil = utils.StringUtil;
 
@@ -915,6 +941,9 @@ var jp;
                 // 最大連射数.
                 DF.PLAYER_BULLET_NUM = 1;
 
+                /** ライフ一つ分のスコアボーナス */
+                DF.SCORE_LIFE = 300;
+
                 DF.FONT_M = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
                 DF.FONT_L = '24px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
 
@@ -979,7 +1008,7 @@ var jp;
                     },
                     203: {
                         "title": "station",
-                        "backgroundColor": "rgb(32,196,255)",
+                        "backgroundColor": "rgb(196,128,32)",
                         // ドアなし.
                         "nextMapId": 204,
                         "exitType": "door"
@@ -1586,7 +1615,7 @@ var jp;
                         kimiko.g_app.testHud = new kimiko.TestHud();
                         kimiko.g_app.gameScene = new jp.osakana4242.kimiko.scenes.Game();
                         kimiko.g_app.pauseScene = new jp.osakana4242.kimiko.scenes.Pause();
-                        if (true) {
+                        if (false) {
                             var scene = new jp.osakana4242.kimiko.scenes.Title();
                             core.replaceScene(scene);
                         } else {
@@ -4920,6 +4949,7 @@ var jp;
 
                         var scene = this;
                         var pd = g_app.playerData;
+                        var lifeBonus = pd.hp * jp.osakana4242.kimiko.DF.SCORE_LIFE;
 
                         //
                         scene.fader = new jp.osakana4242.kimiko.scenes.Fader(scene);
@@ -4949,8 +4979,8 @@ var jp;
 
                         //
                         var label3 = (function () {
-                            var label = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "SCORE: " + pd.score);
-                            var ax = (jp.osakana4242.kimiko.DF.SC1_W - label.width) / 2;
+                            var label = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "SCORE:");
+                            var ax = (jp.osakana4242.kimiko.DF.SC1_W * 0.25 - label.width * 0.5);
                             var ay = 40 + 20 * 3;
                             label.x = ax;
                             label.y = ay - 8;
@@ -4961,20 +4991,48 @@ var jp;
 
                         //
                         var label4 = (function () {
-                            var label = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "DIFFICULTY: " + g_app.storage.getDifficultyName(g_app.storage.root.userConfig.difficulty));
+                            var label = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, jp.osakana4242.utils.NumberUtil.toPaddingString(pd.score, " ", 8));
+                            var ax = (jp.osakana4242.kimiko.DF.SC1_W - label.width) / 2;
+                            var ay = 40 + 20 * 3;
+                            label.x = ax;
+                            label.y = ay - 8;
+                            label.opacity = 0;
+                            label.tl.delay(g_app.secToFrame(1.5)).show().moveTo(ax, ay, g_app.secToFrame(0.2), enchant.Easing.SIN_EASEOUT);
+                            return label;
+                        })();
+
+                        //
+                        var label5 = (function () {
+                            var label = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "LIFE BONUS: @x" + pd.hp + " = " + lifeBonus);
                             var ax = (jp.osakana4242.kimiko.DF.SC1_W - label.width) / 2;
                             var ay = 40 + 20 * 4;
                             label.x = ax;
                             label.y = ay - 8;
                             label.opacity = 0;
-                            label.tl.delay(g_app.secToFrame(2.0)).show().moveTo(ax, ay, g_app.secToFrame(0.2), enchant.Easing.SIN_EASEOUT);
+                            label.tl.delay(g_app.secToFrame(2.0)).show().moveTo(ax, ay, g_app.secToFrame(0.2), enchant.Easing.SIN_EASEOUT).then(function () {
+                                pd.score += lifeBonus;
+                                label4.text = jp.osakana4242.utils.NumberUtil.toPaddingString(pd.score, " ", 8);
+                                //label3.x = (DF.SC1_W - label3.font.getTextWidth(label3.text)) / 2;
+                            });
                             return label;
                         })();
 
-                        var label5 = (function () {
+                        //
+                        var label6 = (function () {
+                            var label = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "DIFFICULTY: " + g_app.storage.getDifficultyName(g_app.storage.root.userConfig.difficulty));
+                            var ax = (jp.osakana4242.kimiko.DF.SC1_W - label.width) / 2;
+                            var ay = 40 + 20 * 5;
+                            label.x = ax;
+                            label.y = ay - 8;
+                            label.opacity = 0;
+                            label.tl.delay(g_app.secToFrame(2.5)).show().moveTo(ax, ay, g_app.secToFrame(0.2), enchant.Easing.SIN_EASEOUT);
+                            return label;
+                        })();
+
+                        var label7 = (function () {
                             var label = new jp.osakana4242.utils.SpriteLabel(g_app.fontS, "TOUCH SCREEN");
                             var ax = (jp.osakana4242.kimiko.DF.SC1_W - label.width) / 2;
-                            var ay = 40 + 20 * 6;
+                            var ay = 40 + 20 * 7;
                             label.x = ax;
                             label.y = ay;
                             label.opacity = 0;
@@ -5009,6 +5067,8 @@ var jp;
                         layer1.addChild(label3);
                         layer1.addChild(label4);
                         layer1.addChild(label5);
+                        layer1.addChild(label6);
+                        layer1.addChild(label7);
 
                         //
                         scene.addChild(curtainTop);
