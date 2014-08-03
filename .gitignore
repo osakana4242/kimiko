@@ -7,7 +7,21 @@
 *~
 *.swp
 
-# project
-/temp/*
-/tools/TSC.PID
+# proto
+/prj/proto/temp/*
+/prj/proto/tools/TSC.PID
+
+# kimiko
+/prj/kimiko/node_modules/
+/prj/kimiko/cocos/runtime/
+/prj/kimiko/cocos/tools/
+/prj/kimiko/cocos/frameworks/js-bindings/
+/prj/kimiko/cocos/frameworks/cocos2d-html5/
+/prj/kimiko/cocos/frameworks/runtime-src/proj.android/obj/
+/prj/kimiko/cocos/frameworks/runtime-src/proj.android/bin/
+/prj/kimiko/cocos/frameworks/runtime-src/proj.android/gen/
+/prj/kimiko/cocos/frameworks/runtime-src/proj.android/libs/
+/prj/kimiko/cocos/frameworks/runtime-src/proj.android/assets/
+/prj/kimiko/cocos/frameworks/runtime-src/proj.android/local.properties
+/prj/kimiko/cocos/frameworks/runtime-src/proj.ios_mac/build/
 

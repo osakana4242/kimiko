@@ -1,0 +1,60 @@
+﻿* _super(); は ctor, onEnter で呼ぶ必要がある. super のコンストラクタを余分じゃなくて、superの同名関数を呼ぶみたい.
+* ios だと cc.getDesignResolutionSize が無い
+* cc.XXX 系統は new すると怒られる. cc.XXX.create を使う.
+
+やること
+	* サウンド.
+	* デバッグメニュー.
+	* マップチップ.
+	* localStorage
+		cc.sys.localStorage
+		http://www.cocos2d-x.org/forums/20/topics/46277
+		http://befool.co.jp/blog/8823-scholar/cocos2d-x-study-009-save-variables-to-local-strage/
+
+テキストスプライトの初期サイズ.
+	空文字で初期化すると、width, height ともに 0 になる.
+	スペースでもいれておけばいい.
+	var label = cc.LabelBMFont.create("", res.font_fnt);
+	label.width => 0
+	label.height => 0
+	cc.LabelBMFont.create("a", res.font_fnt);
+
+カラーは RGB だけ指定するとアルファが 0 になって表示されない.
+
+HTML5だと動くけど、iosだと動かないハマりメモ
+	jsb 上だと Node.pause メソッドを使用しても update が停止しない？
+		未解決
+
+	Invalid Native Object
+		cc.Node内のcppのインスタンスが勝手に破棄される.
+		retain, release で破棄されるのを防止.
+
+	TiledMapが読み込めない
+		TiledMap -> gzip じゃないとダメ.
+		http://tristore.net/?p=155
+
+h2. ios でのコンパイル＆実行
+
+次のコマンドでフルコンパイル&実行
+$ cocos run -p ios
+
+js更新のみの場合は次の操作でOK.
+* xxx.app にjsファイルをコピー
+* 次のコマンドを実行
+$ /Applications/cocos2d-js-v3.0-beta/tools/cocos2d-console/bin/../plugins/project_run/bin/ios-sim launch /Users/osakana4242/prj/hello_cocos_js_003/cocos/runtime/ios/cocos2d-x-v3.0beta.app
+
+h2. 便利系
+cc.pDistance
+cc.pDistanceSQ Point同士の距離を取得. Unity の sqrDistance と一緒.
+
+
+h2. android
+-r は上書きオプション
+adb install -r *.apk
+
+h2. FPS出ない問題.
+SH-07E FPS30までしか出ない？
+GALAXY S2 だと FPS60 余裕で出た.
+
+
+

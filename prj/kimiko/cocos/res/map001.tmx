@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="20" height="20" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="map" tilewidth="32" tileheight="32">
+  <image source="map.png" trans="ff00ff" width="256" height="256"/>
+  <terraintypes>
+   <terrain name="新しい地形" tile="-1"/>
+  </terraintypes>
+ </tileset>
+ <layer name="ground" width="20" height="20">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAA2NkYGBgpDKmBmCisnkMo+bR1DwmApgU8wiZhctMermPXDBq3vAyT5FI8wilNVzyMPOIzQ+EMLXLeRAGADyeTiNABgAA
+  </data>
+ </layer>
+ <layer name="chara" width="20" height="20">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAA2NgGAWjYBQMFWA00A7AAwaz2wgBzYF2wBAFAH32iVdABgAA
+  </data>
+ </layer>
+</map>
