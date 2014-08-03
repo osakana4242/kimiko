@@ -211,7 +211,7 @@ module jp.osakana4242.kimiko {
 				g_app.testHud = new TestHud();
 				g_app.gameScene = new jp.osakana4242.kimiko.scenes.Game();
 				g_app.pauseScene = new jp.osakana4242.kimiko.scenes.Pause();
-				if (false) {
+				if (true) {
 					var scene = new jp.osakana4242.kimiko.scenes.Title();
 					core.replaceScene(scene);
 				} else {
