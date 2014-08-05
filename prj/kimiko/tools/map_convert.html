@@ -1,0 +1,118 @@
+<html>
+	<body>
+		<style>
+			#btn {
+				background-color: #0f0;
+				color: #fff;
+				border-radius: 8px;
+				padding: 4px;
+				margin: 4px;
+				display: inline-block;
+			}
+			#srcText, #outText {
+				width: 80em;
+				height: 10em;
+			}
+		</style>
+		<a id="btn">submit</a>
+		<textarea id="srcText">
+		</textarea>
+		<textarea id="outText"></textarea>
+
+		<script>
+
+			var DF = {};
+			DF.MAP_TILE_EMPTY = 0;
+			DF.MAP_TILE_COLLISION_MIN = 1;
+			DF.MAP_TILE_COLLISION_MAX = 16;
+			DF.MAP_TILE_GROUND_MAX = 40;
+			DF.MAP_TILE_PLAYER_POS = 41;
+			DF.MAP_TILE_DOOR_OPEN = 33;
+			DF.MAP_TILE_DOOR_CLOSE = 0;
+			DF.MAP_TILE_CHARA_MIN = 49;
+
+			window.btn.addEventListener("click", function () {
+				console.log("click");
+				var src = JSON.parse(window.srcText.value);
+				var out = {
+					"width": src.width,
+					"height": src.height,
+					"layers": [
+						{
+							"name": "ground",
+							"data": [],
+							"opacity":1,
+							"type":"tilelayer",
+							"visible":true,
+							"width": src.width,
+							"height": src.height,
+							"x":0,
+							"y":0
+						},
+						{
+							"name": "chara",
+							"data": [],
+							"opacity":1,
+							"type":"tilelayer",
+							"visible":true,
+							"width": src.width,
+							"height": src.height,
+							"x":0,
+							"y":0
+						},
+					],
+
+					"orientation":"orthogonal",
+					"properties": {},
+					"tilesets":[
+						{
+						 "firstgid":1,
+						 "image":"./map.png",
+						 "imageheight":256,
+						 "imagewidth":256,
+						 "margin":0,
+						 "name":"map",
+						 "properties":
+								{
+
+								},
+						 "spacing":0,
+						 "terrains":[
+										{
+										 "name":"\u65b0\u3057\u3044\u5730\u5f62",
+										 "tile":-1
+										}],
+						 "tileheight":32,
+						 "tilewidth":32,
+						 "transparentcolor":"#ff00ff"
+						}],
+					"tilewidth":32,
+					"tileheight":32,
+					"version":1,
+				};
+
+				for (var layerI = 0, layerCnt = src.layers.length; layerI < layerCnt; ++layerI) {
+					var layer = src.layers[layerI];
+					var tiles = layer.tiles;
+					for (var y = 0, yCnt = src.height; y < yCnt; ++y) {
+						for (var x = 0, xCnt = src.width; x < xCnt; ++x) {
+							var tile = tiles[y][x] + 1;
+							var isGround = ( DF.MAP_TILE_EMPTY <= tile && tile <= DF.MAP_TILE_GROUND_MAX ) ||
+								DF.MAP_TILE_DOOR_OPEN === tile ||
+								DF.MAP_TILE_DOOR_CLOSE === tile;
+							var idx = y * src.width + x;
+							if (!out.layers[0].data[idx]) {
+								out.layers[0].data[idx] = (isGround ? tile : 0   );
+							}
+							if (!out.layers[1].data[idx]) {
+								out.layers[1].data[idx] = (isGround ? 0    : tile);
+							}
+						}
+					}
+				}
+
+				window.outText.value = JSON.stringify(out);
+			});
+		</script>
+	</body>
+</html>
