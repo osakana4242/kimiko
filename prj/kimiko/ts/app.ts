@@ -284,7 +284,7 @@ var ActScene = cc.Scene.extend( {
 		this.designRect2.color = cc.color( 0x00, 0xff, 0x00, 0x80 );
 		this.centerNode2.addChild( this.designRect2 );
 
-		this.map = cc.TMXTiledMap.create( res.map001_tmx );
+		this.map = cc.TMXTiledMap.create( res.map101_tmx );
 		aaa.topNode.addChild( this.map );
 
 		this.label1 = cc.LabelBMFont.create( "ActScene", res.font_fnt );

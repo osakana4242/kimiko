@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="20" height="80" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="map" tilewidth="32" tileheight="32">
+  <image source="map.png" trans="ff00ff" width="256" height="256"/>
+  <terraintypes>
+   <terrain name="�������Ϸ�" tile="-1"/>
+  </terraintypes>
+ </tileset>
+ <layer name="ground" width="20" height="80">
+  <data encoding="base64" compression="zlib">
+   eJztmEELwjAMhccuHt3NXf3/f1IHG0hJXt5LOrTqg1Bcu68xScPoNP2WZsE23XZrdTybjTlv3wthCm+z5WlXMLK8g4lYi8GzYubNoTh7/08Rw1N8QfNn+TcaT4mpWgOeH9G8wlXPW8TN7I/WZ+OVzRfj56tWgrka5s2jvZDYGFZ52XwhXkWj86rx6sFr61JhWT0O+adqRB4TF+Yda47pWVVeVAMtz+pvrKH6y+iT66WSD5TnLM/Lc8uraAQeqj81nj36M8vLsEbIx9m86FyhtWw+WZZVf5meXMnvN/P+5y3mofrL8NrfypnL8lhutj5681CfeKd/kVge891nrc34E8Uz22N6cdp32bypfSXbC5A/3t2v9dzjbrrvI3MHrFh0/6uOPVnLAP49ALHTED0=
+  </data>
+ </layer>
+ <layer name="chara" width="20" height="80">
+  <data encoding="base64" compression="zlib">
+   eJzt10EKgCAQBdC5TuuiErv/uWpRm1BJ7TsO/gfRpsaB72CJEIm4jGcPWBf53Ovewg6u769rA6/xWButQ/pm7QaMWLQbuCHy4h6wr/T87eHc7mW26D+hTEfNufY7NPS+r6wZq0v2pHJkxnrQ/4QUV7rvv2SGminOqj3MbEyTdgMEcwIxLQZ+
+  </data>
+ </layer>
+</map>

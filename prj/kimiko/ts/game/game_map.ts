@@ -27,7 +27,7 @@ module jp.osakana4242.kimiko.game {
 		public static create(): GameMap {
 			cc.log("GameMap.create");
 			var self = new GameMap();
-			self.map = cc.TMXTiledMap.create(res.map001_tmx);
+			self.map = cc.TMXTiledMap.create(res.map101_tmx);
 			if (!self.map) {
 				throw "map create failed?";
 			}

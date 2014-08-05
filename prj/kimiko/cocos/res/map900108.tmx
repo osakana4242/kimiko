@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="40" height="20" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="map" tilewidth="32" tileheight="32">
+  <image source="map.png" trans="ff00ff" width="256" height="256"/>
+  <terraintypes>
+   <terrain name="�������Ϸ�" tile="-1"/>
+  </terraintypes>
+ </tileset>
+ <layer name="ground" width="40" height="20">
+  <data encoding="base64" compression="zlib">
+   eJztk8EKACAIQ9X//+iuIalB4AY52OHdHtZURGyrDg83MjpWFJ3xe0vlh/rvLPvL9sjg49k7on0i9ne8uXdHsrc+FZFsLwx+pzD7RW5Mexn+kxcn0QO1
+  </data>
+ </layer>
+ <layer name="chara" width="40" height="20">
+  <data encoding="base64" compression="zlib">
+   eJxjYBgFo2D4AEsCfHoDYuynpxvJtYtcfZo0MpfWZo2CUUBvQIuyi175ixx7aJVfCZk70GUyKWZjUztazo2C4QIARl0Eng==
+  </data>
+ </layer>
+</map>

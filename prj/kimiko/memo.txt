@@ -3,6 +3,8 @@
 * cc.XXX 系統は new すると怒られる. cc.XXX.create を使う.
 
 やること
+	* cocos builder を使う
+かたづいた
 	* サウンド.
 	* デバッグメニュー.
 	* マップチップ.
@@ -11,15 +13,15 @@
 		http://www.cocos2d-x.org/forums/20/topics/46277
 		http://befool.co.jp/blog/8823-scholar/cocos2d-x-study-009-save-variables-to-local-strage/
 
-テキストスプライトの初期サイズ.
-	空文字で初期化すると、width, height ともに 0 になる.
-	スペースでもいれておけばいい.
-	var label = cc.LabelBMFont.create("", res.font_fnt);
-	label.width => 0
-	label.height => 0
-	cc.LabelBMFont.create("a", res.font_fnt);
-
-カラーは RGB だけ指定するとアルファが 0 になって表示されない.
+TIPS
+	テキストスプライトの初期サイズ.
+		空文字で初期化すると、width, height ともに 0 になる.
+		スペースでもいれておけばいい.
+		var label = cc.LabelBMFont.create("", res.font_fnt);
+		label.width => 0
+		label.height => 0
+		cc.LabelBMFont.create("a", res.font_fnt);
+	カラーは RGB だけ指定するとアルファが 0 になって表示されない.
 
 HTML5だと動くけど、iosだと動かないハマりメモ
 	jsb 上だと Node.pause メソッドを使用しても update が停止しない？

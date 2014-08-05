@@ -386,7 +386,7 @@ var ActScene = cc.Scene.extend({
         this.designRect2.color = cc.color(0x00, 0xff, 0x00, 0x80);
         this.centerNode2.addChild(this.designRect2);
 
-        this.map = cc.TMXTiledMap.create(res.map001_tmx);
+        this.map = cc.TMXTiledMap.create(res.map101_tmx);
         aaa.topNode.addChild(this.map);
 
         this.label1 = cc.LabelBMFont.create("ActScene", res.font_fnt);
@@ -1468,20 +1468,20 @@ var jp;
 
                 DF.MAP_OPTIONS = osakana4242.utils.ObjectUtil.makeObjectMapFromLabeldValues([
                     ["id", "resName", "title", "backgroundColor", "nextMapId", "exitType"],
-                    [101, "map001_tmx", "tutorial", "rgb(196,196,196)", 102, "door"],
-                    [102, "map001_tmx", "tutorial", "rgb(16,16,32)", 103, "door"],
-                    [103, "map001_tmx", "tutorial", "rgb(196,196,196)", 201, "door"],
-                    [201, "map001_tmx", "station", "rgb(32,196,255)", 202, "door"],
-                    [202, "map001_tmx", "station", "rgb(32,196,255)", 203, "door"],
-                    [203, "map001_tmx", "station", "rgb(196,128,32)", 204, "door"],
-                    [204, "map001_tmx", "boss", "rgb(196,32,32)", 0, "enemy_zero"],
-                    [900102, "map001_tmx", "trace", "rgb(32,32,32)", 0, "door"],
-                    [900106, "map001_tmx", "bunbun", "rgb(32,32,32)", 0, "door"],
-                    [900107, "map001_tmx", "hovering", "rgb(32,32,32)", 0, "door"],
-                    [900108, "map001_tmx", "horizontal move", "rgb(32,32,32)", 0, "door"],
-                    [900109, "map001_tmx", "horizontal trace", "rgb(32,32,32)", 0, "door"],
-                    [900201, "map001_tmx", "test", "rgb(32,32,32)", 0, "door"],
-                    [900202, "map001_tmx", "test", "rgb(32,32,32)", 0, "door"]
+                    [101, "map101_tmx", "tutorial", "rgb(196,196,196)", 102, "door"],
+                    [102, "map102_tmx", "tutorial", "rgb(16,16,32)", 103, "door"],
+                    [103, "map103_tmx", "tutorial", "rgb(196,196,196)", 201, "door"],
+                    [201, "map201_tmx", "station", "rgb(32,196,255)", 202, "door"],
+                    [202, "map202_tmx", "station", "rgb(32,196,255)", 203, "door"],
+                    [203, "map203_tmx", "station", "rgb(196,128,32)", 204, "door"],
+                    [204, "map204_tmx", "boss", "rgb(196,32,32)", 0, "enemy_zero"],
+                    [900102, "map900102_tmx", "trace", "rgb(32,32,32)", 0, "door"],
+                    [900106, "map900106_tmx", "bunbun", "rgb(32,32,32)", 0, "door"],
+                    [900107, "map900107_tmx", "hovering", "rgb(32,32,32)", 0, "door"],
+                    [900108, "map900108_tmx", "horizontal move", "rgb(32,32,32)", 0, "door"],
+                    [900109, "map900109_tmx", "horizontal trace", "rgb(32,32,32)", 0, "door"],
+                    [900201, "map900201_tmx", "test", "rgb(32,32,32)", 0, "door"],
+                    [900202, "map900202_tmx", "test", "rgb(32,32,32)", 0, "door"]
                 ], function (record) {
                     return record.id;
                 });
@@ -3193,7 +3193,7 @@ var jp;
                     GameMap.create = function () {
                         cc.log("GameMap.create");
                         var self = new GameMap();
-                        self.map = cc.TMXTiledMap.create(res.map001_tmx);
+                        self.map = cc.TMXTiledMap.create(res.map101_tmx);
                         if (!self.map) {
                             throw "map create failed?";
                         }
@@ -4236,7 +4236,20 @@ var res = {
     HelloWorld_png: "res/HelloWorld.png",
     CloseNormal_png: "res/CloseNormal.png",
     CloseSelected_png: "res/CloseSelected.png",
-    map001_tmx: "res/map001.tmx",
+    map101_tmx: "res/map101.tmx",
+    map102_tmx: "res/map102.tmx",
+    map103_tmx: "res/map103.tmx",
+    map201_tmx: "res/map201.tmx",
+    map202_tmx: "res/map202.tmx",
+    map203_tmx: "res/map203.tmx",
+    map204_tmx: "res/map204.tmx",
+    map900102_tmx: "res/map900102.tmx",
+    map900106_tmx: "res/map900106.tmx",
+    map900107_tmx: "res/map900107.tmx",
+    map900108_tmx: "res/map900108.tmx",
+    map900109_tmx: "res/map900109.tmx",
+    map900201_tmx: "res/map900201.tmx",
+    map900202_tmx: "res/map900202.tmx",
     font_png: "res/font.png",
     font_fnt: "res/font.fnt",
     game_start_bg_png: "res/game_start_bg.png",
@@ -5802,3 +5815,4 @@ var jp;
     })(jp.osakana4242 || (jp.osakana4242 = {}));
     var osakana4242 = jp.osakana4242;
 })(jp || (jp = {}));
+//# sourceMappingURL=app.js.map
