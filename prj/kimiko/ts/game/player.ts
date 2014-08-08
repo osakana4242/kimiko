@@ -472,7 +472,7 @@ module jp.osakana4242.kimiko.game {
 					cc.MoveBy.create(0.2, dx * 96 * 0.25, -96 * 0.2),
 					cc.MoveBy.create(0.3, dx * 96 * 0.25,  32 * 0.2),
 					cc.MoveBy.create(0.3, dx * 96 * 0.25,  32 * 0.8),
-					cc.Hide
+					cc.Hide.create()
 				));
 			},
 

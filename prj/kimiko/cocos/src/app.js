@@ -1375,6 +1375,18 @@ var jp;
             })(kimiko.Assets || (kimiko.Assets = {}));
             var Assets = kimiko.Assets;
 
+            (function (VecX) {
+                VecX.L = -1;
+                VecX.R = 1;
+            })(kimiko.VecX || (kimiko.VecX = {}));
+            var VecX = kimiko.VecX;
+
+            (function (VecY) {
+                VecY.U = 1;
+                VecY.D = -1;
+            })(kimiko.VecY || (kimiko.VecY = {}));
+            var VecY = kimiko.VecY;
+
             (function (DF) {
                 DF.IS_HIDDEN_DOOR = false;
 
@@ -1476,12 +1488,16 @@ var jp;
                     [203, "map203_tmx", "station", "rgb(196,128,32)", 204, "door"],
                     [204, "map204_tmx", "boss", "rgb(196,32,32)", 0, "enemy_zero"],
                     [900102, "map900102_tmx", "trace", "rgb(32,32,32)", 0, "door"],
+                    [900103, "map900103_tmx", "jump up", "rgb(32,32,32)", 0, "door"],
+                    [900104, "map900104_tmx", "jump down", "rgb(32,32,32)", 0, "door"],
+                    [900105, "map900105_tmx", "front back", "rgb(32,32,32)", 0, "door"],
                     [900106, "map900106_tmx", "bunbun", "rgb(32,32,32)", 0, "door"],
                     [900107, "map900107_tmx", "hovering", "rgb(32,32,32)", 0, "door"],
                     [900108, "map900108_tmx", "horizontal move", "rgb(32,32,32)", 0, "door"],
                     [900109, "map900109_tmx", "horizontal trace", "rgb(32,32,32)", 0, "door"],
                     [900201, "map900201_tmx", "test", "rgb(32,32,32)", 0, "door"],
-                    [900202, "map900202_tmx", "test", "rgb(32,32,32)", 0, "door"]
+                    [900202, "map900202_tmx", "test", "rgb(32,32,32)", 0, "door"],
+                    [900203, "map900203_tmx", "test", "rgb(32,32,32)", 0, "door"]
                 ], function (record) {
                     return record.id;
                 });
@@ -2638,14 +2654,11 @@ var jp;
                         var yMin = anchor.y + (32 * -8);
                         var yMax = anchor.y + (32 * 8);
                         var cnt = 0;
-                        function f1(e) {
-                            if (e) {
-                                return false;
-                            }
+                        function f1() {
                             var isNext = false;
                             var scene = cc.director.getRunningScene();
                             var player = scene.player;
-                            var dir = osakana4242.utils.Vector2D.alloc(kimiko.g_app.numberUtil.trim(player.center.x, xMin, xMax) - sprite.center.x, kimiko.g_app.numberUtil.trim(player.center.y, yMin, yMax) - sprite.center.y);
+                            var dir = osakana4242.utils.Vector2D.alloc(kimiko.g_app.numberUtil.trim(player.rect.center.x, xMin, xMax) - sprite.rect.center.x, kimiko.g_app.numberUtil.trim(player.rect.center.y, yMin, yMax) - sprite.rect.center.y);
                             var mag = osakana4242.utils.Vector2D.magnitude(dir);
 
                             var dist = 32 * 4;
@@ -2659,18 +2672,18 @@ var jp;
 
                                 sprite.lookAtPlayer();
 
-                                sprite.tl.moveTo(sprite.x + dir.x, sprite.y + dir.y, frame).then(function () {
+                                sprite.runAction(cc.Sequence.create(cc.MoveTo.create(kimiko.g_app.frameToSec(frame), cc.p(sprite.x + dir.x, sprite.y + dir.y)), cc.CallFunc.create(function () {
                                     if (2 <= sprite.enemyData.level) {
                                         sprite.weapon.lookAtPlayer();
                                         sprite.weapon.startFire();
                                     }
-                                }).delay(kimiko.g_app.secToFrame(0.5)).waitUntil(f1);
+                                }), cc.DelayTime.create(0.5), oskn.WaitUntil.create(f1)));
                                 isNext = true;
                             }
                             osakana4242.utils.Vector2D.free(dir);
                             return isNext;
                         }
-                        sprite.tl.waitUntil(f1);
+                        sprite.runAction(cc.Sequence.create(oskn.WaitUntil.create(f1)));
                     }
                     EnemyBrains.brain2 = brain2;
 
@@ -2678,16 +2691,16 @@ var jp;
                         var anchor = sprite.anchor;
                         sprite.weapon.fireFunc = game.WeaponA.fireA;
 
-                        sprite.tl.then(function () {
+                        sprite.runAction(cc.RepeatForever.create(cc.Sequence.create(cc.CallFunc.create(function () {
                             sprite.scaleX = -1;
-                        }).moveBy(-32 * 4 * 0.5, -32 * 3, kimiko.g_app.secToFrame(0.5)).moveBy(-32 * 4 * 0.5, 32 * 3, kimiko.g_app.secToFrame(0.5)).delay(kimiko.g_app.secToFrame(0.25)).then(function () {
+                        }), cc.MoveBy.create(0.5, cc.p(kimiko.VecX.L * 32 * 4 * 0.5, kimiko.VecY.U * 32 * 3)), cc.MoveBy.create(0.5, cc.p(kimiko.VecX.L * 32 * 4 * 0.5, kimiko.VecY.D * 32 * 3)), cc.DelayTime.create(0.25), cc.CallFunc.create(function () {
                             if (2 <= sprite.enemyData.level) {
                                 sprite.weapon.lookAtPlayer();
                                 sprite.weapon.startFire();
                             }
-                        }).then(function () {
+                        }), cc.CallFunc.create(function () {
                             sprite.scaleX = 1;
-                        }).moveBy(32 * 4 * 0.5, -32 * 3, kimiko.g_app.secToFrame(0.5)).moveBy(32 * 4 * 0.5, 32 * 3, kimiko.g_app.secToFrame(0.5)).delay(kimiko.g_app.secToFrame(0.25)).loop();
+                        }), cc.MoveBy.create(0.5, cc.p(kimiko.VecX.R * 32 * 4 * 0.5, kimiko.VecY.U * 32 * 3)), cc.MoveBy.create(0.5, cc.p(kimiko.VecX.R * 32 * 4 * 0.5, kimiko.VecY.D * 32 * 3)), cc.DelayTime.create(0.25))));
                     }
                     EnemyBrains.brain3 = brain3;
 
@@ -2696,23 +2709,23 @@ var jp;
                         var anchor = sprite.anchor;
                         sprite.weapon.fireFunc = game.WeaponA.fireA;
 
-                        sprite.tl.then(function () {
+                        sprite.runAction(cc.RepeatForever.create(cc.Sequence.create(cc.CallFunc.create(function () {
                             sprite.scaleX = -1;
-                        }).moveBy(-32 * 4 * 0.5, 32 * 3, kimiko.g_app.secToFrame(0.5)).moveBy(-32 * 4 * 0.5, -32 * 3, kimiko.g_app.secToFrame(0.5)).delay(kimiko.g_app.secToFrame(0.25)).then(function () {
+                        }), cc.MoveBy.create(0.5, cc.p(kimiko.VecX.L * 32 * 4 * 0.5, kimiko.VecY.D * 32 * 3)), cc.MoveBy.create(0.5, cc.p(kimiko.VecX.L * 32 * 4 * 0.5, kimiko.VecY.U * 32 * 3)), cc.DelayTime.create(0.25), cc.CallFunc.create(function () {
                             if (2 <= sprite.enemyData.level) {
                                 sprite.weapon.lookAtPlayer();
                                 sprite.weapon.startFire();
                             }
-                        }).then(function () {
+                        }), cc.CallFunc.create(function () {
                             sprite.scaleX = 1;
-                        }).moveBy(32 * 4 * 0.5, 32 * 3, kimiko.g_app.secToFrame(0.5)).moveBy(32 * 4 * 0.5, -32 * 3, kimiko.g_app.secToFrame(0.5)).delay(kimiko.g_app.secToFrame(0.25)).loop();
+                        }), cc.MoveBy.create(0.5, cc.p(kimiko.VecX.R * 32 * 4 * 0.5, kimiko.VecY.D * 32 * 3)), cc.MoveBy.create(0.5, cc.p(kimiko.VecX.R * 32 * 4 * 0.5, kimiko.VecY.U * 32 * 3)), cc.DelayTime.create(0.25))));
                     }
                     EnemyBrains.brain4 = brain4;
 
                     function brain5(sprite) {
                         var anchor = sprite.anchor;
                         var totalFrame = kimiko.g_app.secToFrame(8.0);
-                        sprite.tl.moveTo(anchor.x - 32 * 3 + sprite.width / 2, anchor.y, totalFrame * 0.5, Easing.LINEAR).moveTo(anchor.x + 0 + sprite.width / 2, anchor.y, totalFrame * 0.5, Easing.LINEAR).loop();
+                        sprite.runAction(cc.RepeatForever.create(cc.Sequence.create(cc.MoveTo.create(cc.p(anchor.x + kimiko.VecX.L * 32 * 3 + sprite.width / 2, anchor.y), 0.5), cc.MoveTo.create(cc.p(anchor.x + 0 + sprite.width / 2, anchor.y), 0.5))));
                     }
                     EnemyBrains.brain5 = brain5;
 
@@ -2728,10 +2741,7 @@ var jp;
                             }
                         };
 
-                        sprite.tl.then(function () {
-                            sprite.lookAtPlayer();
-                            sprite.tl.moveTo(anchor.x + 32 * -0.5, anchor.y + 32 * -0.5, kimiko.g_app.secToFrame(0.5)).moveTo(anchor.x + 32 * 0.5, anchor.y + 32 * -0.5, kimiko.g_app.secToFrame(0.5)).moveTo(anchor.x + 32 * -0.5, anchor.y + 32 * 0.5, kimiko.g_app.secToFrame(0.5)).moveTo(anchor.x + 32 * 0.0, anchor.y + 32 * 0.0, kimiko.g_app.secToFrame(0.5)).then(fire).moveTo(anchor.x + 32 * 0.5, anchor.y + 32 * 0.5, kimiko.g_app.secToFrame(0.5)).loop();
-                        });
+                        sprite.runAction(cc.RepeatForever.create(cc.Sequence.create(cc.MoveTo.create(cc.p(anchor.x + kimiko.VecX.L * 32 * 0.5, anchor.y + kimiko.VecY.U * 32 * 0.5), 0.5), cc.MoveTo.create(cc.p(anchor.x + kimiko.VecX.R * 32 * 0.5, anchor.y + kimiko.VecY.U * 32 * 0.5), 0.5), cc.MoveTo.create(cc.p(anchor.x + kimiko.VecX.L * 32 * 0.5, anchor.y + kimiko.VecY.D * 32 * 0.5), 0.5), cc.MoveTo.create(cc.p(anchor.x + kimiko.VecX.R * 32 * 0.0, anchor.y + kimiko.VecY.D * 32 * 0.0), 0.5), cc.CallFunc.create(fire), cc.MoveTo.create(cc.p(anchor.x + kimiko.VecX.R * 32 * 0.5, anchor.y + kimiko.VecY.D * 32 * 0.5), 0.5))));
                     }
                     EnemyBrains.brain6 = brain6;
 
@@ -2748,17 +2758,17 @@ var jp;
                         };
 
                         var totalFrame = kimiko.g_app.secToFrame(2.0);
-                        sprite.tl.then(sprite.lookAtPlayer).moveTo(anchor.x, anchor.y + 32 * 1, totalFrame * 0.5, Easing.LINEAR).then(fire).moveTo(anchor.x, anchor.y + 32 * -1, totalFrame * 0.5, Easing.LINEAR).then(fire).loop();
+                        sprite.runAction(cc.RepeatForever.create(cc.Sequence.create(cc.CallFunc.create(sprite.lookAtPlayer, sprite), cc.MoveTo.create(0.5, cc.p(anchor.x, anchor.y + 32 * kimiko.VecY.D)), cc.CallFunc.create(fire), cc.MoveTo.create(0.5, cc.p(anchor.x, anchor.y + 32 * kimiko.VecY.U)), cc.CallFunc.create(fire))));
                     }
                     EnemyBrains.brain7 = brain7;
 
                     function brain8(sprite) {
                         var anchor = sprite.anchor;
 
-                        sprite.tl.then(sprite.lookAtPlayer).delay(kimiko.g_app.secToFrame(0.5)).then(function () {
+                        sprite.runAction(cc.Sequence.create(cc.CallFunc.create(sprite.lookAtPlayer, sprite), cc.DelayTime.create(0.5), cc.CallFunc.create(function () {
                             var scene = cc.director.getRunningScene();
                             var player = scene.player;
-                            var dir = osakana4242.utils.Vector2D.alloc(player.center.x - sprite.center.x, player.center.y - sprite.center.y);
+                            var dir = osakana4242.utils.Vector2D.alloc(player.rect.center.x - sprite.rect.center.x, player.rect.center.y - sprite.rect.center.y);
                             var mag = osakana4242.utils.Vector2D.magnitude(dir);
                             var dist = 480;
                             var speed = kimiko.g_app.dpsToDpf(2 * kimiko.DF.BASE_FPS);
@@ -2768,12 +2778,12 @@ var jp;
 
                             sprite.lookAtPlayer();
 
-                            sprite.tl.moveBy(dir.x, dir.y, frame).then(function () {
+                            sprite.runAction(cc.Sequence.create(cc.MoveBy.create(kimiko.g_app.frameToSec(frame), cc.p(dir.x, dir.y)), cc.CallFunc.create(function () {
                                 sprite.life.kill();
-                            });
+                            })));
 
                             osakana4242.utils.Vector2D.free(dir);
-                        });
+                        })));
                     }
                     EnemyBrains.brain8 = brain8;
 
@@ -2789,7 +2799,7 @@ var jp;
                             var isNext = false;
                             var scene = cc.director.getRunningScene();
                             var player = scene.player;
-                            var dir = osakana4242.utils.Vector2D.alloc(kimiko.g_app.numberUtil.trim(player.center.x, xMin, xMax) - sprite.center.x, 0);
+                            var dir = osakana4242.utils.Vector2D.alloc(kimiko.g_app.numberUtil.trim(player.rect.center.x, xMin, xMax) - sprite.rect.center.x, 0);
                             var mag = osakana4242.utils.Vector2D.magnitude(dir);
                             if (mag < 4) {
                                 isNext = false;
@@ -2800,13 +2810,13 @@ var jp;
                                 dir.y = dir.y * dist / mag;
                                 var frame = (speed === 0) ? 1 : Math.max(Math.floor(dist / speed), 1);
                                 sprite.lookAtPlayer();
-                                sprite.tl.moveTo(sprite.x + dir.x, sprite.y + dir.y, frame).delay(kimiko.g_app.secToFrame(0.2)).waitUntil(f1);
+                                sprite.runAction(cc.Sequence.create(cc.MoveBy.create(kimiko.g_app.frameToSec(frame), cc.p(sprite.x + dir.x, sprite.y + dir.y)), cc.DelayTime.create(0.2), oskn.WaitUntil.create(f1)));
                                 isNext = true;
                             }
                             osakana4242.utils.Vector2D.free(dir);
                             return isNext;
                         }
-                        sprite.tl.waitUntil(f1);
+                        sprite.runAction(oskn.WaitUntil.create(f1));
                     }
                     EnemyBrains.brain9 = brain9;
 
@@ -4060,7 +4070,7 @@ var jp;
                         var t1x = sx + (-player.dirX * 96);
                         var t1y = sy - 64;
                         var dx = -player.dirX;
-                        player.runAction(cc.Sequence.create(cc.MoveBy.create(0.2, dx * 96 * 0.25, -96 * 0.8), cc.MoveBy.create(0.2, dx * 96 * 0.25, -96 * 0.2), cc.MoveBy.create(0.3, dx * 96 * 0.25, 32 * 0.2), cc.MoveBy.create(0.3, dx * 96 * 0.25, 32 * 0.8), cc.Hide));
+                        player.runAction(cc.Sequence.create(cc.MoveBy.create(0.2, dx * 96 * 0.25, -96 * 0.8), cc.MoveBy.create(0.2, dx * 96 * 0.25, -96 * 0.2), cc.MoveBy.create(0.3, dx * 96 * 0.25, 32 * 0.2), cc.MoveBy.create(0.3, dx * 96 * 0.25, 32 * 0.8), cc.Hide.create()));
                     }
                 });
             })(kimiko.game || (kimiko.game = {}));
@@ -4244,12 +4254,16 @@ var res = {
     map203_tmx: "res/map203.tmx",
     map204_tmx: "res/map204.tmx",
     map900102_tmx: "res/map900102.tmx",
+    map900103_tmx: "res/map900103.tmx",
+    map900104_tmx: "res/map900104.tmx",
+    map900105_tmx: "res/map900105.tmx",
     map900106_tmx: "res/map900106.tmx",
     map900107_tmx: "res/map900107.tmx",
     map900108_tmx: "res/map900108.tmx",
     map900109_tmx: "res/map900109.tmx",
     map900201_tmx: "res/map900201.tmx",
     map900202_tmx: "res/map900202.tmx",
+    map900203_tmx: "res/map900203.tmx",
     font_png: "res/font.png",
     font_fnt: "res/font.fnt",
     game_start_bg_png: "res/game_start_bg.png",
@@ -5237,7 +5251,7 @@ var jp;
                                     if (onIntersect) {
                                         onIntersect.call(spr, gid, x, y);
                                     }
-                                    if (gid === 0) {
+                                    if (!this.hitTest(layer, x, y)) {
                                         continue;
                                     }
 
@@ -5582,16 +5596,18 @@ var jp;
                         })();
 
                         var mapLabel = (function () {
-                            var spr = cc.LabelBMFont.create("", res.font_fnt);
+                            var spr = cc.LabelBMFont.create(" ", res.font_fnt);
                             spr.x = 0;
-                            spr.y = spr.height * -1;
+                            spr.y = spr.height * 1 * DF.UP;
+                            spr.textAlign = cc.TEXT_ALIGNMENT_CENTER;
                             return spr;
                         })();
 
                         var mapLabel2 = (function () {
-                            var spr = cc.LabelBMFont.create("", res.font_fnt);
+                            var spr = cc.LabelBMFont.create(" ", res.font_fnt);
                             spr.x = 0;
-                            spr.y = spr.height * 0;
+                            spr.y = spr.height * 0 * DF.UP;
+                            spr.textAlign = cc.TEXT_ALIGNMENT_CENTER;
                             return spr;
                         })();
 
@@ -5601,10 +5617,7 @@ var jp;
 
                         function updateMapLabel() {
                             var mapId = mapIds[mapIdsIdx];
-                            mapLabel2.text = getMapTitle(mapId);
-
-                            mapLabel.x = (DF.SC_W - mapLabel.width) / 2;
-                            mapLabel2.x = (DF.SC_W - mapLabel2.width) / 2;
+                            mapLabel2.string = getMapTitle(mapId);
                         }
                         updateMapLabel();
 
@@ -5815,4 +5828,3 @@ var jp;
     })(jp.osakana4242 || (jp.osakana4242 = {}));
     var osakana4242 = jp.osakana4242;
 })(jp || (jp = {}));
-//# sourceMappingURL=app.js.map

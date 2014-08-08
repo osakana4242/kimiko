@@ -25,6 +25,16 @@ module jp.osakana4242.kimiko {
 		export var SOUND_SE_SHOT =                "res/snd/se_shot.mp3";
 	}
 
+	export module VecX {
+		export var L = -1;
+		export var R =  1;
+	}
+
+	export module VecY {
+		export var U =  1;
+		export var D = -1;
+	}
+
 	export module DF {
 
 		/** ドアを隠すか. */
@@ -130,12 +140,16 @@ module jp.osakana4242.kimiko {
 				[ 203,    "map203_tmx",          "station",          "rgb(196,128,32)",  204,         "door",       ],
 				[ 204,    "map204_tmx",          "boss",             "rgb(196,32,32)",   0,           "enemy_zero", ],
 				[ 900102, "map900102_tmx",       "trace",            "rgb(32,32,32)",    0,           "door",       ],
+				[ 900103, "map900103_tmx",       "jump up",          "rgb(32,32,32)",    0,           "door",       ],
+				[ 900104, "map900104_tmx",       "jump down",        "rgb(32,32,32)",    0,           "door",       ],
+				[ 900105, "map900105_tmx",       "front back",       "rgb(32,32,32)",    0,           "door",       ],
 				[ 900106, "map900106_tmx",       "bunbun",           "rgb(32,32,32)",    0,           "door",       ],
 				[ 900107, "map900107_tmx",       "hovering",         "rgb(32,32,32)",    0,           "door",       ],
 				[ 900108, "map900108_tmx",       "horizontal move",  "rgb(32,32,32)",    0,           "door",       ],
 				[ 900109, "map900109_tmx",       "horizontal trace", "rgb(32,32,32)",    0,           "door",       ],
 				[ 900201, "map900201_tmx",       "test",             "rgb(32,32,32)",    0,           "door",       ],
 				[ 900202, "map900202_tmx",       "test",             "rgb(32,32,32)",    0,           "door",       ],
+				[ 900203, "map900203_tmx",       "test",             "rgb(32,32,32)",    0,           "door",       ],
 				], (record) => { return record.id; });
 
 		export var BIT_L = 1 << 0;

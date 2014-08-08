@@ -798,7 +798,7 @@ module jp.osakana4242.kimiko.scenes {
 						if (onIntersect) {
 							onIntersect.call(spr, gid, x, y);
 						}
-						if (gid === 0) {
+						if (!this.hitTest(layer, x, y)) {
 							continue;
 						}
 

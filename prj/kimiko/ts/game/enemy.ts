@@ -132,16 +132,13 @@ module jp.osakana4242.kimiko.game {
 			var yMin = anchor.y + (32 * -8);
 			var yMax = anchor.y + (32 *  8);
 			var cnt = 0;
-			function f1(e) {
-				if (e) {
-					return false;
-				}
+			function f1() {
 				var isNext = false;
 				var scene = cc.director.getRunningScene();
 				var player = scene.player;
 				var dir = utils.Vector2D.alloc(
-					g_app.numberUtil.trim(player.center.x, xMin, xMax) - sprite.center.x,
-					g_app.numberUtil.trim(player.center.y, yMin, yMax) - sprite.center.y
+					g_app.numberUtil.trim(player.rect.center.x, xMin, xMax) - sprite.rect.center.x,
+					g_app.numberUtil.trim(player.rect.center.y, yMin, yMax) - sprite.rect.center.y
 				);
 				var mag = utils.Vector2D.magnitude(dir);
 				// var dist = mag;
@@ -157,23 +154,25 @@ module jp.osakana4242.kimiko.game {
 
 					sprite.lookAtPlayer();
 					
-					sprite.tl.
-						moveTo(sprite.x + dir.x, sprite.y + dir.y, frame).
-						then(() => {
+					sprite.runAction(cc.Sequence.create(
+						cc.MoveTo.create(g_app.frameToSec(frame), cc.p(sprite.x + dir.x, sprite.y + dir.y)),
+						cc.CallFunc.create(function () {
 							if (2 <= sprite.enemyData.level) {
 								sprite.weapon.lookAtPlayer();
 								sprite.weapon.startFire();
 							}
-						}).
-						delay(g_app.secToFrame(0.5)).
-						waitUntil(f1);
+						}),
+						cc.DelayTime.create(0.5),
+						oskn.WaitUntil.create(f1)
+					));
 					isNext = true;
 				}
 				utils.Vector2D.free(dir);
 				return isNext;
 			}
-			sprite.tl.
-				waitUntil(f1);
+			sprite.runAction(cc.Sequence.create(
+				oskn.WaitUntil.create(f1)
+			));
 		}
 
 		/** 地上ジャンプ.*/
@@ -181,23 +180,27 @@ module jp.osakana4242.kimiko.game {
 			var anchor = sprite.anchor;
 			sprite.weapon.fireFunc = WeaponA.fireA;
 
-			sprite.tl.
-				then(() => { sprite.scaleX = -1; }).
-				moveBy( -32 * 4 * 0.5, -32 * 3, g_app.secToFrame( 0.5 ) ).
-				moveBy( -32 * 4 * 0.5,  32 * 3, g_app.secToFrame( 0.5 ) ).
-				delay( g_app.secToFrame( 0.25 ) ).
-				then(() => {
+			sprite.runAction(cc.RepeatForever.create(cc.Sequence.create(
+				cc.CallFunc.create(function () {
+					sprite.scaleX = -1;
+				}),
+				cc.MoveBy.create(0.5, cc.p(VecX.L * 32 * 4 * 0.5, VecY.U * 32 * 3)),
+				cc.MoveBy.create(0.5, cc.p(VecX.L * 32 * 4 * 0.5, VecY.D * 32 * 3)),
+				cc.DelayTime.create(0.25),
+				cc.CallFunc.create(function () {
 					if (2 <= sprite.enemyData.level) {
 						sprite.weapon.lookAtPlayer();
 						sprite.weapon.startFire();
 					}
-				}).
-				then(() => { sprite.scaleX = 1; }).
-				moveBy(  32 * 4 * 0.5, -32 * 3, g_app.secToFrame( 0.5 ) ).
-				moveBy(  32 * 4 * 0.5,  32 * 3, g_app.secToFrame( 0.5 ) ).
-				delay( g_app.secToFrame( 0.25 ) ).
-				loop();
-	}
+				}),
+				cc.CallFunc.create(function () {
+					sprite.scaleX = 1;
+				}),
+				cc.MoveBy.create(0.5, cc.p(VecX.R * 32 * 4 * 0.5, VecY.U * 32 * 3)),
+				cc.MoveBy.create(0.5, cc.p(VecX.R * 32 * 4 * 0.5, VecY.D * 32 * 3)),
+				cc.DelayTime.create(0.25)
+			)));
+		}
 
 		/** 天井ジャンプ. */
 		export function brain4(sprite: any): void {
@@ -205,32 +208,36 @@ module jp.osakana4242.kimiko.game {
 			var anchor = sprite.anchor;
 			sprite.weapon.fireFunc = WeaponA.fireA;
 
-			sprite.tl.
-				then(() => { sprite.scaleX = -1; }).
-				moveBy( -32 * 4 * 0.5,  32 * 3, g_app.secToFrame( 0.5 ) ).
-				moveBy( -32 * 4 * 0.5, -32 * 3, g_app.secToFrame( 0.5 ) ).
-				delay( g_app.secToFrame( 0.25 ) ).
-				then(() => {
+			sprite.runAction(cc.RepeatForever.create(cc.Sequence.create(
+				cc.CallFunc.create(function () {
+					sprite.scaleX = -1;
+				}),
+				cc.MoveBy.create(0.5, cc.p(VecX.L * 32 * 4 * 0.5, VecY.D * 32 * 3)),
+				cc.MoveBy.create(0.5, cc.p(VecX.L * 32 * 4 * 0.5, VecY.U * 32 * 3)),
+				cc.DelayTime.create(0.25),
+				cc.CallFunc.create(function () {
 					if (2 <= sprite.enemyData.level) {
 						sprite.weapon.lookAtPlayer();
 						sprite.weapon.startFire();
 					}
-				}).
-				then(() => { sprite.scaleX = 1; }).
-				moveBy(  32 * 4 * 0.5,  32 * 3, g_app.secToFrame( 0.5 ) ).
-				moveBy(  32 * 4 * 0.5, -32 * 3, g_app.secToFrame( 0.5 ) ).
-				delay( g_app.secToFrame( 0.25 ) ).
-				loop();
+				}),
+				cc.CallFunc.create(function () {
+					sprite.scaleX = 1;
+				}),
+				cc.MoveBy.create(0.5, cc.p(VecX.R * 32 * 4 * 0.5, VecY.D * 32 * 3)),
+				cc.MoveBy.create(0.5, cc.p(VecX.R * 32 * 4 * 0.5, VecY.U * 32 * 3)),
+				cc.DelayTime.create(0.25)
+			)));
 		}
 
 		/** うろつき. */
 		export function brain5(sprite: any): void {
 			var anchor = sprite.anchor;
 			var totalFrame = g_app.secToFrame(8.0);
-			sprite.tl.
-				moveTo(anchor.x - 32 * 3 + sprite.width / 2, anchor.y, totalFrame * 0.5, Easing.LINEAR).
-				moveTo(anchor.x + 0      + sprite.width / 2, anchor.y, totalFrame * 0.5, Easing.LINEAR).
-				loop();
+			sprite.runAction(cc.RepeatForever.create(cc.Sequence.create(
+				cc.MoveTo.create(cc.p(anchor.x + VecX.L * 32 * 3 + sprite.width / 2, anchor.y), 0.5),
+				cc.MoveTo.create(cc.p(anchor.x + 0               + sprite.width / 2, anchor.y), 0.5)
+			)));
 		}
 
 		/** ブンブン.*/
@@ -246,18 +253,14 @@ module jp.osakana4242.kimiko.game {
 				}
 			};
 
-			sprite.tl.
-				then(() => {
-					sprite.lookAtPlayer();
-					sprite.tl.
-						moveTo(anchor.x + 32 * -0.5, anchor.y + 32 * -0.5, g_app.secToFrame(0.5)).
-						moveTo(anchor.x + 32 *  0.5, anchor.y + 32 * -0.5, g_app.secToFrame(0.5)).
-						moveTo(anchor.x + 32 * -0.5, anchor.y + 32 *  0.5, g_app.secToFrame(0.5)).
-						moveTo(anchor.x + 32 *  0.0, anchor.y + 32 *  0.0, g_app.secToFrame(0.5)).
-						then(fire).
-						moveTo(anchor.x + 32 *  0.5, anchor.y + 32 *  0.5, g_app.secToFrame(0.5)).
-						loop();
-				});
+			sprite.runAction(cc.RepeatForever.create(cc.Sequence.create(
+				cc.MoveTo.create(cc.p(anchor.x + VecX.L * 32 * 0.5, anchor.y + VecY.U * 32 * 0.5), 0.5),
+				cc.MoveTo.create(cc.p(anchor.x + VecX.R * 32 * 0.5, anchor.y + VecY.U * 32 * 0.5), 0.5),
+				cc.MoveTo.create(cc.p(anchor.x + VecX.L * 32 * 0.5, anchor.y + VecY.D * 32 * 0.5), 0.5),
+				cc.MoveTo.create(cc.p(anchor.x + VecX.R * 32 * 0.0, anchor.y + VecY.D * 32 * 0.0), 0.5),
+				cc.CallFunc.create(fire),
+				cc.MoveTo.create(cc.p(anchor.x + VecX.R * 32 * 0.5, anchor.y + VecY.D * 32 * 0.5), 0.5)
+			)));
 		}
 
 		/** ホバリング.*/
@@ -274,28 +277,28 @@ module jp.osakana4242.kimiko.game {
 			};
 
 			var totalFrame = g_app.secToFrame(2.0);
-			sprite.tl.
-				then(sprite.lookAtPlayer).
-				moveTo(anchor.x, anchor.y + 32 *  1, totalFrame * 0.5, Easing.LINEAR).
-				then(fire).
-				moveTo(anchor.x, anchor.y + 32 * -1, totalFrame * 0.5, Easing.LINEAR).
-				then(fire).
-				loop();
+			sprite.runAction(cc.RepeatForever.create(cc.Sequence.create(
+				cc.CallFunc.create(sprite.lookAtPlayer, sprite),
+				cc.MoveTo.create(0.5, cc.p(anchor.x, anchor.y + 32 * VecY.D)),
+				cc.CallFunc.create(fire),
+				cc.MoveTo.create(0.5, cc.p(anchor.x, anchor.y + 32 * VecY.U)),
+				cc.CallFunc.create(fire)
+			)));
 		}
 
 		/** 水平突進.*/
 		export function brain8(sprite: any): void {
 			var anchor = sprite.anchor;
 
-			sprite.tl.
-				then(sprite.lookAtPlayer).
-				delay(g_app.secToFrame(0.5)).
-				then(function () {
+			sprite.runAction(cc.Sequence.create(
+				cc.CallFunc.create(sprite.lookAtPlayer, sprite),
+				cc.DelayTime.create(0.5),
+				cc.CallFunc.create(function () {
 					var scene = cc.director.getRunningScene();
 					var player = scene.player;
 					var dir = utils.Vector2D.alloc(
-						player.center.x - sprite.center.x,
-						player.center.y - sprite.center.y
+						player.rect.center.x - sprite.rect.center.x,
+						player.rect.center.y - sprite.rect.center.y
 					);
 					var mag = utils.Vector2D.magnitude(dir);
 					var dist = 480;
@@ -306,14 +309,17 @@ module jp.osakana4242.kimiko.game {
 
 					sprite.lookAtPlayer();
 					
-					sprite.tl.
-						moveBy(dir.x, dir.y, frame).
-						then(function () {
+					sprite.runAction(cc.Sequence.create(
+						cc.MoveBy.create(g_app.frameToSec(frame), cc.p(dir.x, dir.y)),
+						cc.CallFunc.create(function () {
 							sprite.life.kill();
-						});
+						})
+					));
 
 					utils.Vector2D.free(dir);
-				});
+				})
+			));
+
 		}
 
 		/** 水平追跡.*/
@@ -330,7 +336,7 @@ module jp.osakana4242.kimiko.game {
 				var scene = cc.director.getRunningScene();
 				var player = scene.player;
 				var dir = utils.Vector2D.alloc(
-					g_app.numberUtil.trim(player.center.x, xMin, xMax) - sprite.center.x,
+					g_app.numberUtil.trim(player.rect.center.x, xMin, xMax) - sprite.rect.center.x,
 					0
 				);
 				var mag = utils.Vector2D.magnitude(dir);
@@ -344,17 +350,17 @@ module jp.osakana4242.kimiko.game {
 					dir.y = dir.y * dist / mag;
 					var frame = (speed === 0) ? 1 : Math.max(Math.floor(dist / speed), 1);
 					sprite.lookAtPlayer();
-					sprite.tl.
-						moveTo(sprite.x + dir.x, sprite.y + dir.y, frame).
-						delay(g_app.secToFrame(0.2)).
-						waitUntil(f1);
+					sprite.runAction(cc.Sequence.create(
+						cc.MoveBy.create(g_app.frameToSec(frame), cc.p(sprite.x + dir.x, sprite.y + dir.y)),
+						cc.DelayTime.create(0.2),
+						oskn.WaitUntil.create(f1)
+					));
 					isNext = true;
 				}
 				utils.Vector2D.free(dir);
 				return isNext;
 			}
-			sprite.tl.
-				waitUntil(f1);
+			sprite.runAction(oskn.WaitUntil.create(f1));
 		}
 
 		// BOSS.

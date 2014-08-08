@@ -80,16 +80,18 @@ module jp.osakana4242.kimiko.scenes {
 			})();
 
 			var mapLabel = (() => {
-				var spr = cc.LabelBMFont.create("", res.font_fnt);
+				var spr = cc.LabelBMFont.create(" ", res.font_fnt);
 				spr.x = 0;
-				spr.y = spr.height * -1;
+				spr.y = spr.height * 1 * DF.UP;
+				spr.textAlign = cc.TEXT_ALIGNMENT_CENTER;
 				return spr;
 			})();
 			
 			var mapLabel2 = (() => {
-				var spr = cc.LabelBMFont.create("", res.font_fnt);
+				var spr = cc.LabelBMFont.create(" ", res.font_fnt);
 				spr.x = 0;
-				spr.y = spr.height * 0;
+				spr.y = spr.height * 0 * DF.UP;
+				spr.textAlign = cc.TEXT_ALIGNMENT_CENTER;
 				return spr;
 			})();
 
@@ -99,11 +101,8 @@ module jp.osakana4242.kimiko.scenes {
 
 			function updateMapLabel() {
 				var mapId = mapIds[mapIdsIdx];
-				mapLabel2.text = getMapTitle(mapId);
-				// mapLabel.text = DF.MAP_OPTIONS[mapId].title;
-
-				mapLabel.x = (DF.SC_W - mapLabel.width) / 2;
-				mapLabel2.x = (DF.SC_W - mapLabel2.width) / 2;
+				mapLabel2.string = getMapTitle(mapId);
+				// mapLabel.string = DF.MAP_OPTIONS[mapId].title;
 			}
 			updateMapLabel();
 
