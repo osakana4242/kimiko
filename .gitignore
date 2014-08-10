@@ -7,6 +7,12 @@
 *~
 *.swp
 
+# xcode
+/**/*.xcodeproj/*
+!/**/*.xcodeproj/project.pbxproj
+!/**/*.xcworkspace/contents.xcworkspacedata
+
+#
 /doc/local/
 
 # proto
@@ -26,4 +32,6 @@
 /prj/kimiko/cocos/frameworks/runtime-src/proj.android/assets/
 /prj/kimiko/cocos/frameworks/runtime-src/proj.android/local.properties
 /prj/kimiko/cocos/frameworks/runtime-src/proj.ios_mac/build/
+
+
 
