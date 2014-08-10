@@ -35,6 +35,8 @@ HTML5だと動くけど、iosだと動かないハマりメモ
 		TiledMap -> gzip じゃないとダメ.
 		http://tristore.net/?p=155
 
+	Label.string = "XXX" が効かない. Label.setString("XXX") ならOK.
+
 h2. ios でのコンパイル＆実行
 
 次のコマンドでフルコンパイル&実行
@@ -43,7 +45,7 @@ $ cocos run -p ios
 js更新のみの場合は次の操作でOK.
 * xxx.app にjsファイルをコピー
 * 次のコマンドを実行
-$ /Applications/cocos2d-js-v3.0-beta/tools/cocos2d-console/bin/../plugins/project_run/bin/ios-sim launch /Users/osakana4242/prj/hello_cocos_js_003/cocos/runtime/ios/cocos2d-x-v3.0beta.app
+$ $COCOS_CONSOLE_ROOT/../plugins/project_run/bin/ios-sim launch ~/prj/kimiko/prj/kimiko/cocos/runtime/ios/cocos2d-x-rc1.app
 
 h2. 便利系
 cc.pDistance

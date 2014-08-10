@@ -37,7 +37,7 @@ module.exports = function(grunt) {
 		},
 		copy : {
 				js : {
-					files : [{expand: true, cwd:'cocos/src/', src:'*.js', dest:'cocos/runtime/ios/cocos2d-x-v3.0beta.app/src/'}]
+					files : [{expand: true, cwd:'cocos/src/', src:'*.js', dest:'cocos/runtime/ios/cocos2d-x-rc1.app/src/'}]
 				},
 		}
 	});

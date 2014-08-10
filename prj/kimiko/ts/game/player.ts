@@ -468,10 +468,10 @@ module jp.osakana4242.kimiko.game {
 				var t1y = sy - 64;
 				var dx = - player.dirX;
 				player.runAction(cc.Sequence.create(
-					cc.MoveBy.create(0.2, dx * 96 * 0.25, -96 * 0.8), 
-					cc.MoveBy.create(0.2, dx * 96 * 0.25, -96 * 0.2),
-					cc.MoveBy.create(0.3, dx * 96 * 0.25,  32 * 0.2),
-					cc.MoveBy.create(0.3, dx * 96 * 0.25,  32 * 0.8),
+					cc.MoveBy.create(0.2, cc.p(dx * 96 * 0.25, -96 * 0.8)), 
+					cc.MoveBy.create(0.2, cc.p(dx * 96 * 0.25, -96 * 0.2)),
+					cc.MoveBy.create(0.3, cc.p(dx * 96 * 0.25,  32 * 0.2)),
+					cc.MoveBy.create(0.3, cc.p(dx * 96 * 0.25,  32 * 0.8)),
 					cc.Hide.create()
 				));
 			},

@@ -301,10 +301,6 @@ module jp.osakana4242.kimiko.scenes {
 			this.ownBulletPool.destroy();
 			this.enemyBulletPool.destroy();
 			this.effectPool.destroy();
-			this.gameLayer.stencil.release();
-			this.gameLayer.stencil = null;
-			this.gameLayer.removeFromParent();
-			this.gameLayer.release();
 		},
 
 		update: function (deltTime: number) {

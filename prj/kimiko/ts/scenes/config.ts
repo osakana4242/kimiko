@@ -73,6 +73,7 @@ module jp.osakana4242.kimiko.scenes {
 					"title": "FPS",
 					"func": (item: any, diff: number) => {
 						userConfig.fps = g_app.numberUtil.trim(userConfig.fps + (diff * 20), 20, 60);
+						cc.director.setAnimationInterval(1.0 / userConfig.fps);
 						item.valueLabel.setString(userConfig.fps);
 					},
 				},

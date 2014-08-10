@@ -235,8 +235,8 @@ module jp.osakana4242.kimiko.game {
 			var anchor = sprite.anchor;
 			var totalFrame = g_app.secToFrame(8.0);
 			sprite.runAction(cc.RepeatForever.create(cc.Sequence.create(
-				cc.MoveTo.create(cc.p(anchor.x + VecX.L * 32 * 3 + sprite.width / 2, anchor.y), 0.5),
-				cc.MoveTo.create(cc.p(anchor.x + 0               + sprite.width / 2, anchor.y), 0.5)
+				cc.MoveTo.create(0.5, cc.p(anchor.x + VecX.L * 32 * 3 + sprite.width / 2, anchor.y)),
+				cc.MoveTo.create(0.5, cc.p(anchor.x + 0               + sprite.width / 2, anchor.y))
 			)));
 		}
 
@@ -254,12 +254,12 @@ module jp.osakana4242.kimiko.game {
 			};
 
 			sprite.runAction(cc.RepeatForever.create(cc.Sequence.create(
-				cc.MoveTo.create(cc.p(anchor.x + VecX.L * 32 * 0.5, anchor.y + VecY.U * 32 * 0.5), 0.5),
-				cc.MoveTo.create(cc.p(anchor.x + VecX.R * 32 * 0.5, anchor.y + VecY.U * 32 * 0.5), 0.5),
-				cc.MoveTo.create(cc.p(anchor.x + VecX.L * 32 * 0.5, anchor.y + VecY.D * 32 * 0.5), 0.5),
-				cc.MoveTo.create(cc.p(anchor.x + VecX.R * 32 * 0.0, anchor.y + VecY.D * 32 * 0.0), 0.5),
+				cc.MoveTo.create(0.5, cc.p(anchor.x + VecX.L * 32 * 0.5, anchor.y + VecY.U * 32 * 0.5)),
+				cc.MoveTo.create(0.5, cc.p(anchor.x + VecX.R * 32 * 0.5, anchor.y + VecY.U * 32 * 0.5)),
+				cc.MoveTo.create(0.5, cc.p(anchor.x + VecX.L * 32 * 0.5, anchor.y + VecY.D * 32 * 0.5)),
+				cc.MoveTo.create(0.5, cc.p(anchor.x + VecX.R * 32 * 0.0, anchor.y + VecY.D * 32 * 0.0)),
 				cc.CallFunc.create(fire),
-				cc.MoveTo.create(cc.p(anchor.x + VecX.R * 32 * 0.5, anchor.y + VecY.D * 32 * 0.5), 0.5)
+				cc.MoveTo.create(0.5, cc.p(anchor.x + VecX.R * 32 * 0.5, anchor.y + VecY.D * 32 * 0.5))
 			)));
 		}
 

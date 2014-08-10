@@ -24,17 +24,21 @@ module jp.osakana4242.kimiko.scenes {
 			var scene = this;
 			var mapIds = [];
 
+			cc.log("isTestMapEnabled: " + g_app.config.isTestMapEnabled);
 			if (g_app.config.isTestMapEnabled) {
-			for (var key in DF.MAP_OPTIONS) {
+				for (var key in DF.MAP_OPTIONS) {
+					cc.log("map:" + key);
 					mapIds.push(parseInt(key));
 				}
 			} else {
 				for (var key in g_app.storage.root.userMaps) {
+					cc.log("map:" + key);
 					if ( DF.MAP_OPTIONS[key]) {
 						mapIds.push(parseInt(key));
 					}
 				}
 			}
+			mapIds.sort(function (a, b) { return a - b; });
 
 			var mapIdsIdx = 0;
 			
@@ -101,8 +105,7 @@ module jp.osakana4242.kimiko.scenes {
 
 			function updateMapLabel() {
 				var mapId = mapIds[mapIdsIdx];
-				mapLabel2.string = getMapTitle(mapId);
-				// mapLabel.string = DF.MAP_OPTIONS[mapId].title;
+				mapLabel2.setString(getMapTitle(mapId));
 			}
 			updateMapLabel();
 

@@ -2725,7 +2725,7 @@ var jp;
                     function brain5(sprite) {
                         var anchor = sprite.anchor;
                         var totalFrame = kimiko.g_app.secToFrame(8.0);
-                        sprite.runAction(cc.RepeatForever.create(cc.Sequence.create(cc.MoveTo.create(cc.p(anchor.x + kimiko.VecX.L * 32 * 3 + sprite.width / 2, anchor.y), 0.5), cc.MoveTo.create(cc.p(anchor.x + 0 + sprite.width / 2, anchor.y), 0.5))));
+                        sprite.runAction(cc.RepeatForever.create(cc.Sequence.create(cc.MoveTo.create(0.5, cc.p(anchor.x + kimiko.VecX.L * 32 * 3 + sprite.width / 2, anchor.y)), cc.MoveTo.create(0.5, cc.p(anchor.x + 0 + sprite.width / 2, anchor.y)))));
                     }
                     EnemyBrains.brain5 = brain5;
 
@@ -2741,7 +2741,7 @@ var jp;
                             }
                         };
 
-                        sprite.runAction(cc.RepeatForever.create(cc.Sequence.create(cc.MoveTo.create(cc.p(anchor.x + kimiko.VecX.L * 32 * 0.5, anchor.y + kimiko.VecY.U * 32 * 0.5), 0.5), cc.MoveTo.create(cc.p(anchor.x + kimiko.VecX.R * 32 * 0.5, anchor.y + kimiko.VecY.U * 32 * 0.5), 0.5), cc.MoveTo.create(cc.p(anchor.x + kimiko.VecX.L * 32 * 0.5, anchor.y + kimiko.VecY.D * 32 * 0.5), 0.5), cc.MoveTo.create(cc.p(anchor.x + kimiko.VecX.R * 32 * 0.0, anchor.y + kimiko.VecY.D * 32 * 0.0), 0.5), cc.CallFunc.create(fire), cc.MoveTo.create(cc.p(anchor.x + kimiko.VecX.R * 32 * 0.5, anchor.y + kimiko.VecY.D * 32 * 0.5), 0.5))));
+                        sprite.runAction(cc.RepeatForever.create(cc.Sequence.create(cc.MoveTo.create(0.5, cc.p(anchor.x + kimiko.VecX.L * 32 * 0.5, anchor.y + kimiko.VecY.U * 32 * 0.5)), cc.MoveTo.create(0.5, cc.p(anchor.x + kimiko.VecX.R * 32 * 0.5, anchor.y + kimiko.VecY.U * 32 * 0.5)), cc.MoveTo.create(0.5, cc.p(anchor.x + kimiko.VecX.L * 32 * 0.5, anchor.y + kimiko.VecY.D * 32 * 0.5)), cc.MoveTo.create(0.5, cc.p(anchor.x + kimiko.VecX.R * 32 * 0.0, anchor.y + kimiko.VecY.D * 32 * 0.0)), cc.CallFunc.create(fire), cc.MoveTo.create(0.5, cc.p(anchor.x + kimiko.VecX.R * 32 * 0.5, anchor.y + kimiko.VecY.D * 32 * 0.5)))));
                     }
                     EnemyBrains.brain6 = brain6;
 
@@ -4070,7 +4070,7 @@ var jp;
                         var t1x = sx + (-player.dirX * 96);
                         var t1y = sy - 64;
                         var dx = -player.dirX;
-                        player.runAction(cc.Sequence.create(cc.MoveBy.create(0.2, dx * 96 * 0.25, -96 * 0.8), cc.MoveBy.create(0.2, dx * 96 * 0.25, -96 * 0.2), cc.MoveBy.create(0.3, dx * 96 * 0.25, 32 * 0.2), cc.MoveBy.create(0.3, dx * 96 * 0.25, 32 * 0.8), cc.Hide.create()));
+                        player.runAction(cc.Sequence.create(cc.MoveBy.create(0.2, cc.p(dx * 96 * 0.25, -96 * 0.8)), cc.MoveBy.create(0.2, cc.p(dx * 96 * 0.25, -96 * 0.2)), cc.MoveBy.create(0.3, cc.p(dx * 96 * 0.25, 32 * 0.2)), cc.MoveBy.create(0.3, cc.p(dx * 96 * 0.25, 32 * 0.8)), cc.Hide.create()));
                     }
                 });
             })(kimiko.game || (kimiko.game = {}));
@@ -4367,6 +4367,7 @@ var jp;
                                 "title": "FPS",
                                 "func": function (item, diff) {
                                     userConfig.fps = g_app.numberUtil.trim(userConfig.fps + (diff * 20), 20, 60);
+                                    cc.director.setAnimationInterval(1.0 / userConfig.fps);
                                     item.valueLabel.setString(userConfig.fps);
                                 }
                             },
@@ -4890,10 +4891,6 @@ var jp;
                         this.ownBulletPool.destroy();
                         this.enemyBulletPool.destroy();
                         this.effectPool.destroy();
-                        this.gameLayer.stencil.release();
-                        this.gameLayer.stencil = null;
-                        this.gameLayer.removeFromParent();
-                        this.gameLayer.release();
                     },
                     update: function (deltTime) {
                         this.state();
@@ -5555,17 +5552,23 @@ var jp;
                         var scene = this;
                         var mapIds = [];
 
+                        cc.log("isTestMapEnabled: " + g_app.config.isTestMapEnabled);
                         if (g_app.config.isTestMapEnabled) {
                             for (var key in DF.MAP_OPTIONS) {
+                                cc.log("map:" + key);
                                 mapIds.push(parseInt(key));
                             }
                         } else {
                             for (var key in g_app.storage.root.userMaps) {
+                                cc.log("map:" + key);
                                 if (DF.MAP_OPTIONS[key]) {
                                     mapIds.push(parseInt(key));
                                 }
                             }
                         }
+                        mapIds.sort(function (a, b) {
+                            return a - b;
+                        });
 
                         var mapIdsIdx = 0;
 
@@ -5617,7 +5620,7 @@ var jp;
 
                         function updateMapLabel() {
                             var mapId = mapIds[mapIdsIdx];
-                            mapLabel2.string = getMapTitle(mapId);
+                            mapLabel2.setString(getMapTitle(mapId));
                         }
                         updateMapLabel();
 

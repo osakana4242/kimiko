@@ -21,6 +21,7 @@ cc.game.onStart = function(){
 	cc.game.config.frameRate = config.fps;
 //	cc.game.setFrameRate( config.fps );
 	// jp.osakana4242.kimiko.start(config);
+	cc.director.setAnimationInterval(1.0 / config.fps);
 
 	g_app.init(config);
 
