@@ -1,6 +1,11 @@
 ﻿* _super(); は ctor, onEnter で呼ぶ必要がある. super のコンストラクタを余分じゃなくて、superの同名関数を呼ぶみたい.
 * ios だと cc.getDesignResolutionSize が無い
 * cc.XXX 系統は new すると怒られる. cc.XXX.create を使う.
+* 物理演算はやっぱり固定フレームでやるべき？
+	* 衝突が絡む敵や弾などに cc.MoveTo とかアクション系の関数を使うのは間違いなのか
+	* update + deltaTime だと等加速の再現がムズイ
+
+
 
 やること
 	* cocos builder を使う
