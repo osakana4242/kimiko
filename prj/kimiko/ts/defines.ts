@@ -106,6 +106,11 @@ module jp.osakana4242.kimiko {
 		export var PLAYER_HP = 3;
 		// 最大連射数.
 		export var PLAYER_BULLET_NUM = 1;
+		/** アンカーからどれだけ移動したら振り向くか. */
+		export var PLAYER_TURN_CHANGE_THRESHOLD = 16;
+		/** アンカーからどれだけ移動したらしゃがむか. */
+		export var PLAYER_SQUAT_THRESHOLD = 16;
+
 		/** ライフ一つ分のスコアボーナス */
 		export var SCORE_LIFE = 300;
 

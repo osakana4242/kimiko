@@ -39,8 +39,8 @@ module jp.osakana4242.kimiko.game {
 
 			this.oldX = this.x;
 			this.oldY = this.y;
-			this.x += this.force.x;
-			this.y += this.force.y;
+			this.x += this.force.x * deltaTime;
+			this.y += this.force.y * deltaTime;
 			var scene = cc.director.getRunningScene();
 			var camera = scene.camera;
 			

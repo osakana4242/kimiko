@@ -230,22 +230,24 @@ module jp.osakana4242.kimiko.game {
 				}
 				g_app.sound.playSe(Assets.SOUND_SE_SHOT);
 				bullet.scaleX = this.scaleX;
-				bullet.force.x = this.dirX * g_app.dpsToDpf(6 * 60);
+				bullet.force.x = this.dirX * 6 * 60;
 				bullet.force.y = 0;
 				bullet.x = this.x + this.scaleX * (this.bodyStyle.muzzlePos.x - (this.width / 2));
 				bullet.y = this.y + this.scaleY * (this.bodyStyle.muzzlePos.y - (this.height / 2));
 			},
 			
 			updateBodyStyle: function () {
+				var scene = cc.director.getRunningScene();
+				var touch: utils.Touch = scene.touch;
 				// body style
 				var nextBodyStyle = this.bodyStyle;
 				if (this.life.isDead) {
 					nextBodyStyle = this.bodyStyles.dead;
-				} else if (0 < this.wallPushDir.y) {
+				} else if (0 < this.wallPushDir.y && DF.PLAYER_SQUAT_THRESHOLD < touch.totalDiff.y) {
 					// しゃがみ判定.
 					// 横の移動量が規定範囲内 + 接地した状態で地面方向に力がかかってる状態.
 					nextBodyStyle = this.bodyStyles.squat;
-				} else if (this.wallPushDir.y < 0) {
+				} else if (this.wallPushDir.y < 0 && touch.totalDiff.y < - DF.PLAYER_SQUAT_THRESHOLD) {
 					nextBodyStyle = this.bodyStyles.squat;
 					// nextBodyStyle = this.bodyStyles.stand;
 				} else if (!utils.Vector2D.equals(this.inputForce, utils.Vector2D.zero)) {
@@ -278,14 +280,23 @@ module jp.osakana4242.kimiko.game {
 
 			stepMove: function () {
 				var scene = cc.director.getRunningScene();
+				var deltaTime = cc.director.getDeltaTime();
 				this.oldX = this.x;
 				this.oldY = this.y;
 
 				if (!this.targetEnemy) {
-					if (0 !== this.inputForce.x) {
-						this.dirX = g_app.numberUtil.sign(this.inputForce.x);
-						this.scaleX = this.dirX;
-					}
+						var touch: utils.Touch = scene.touch;
+						if (touch.isTouching) {
+							if (DF.PLAYER_TURN_CHANGE_THRESHOLD < Math.abs(touch.totalDiff.x)) {
+								this.dirX = g_app.numberUtil.sign(touch.totalDiff.x);
+								this.scaleX = this.dirX;
+								//cc.log("this.dirX:" + this.dirX);
+							}
+						}
+//					if (0 !== this.inputForce.x) {
+//						this.dirX = g_app.numberUtil.sign(this.inputForce.x);
+//						this.scaleX = this.dirX;
+//					}
 				}
 				//
 				if (this.isSlowMove ||
@@ -296,14 +307,16 @@ module jp.osakana4242.kimiko.game {
 					//
 				}
 				if (0 < this.gravityHoldCounter) {
-					--this.gravityHoldCounter;
+					var old = this.gravityHoldCounter;
+					this.gravityHoldCounter -= deltaTime;
+					// cc.log("deltaTime:" + deltaTime + " hc: " + old + " -> " + this.gravityHoldCounter);
 				} else {
 					if (0 < this.scaleY) {
-						var gravityMin = - g_app.dpsToDpf(60 * 10)
-						this.force.y = Math.max(this.force.y - g_app.dpsToDpf(DF.GRAVITY), gravityMin);
+						var gravityMin = - 60 * 10 * deltaTime;
+						this.force.y = Math.max(this.force.y - DF.GRAVITY * deltaTime, gravityMin);
 					} else {
-						var gravityMax = g_app.dpsToDpf(60 * 10)
-						this.force.y = Math.min(this.force.y + g_app.dpsToDpf(DF.GRAVITY), gravityMax);
+						var gravityMax = 60 * 10 * deltaTime;
+						this.force.y = Math.min(this.force.y + DF.GRAVITY * deltaTime, gravityMax);
 					}
 				}
 	
@@ -455,7 +468,7 @@ module jp.osakana4242.kimiko.game {
 						player.inputForce.x = g_app.numberUtil.trim(touch.diff.x * moveRate.x, -moveLimit, moveLimit);
 						player.inputForce.y = g_app.numberUtil.trim(touch.diff.y * moveRate.y, -moveLimit, moveLimit);
 					}
-					this.gravityHoldCounter = g_app.secToFrame(DF.GRAVITY_HOLD_SEC);
+					this.gravityHoldCounter = DF.GRAVITY_HOLD_SEC;
 				}
 			},
 

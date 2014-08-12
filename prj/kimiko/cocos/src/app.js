@@ -1455,6 +1455,10 @@ var jp;
 
                 DF.PLAYER_BULLET_NUM = 1;
 
+                DF.PLAYER_TURN_CHANGE_THRESHOLD = 16;
+
+                DF.PLAYER_SQUAT_THRESHOLD = 16;
+
                 DF.SCORE_LIFE = 300;
 
                 DF.FONT_M = '12px Verdana,"ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","ＭＳ ゴシック","MS Gothic",monospace';
@@ -2465,7 +2469,8 @@ var jp;
                     update: function (deltaTime) {
                         var camera = this;
                         var tp = this.calcTargetPos();
-                        var speed = g_app.dpsToDpf(3 * 60);
+
+                        var speed = 3 * 60 * deltaTime;
                         var dv = osakana4242.utils.Vector2D.alloc(tp.x - camera.x, tp.y - camera.y);
                         var mv = osakana4242.utils.Vector2D.alloc();
                         var distance = osakana4242.utils.Vector2D.magnitude(dv);
@@ -3539,8 +3544,8 @@ var jp;
 
                         this.oldX = this.x;
                         this.oldY = this.y;
-                        this.x += this.force.x;
-                        this.y += this.force.y;
+                        this.x += this.force.x * deltaTime;
+                        this.y += this.force.y * deltaTime;
                         var scene = cc.director.getRunningScene();
                         var camera = scene.camera;
 
@@ -3880,18 +3885,21 @@ var jp;
                         }
                         g_app.sound.playSe(kimiko.Assets.SOUND_SE_SHOT);
                         bullet.scaleX = this.scaleX;
-                        bullet.force.x = this.dirX * g_app.dpsToDpf(6 * 60);
+                        bullet.force.x = this.dirX * 6 * 60;
                         bullet.force.y = 0;
                         bullet.x = this.x + this.scaleX * (this.bodyStyle.muzzlePos.x - (this.width / 2));
                         bullet.y = this.y + this.scaleY * (this.bodyStyle.muzzlePos.y - (this.height / 2));
                     },
                     updateBodyStyle: function () {
+                        var scene = cc.director.getRunningScene();
+                        var touch = scene.touch;
+
                         var nextBodyStyle = this.bodyStyle;
                         if (this.life.isDead) {
                             nextBodyStyle = this.bodyStyles.dead;
-                        } else if (0 < this.wallPushDir.y) {
+                        } else if (0 < this.wallPushDir.y && kimiko.DF.PLAYER_SQUAT_THRESHOLD < touch.totalDiff.y) {
                             nextBodyStyle = this.bodyStyles.squat;
-                        } else if (this.wallPushDir.y < 0) {
+                        } else if (this.wallPushDir.y < 0 && touch.totalDiff.y < -kimiko.DF.PLAYER_SQUAT_THRESHOLD) {
                             nextBodyStyle = this.bodyStyles.squat;
                         } else if (!osakana4242.utils.Vector2D.equals(this.inputForce, osakana4242.utils.Vector2D.zero)) {
                             if (this.bodyStyle === this.bodyStyles.squat) {
@@ -3921,13 +3929,17 @@ var jp;
                     },
                     stepMove: function () {
                         var scene = cc.director.getRunningScene();
+                        var deltaTime = cc.director.getDeltaTime();
                         this.oldX = this.x;
                         this.oldY = this.y;
 
                         if (!this.targetEnemy) {
-                            if (0 !== this.inputForce.x) {
-                                this.dirX = g_app.numberUtil.sign(this.inputForce.x);
-                                this.scaleX = this.dirX;
+                            var touch = scene.touch;
+                            if (touch.isTouching) {
+                                if (kimiko.DF.PLAYER_TURN_CHANGE_THRESHOLD < Math.abs(touch.totalDiff.x)) {
+                                    this.dirX = g_app.numberUtil.sign(touch.totalDiff.x);
+                                    this.scaleX = this.dirX;
+                                }
                             }
                         }
 
@@ -3937,14 +3949,15 @@ var jp;
                         } else {
                         }
                         if (0 < this.gravityHoldCounter) {
-                            --this.gravityHoldCounter;
+                            var old = this.gravityHoldCounter;
+                            this.gravityHoldCounter -= deltaTime;
                         } else {
                             if (0 < this.scaleY) {
-                                var gravityMin = -g_app.dpsToDpf(60 * 10);
-                                this.force.y = Math.max(this.force.y - g_app.dpsToDpf(kimiko.DF.GRAVITY), gravityMin);
+                                var gravityMin = -60 * 10 * deltaTime;
+                                this.force.y = Math.max(this.force.y - kimiko.DF.GRAVITY * deltaTime, gravityMin);
                             } else {
-                                var gravityMax = g_app.dpsToDpf(60 * 10);
-                                this.force.y = Math.min(this.force.y + g_app.dpsToDpf(kimiko.DF.GRAVITY), gravityMax);
+                                var gravityMax = 60 * 10 * deltaTime;
+                                this.force.y = Math.min(this.force.y + kimiko.DF.GRAVITY * deltaTime, gravityMax);
                             }
                         }
 
@@ -4060,7 +4073,7 @@ var jp;
                                 player.inputForce.x = g_app.numberUtil.trim(touch.diff.x * moveRate.x, -moveLimit, moveLimit);
                                 player.inputForce.y = g_app.numberUtil.trim(touch.diff.y * moveRate.y, -moveLimit, moveLimit);
                             }
-                            this.gravityHoldCounter = g_app.secToFrame(kimiko.DF.GRAVITY_HOLD_SEC);
+                            this.gravityHoldCounter = kimiko.DF.GRAVITY_HOLD_SEC;
                         }
                     },
                     onDead: function () {

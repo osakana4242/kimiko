@@ -12,8 +12,8 @@ cc.game.onStart = function(){
 	config.fps = cc.game.config.frameRate;
 	// タッチとマウスでドラッグによるキャラの移動距離を変える.
 	config.swipeToMoveRate = {
-		"x": env.isTouchEnabled ? 1.25 : 1.50,
-		"y": env.isTouchEnabled ? 1.50 : 1.75
+		"x": env.isTouchEnabled ? 1.0 : 1.50,
+		"y": env.isTouchEnabled ? 1.0 : 1.50
 	};
 	config.isSoundEnabled = env.isPc;
 	config.isSoundEnabled = false;
