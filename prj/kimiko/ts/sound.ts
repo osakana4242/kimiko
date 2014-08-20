@@ -98,18 +98,22 @@ module jp.osakana4242.kimiko {
 		};
 		private assetCache = {};
 		public soundInfos: { [index: string]: ISoundInfo; } = {};
+		private bgmName: string = "";
 
 		public playBgm(assetName: string, isReplay: boolean) {
 			if (!this.channels["bgm"].isEnabled) {
 				return;
 			}
-			cc.audioEngine.playMusic( assetName, true );
-			return;
-
-			var channel = this.channels["bgm"];
-			if (isReplay || !channel.isPlaying || channel.soundInfo.assetName !== assetName) {
-				this.play("bgm", assetName);
+			if (isReplay || !cc.audioEngine.isMusicPlaying() || this.bgmName !== assetName) {
+				this.bgmName = assetName;
+				cc.audioEngine.playMusic( assetName, true );
 			}
+//			return;
+//
+//			var channel = this.channels["bgm"];
+//			if (isReplay || !channel.isPlaying || channel.soundInfo.assetName !== assetName) {
+//				this.play("bgm", assetName);
+//			}
 		}
 
 		public stopBgm() {

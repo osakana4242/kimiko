@@ -333,7 +333,7 @@ module jp.osakana4242.kimiko.scenes {
 			scene.state = scene.stateNormal;
 			// scene.state = scene.ntateGameClear;
 
-			g_app.sound.playBgm(Assets.SOUND_BGM, false);
+			g_app.sound.playBgm(res[scene.mapOption.bgm], false);
 		},
 					
 		stateNormal: function () {

@@ -39,6 +39,8 @@ var res = {
 	map_png           : "res/map.png",
 
 	SND_BGM_02        : "res/snd/bgm_02.mp3",
+	snd_bgm_02_mp3    : "res/snd/bgm_02.mp3",
+	snd_bgm_03_mp3    : "res/snd/bgm_03.mp3",
 	SND_SE_OK         : "res/snd/se_ok.mp3",
 	SND_SE_CURSOR     : "res/snd/se_cursor.mp3",
 	SND_SE_HIT        : "res/snd/se_hit.mp3",
