@@ -26,9 +26,7 @@ module jp.osakana4242.kimiko.game {
 			var arr = this.actives;
 			for (var i = arr.length - 1; 0 <= i; --i) {
 				var chara = arr.pop();
-				if (chara.parentNode) {
-					chara.parentNode.removeChild(chara);
-				}
+				chara.removeFromParent(false);
 			}
 			this.actives.length = 0;
 			this.deads.length = 0;
@@ -91,9 +89,7 @@ module jp.osakana4242.kimiko.game {
 				}
 				arr.splice(i, 1);
 				this.sleeps.push(chara);
-				if (chara.parentNode) {
-					chara.parentNode.removeChild(chara);
-				}
+				chara.removeFromParent(false);
 			}
 		}
 	}
