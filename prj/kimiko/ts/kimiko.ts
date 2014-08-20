@@ -1,10 +1,10 @@
 ﻿
-/// <reference path="env.ts" />
+/// <reference path="Env.ts" />
 /// <reference path="utils.ts" />
 /// <reference path="defines.ts" />
-/// <reference path="player_data.ts" />
-/// <reference path="storage.ts" />
-/// <reference path="sound.ts" />
+/// <reference path="PlayerData.ts" />
+/// <reference path="Storage.ts" />
+/// <reference path="Sound.ts" />
 
 module jp.osakana4242.kimiko {
 	

@@ -1,13 +1,13 @@
 // references
 /// <reference path="../kimiko.ts" />
-/// <reference path="../fader.ts" />
-/// <reference path="../game/camera.ts" />
-/// <reference path="../game/life.ts" />
-/// <reference path="../game/weapon.ts" />
-/// <reference path="../game/own_bullet.ts" />
-/// <reference path="../game/enemy_bullet.ts" />
-/// <reference path="../game/enemy.ts" />
-/// <reference path="../game/player.ts" />
+/// <reference path="../Fader.ts" />
+/// <reference path="../game/Camera.ts" />
+/// <reference path="../game/Life.ts" />
+/// <reference path="../game/Weapon.ts" />
+/// <reference path="../game/OwnBullet.ts" />
+/// <reference path="../game/EnemyBullet.ts" />
+/// <reference path="../game/Enemy.ts" />
+/// <reference path="../game/Player.ts" />
 
 module jp.osakana4242.kimiko.scenes {
 

@@ -135,403 +135,30 @@ var oskn;
         }
     });
 })(oskn || (oskn = {}));
-var oskn;
-(function (oskn) {
-    var Conf = (function () {
-        function Conf() {
-            this.scdSize = {
-                width: 320,
-                height: 480
-            };
-        }
-        return Conf;
-    })();
-    oskn.Conf = Conf;
-    oskn.conf = new Conf();
-
-    var Plane = (function () {
-        function Plane() {
-        }
-        Plane.create = function (color, width, height) {
-            var self = cc.LayerColor.create(color, width, height);
-            self.ignoreAnchorPointForPosition(false);
-            return self;
-        };
-        return Plane;
-    })();
-    oskn.Plane = Plane;
-
-    var LabelWithBg = (function () {
-        function LabelWithBg() {
-        }
-        LabelWithBg.create = function (title, bgColor, width, height) {
-            var bg = Plane.create(bgColor, width, height);
-            var label = cc.LabelBMFont.create(title, res.font_fnt);
-            label.x = bg.width / 2;
-            label.y = bg.height / 2;
-            bg.addChild(label);
-            return bg;
-        };
-        return LabelWithBg;
-    })();
-    oskn.LabelWithBg = LabelWithBg;
-
-    var MenuItem = (function () {
-        function MenuItem() {
-        }
-        MenuItem.createByTitle = function (title, width, height, onClick, targetNode) {
-            var btnIdle = oskn.LabelWithBg.create("[" + title + "]", cc.color(0x60, 0x60, 0x60, 0xff), width, height);
-            var btnActive = oskn.LabelWithBg.create("[" + title + "]", cc.color(0x80, 0x80, 0x80, 0xff), width, height);
-            var btnDisabled = oskn.LabelWithBg.create(title, cc.color(0x60, 0x60, 0x60, 0xff), width, height);
-
-            btnActive.y = -2;
-
-            var item = cc.MenuItemSprite.create(btnIdle, btnActive, btnDisabled, onClick, targetNode);
-
-            item.attr({
-                x: 0,
-                y: 0,
-                anchorX: 0.5,
-                anchorY: 0.5
-            });
-            return item;
-        };
-        return MenuItem;
-    })();
-    oskn.MenuItem = MenuItem;
-
-    (function (WaitUntil) {
-        var funcs = {
-            isDone: function () {
-                return this._isWaitEnd;
-            },
-            execute: function () {
-                if (this._callFunc != null)
-                    this._isWaitEnd = this._callFunc.call(this._selectorTarget, this.target, this._data);
-                else if (this._function)
-                    this._isWaitEnd = this._function.call(null, this.target);
-            }
-        };
-
-        function create(selector, selectorTarget, data) {
-            var ret = cc.CallFunc.create(selector, selectorTarget, data);
-
-            ret._isWaitEnd = false;
-            for (var key in funcs) {
-                ret[key] = funcs[key];
-            }
-
-            return ret;
-        }
-        WaitUntil.create = create;
-    })(oskn.WaitUntil || (oskn.WaitUntil = {}));
-    var WaitUntil = oskn.WaitUntil;
-})(oskn || (oskn = {}));
-
-var oskn;
-(function (oskn) {
-    (function (ObjectUtils) {
-        function defineProperty(obj, name, props) {
-            props["enumerable"] = true;
-            props["configurable"] = true;
-            cc.log("defineProperty:" + JSON.stringify(props));
-            Object.defineProperty(obj, name, props);
-        }
-        ObjectUtils.defineProperty = defineProperty;
-
-        function defineProperties(obj, props) {
-            if (!props) {
-                return;
-            }
-            for (var key in props) {
-                if (!props.hasOwnProperty(key)) {
-                    continue;
+var jp;
+(function (jp) {
+    (function (osakana4242) {
+        (function (kimiko) {
+            var Env = (function () {
+                function Env() {
+                    var ua = "";
+                    this.userAgent = ua;
+                    this.isIos = ((ua.indexOf('iPhone') > 0 && ua.indexOf('iPad') === -1) || ua.indexOf('iPod') > 0);
+                    this.isAndroid = (ua.indexOf('Android') > 0);
+                    this.isSp = this.isIos || this.isAndroid;
+                    this.isPc = !this.isSp;
+                    this.isTouchEnabled = this.isSp;
+                    this.isSoundEnabled = this.isPc;
+                    cc.log("Env: " + JSON.stringify(this));
                 }
-                var p = props[key];
-                if (!p || (!p["get"] && !p["set"])) {
-                    continue;
-                }
-                oskn.ObjectUtils.defineProperty(obj, key, p);
-            }
-        }
-        ObjectUtils.defineProperties = defineProperties;
-    })(oskn.ObjectUtils || (oskn.ObjectUtils = {}));
-    var ObjectUtils = oskn.ObjectUtils;
-})(oskn || (oskn = {}));
-
-var oskn;
-(function (oskn) {
-    (function (NodeUtils) {
-        function visitNodes(node, visitor) {
-            var children = node.children;
-            for (var i = children.length - 1; 0 <= i; --i) {
-                oskn.NodeUtils.visitNodes(children[i], visitor);
-            }
-            visitor(node);
-        }
-        NodeUtils.visitNodes = visitNodes;
-    })(oskn.NodeUtils || (oskn.NodeUtils = {}));
-    var NodeUtils = oskn.NodeUtils;
-})(oskn || (oskn = {}));
-
-var oskn;
-(function (oskn) {
-    (function (nodes) {
-        function createRectClippingNode(x, y, w, h) {
-            if (false) {
-                var stencil = null;
-
-                if (false) {
-                    stencil = cc.LayerColor.create(cc.color(0xff, 0xff, 0xff, 0xff), w, h);
-                    stencil.setAnchorPoint(0.0, 0.0);
-                    stencil.x = x - w * 0.5;
-                    stencil.y = y - h * 0.5;
-                } else {
-                    stencil = cc.Sprite.create(res.clip_png);
-                    stencil.width = 128;
-                    stencil.height = 128;
-                    stencil.scaleX = w / stencil.width;
-                    stencil.scaleY = h / stencil.height;
-                }
-
-                var clip = cc.ClippingNode.create(stencil);
-
-                clip.setAlphaThreshold(0.1);
-
-                return clip;
-            } else {
-                return cc.Node.create();
-            }
-        }
-        nodes.createRectClippingNode = createRectClippingNode;
-    })(oskn.nodes || (oskn.nodes = {}));
-    var nodes = oskn.nodes;
-})(oskn || (oskn = {}));
-
-var hoge = {
-    nodeLog: function (node, name) {
-        var p = node.getPosition();
-        cc.log(JSON.stringify({
-            "name": name,
-            "position": p,
-            "world": node.parent ? node.parent.convertToWorldSpace(p) : node.convertToWorldSpace(p),
-            "contentSize": node.getContentSize()
-        }));
-    }
-};
-
-var TestScene = cc.Scene.extend({
-    onEnter: function () {
-        var _this = this;
-        this._super();
-        var scene = this;
-
-        var scdSize = oskn.conf.scdSize;
-
-        var aaa = this.aaa = new oskn.AspectAnchorAdjuster();
-        aaa.addToScene(scene);
-
-        var clip = oskn.nodes.createRectClippingNode(0, 0, 32, 32);
-        clip.inverted = true;
-        aaa.topNode.addChild(clip);
-
-        this.label1 = cc.LabelBMFont.create("TitleScene", res.font_fnt);
-        this.label1.y = (scdSize.height - this.label1.height) / 2;
-        clip.addChild(this.label1);
-
-        this.designRect = cc.LayerColor.create();
-        this.designRect.setContentSize(scdSize);
-        this.designRect.ignoreAnchorPointForPosition(false);
-        this.designRect.color = cc.color(0xff, 0x00, 0x00, 0xff);
-        aaa.centerNode.addChild(this.designRect);
-
-        this.designRect2 = cc.LayerColor.create();
-        this.designRect2.setContentSize({ width: 240, height: 240 });
-        this.designRect2.ignoreAnchorPointForPosition(false);
-        this.designRect2.color = cc.color(0x00, 0xff, 0x00, 0x80);
-        aaa.centerNode.addChild(this.designRect2);
-
-        this.menu = (function () {
-            var closeItem = oskn.MenuItem.createByTitle("next", 120, 48, function () {
-                cc.log("Menu is clicked!");
-                cc.director.runScene(new ActScene());
-            }, _this);
-            closeItem.y = (240 - closeItem.height) / 2;
-
-            var menu = cc.Menu.create(closeItem);
-            menu.x = 0;
-            menu.y = 0;
-
-            return menu;
-        })();
-        aaa.centerNode.addChild(this.menu);
-
-        var listener = cc.EventListener.create({
-            event: cc.EventListener.TOUCH_ONE_BY_ONE,
-            swallowTouches: true,
-            onTouchBegan: function (touch, event) {
-            },
-            onTouchMoved: function (touch, event) {
-            },
-            onTouchEnded: function (touch, event) {
-            },
-            onTouchCancelled: function (touch, event) {
-            }
-        });
-
-        cc.eventManager.addListener(listener, scene);
-        aaa.adjustAnchor();
-        this.scheduleUpdate();
-    },
-    onExit: function () {
-    },
-    update: function () {
-        this.aaa.checkAspect();
-    }
-});
-
-var ActScene = cc.Scene.extend({
-    onEnter: function () {
-        var _this = this;
-        this._super();
-        var scene = this;
-
-        var scdSize = oskn.conf.scdSize;
-
-        this.centerNode2 = cc.Node.create();
-        this.addChild(this.centerNode2);
-
-        var aaa = this.aaa = new oskn.AspectAnchorAdjuster();
-        aaa.addToScene(scene);
-        aaa.addAnchor(this.centerNode2, "center");
-
-        this.designRect = cc.LayerColor.create();
-        this.designRect.setContentSize(scdSize);
-        this.designRect.ignoreAnchorPointForPosition(false);
-        this.designRect.color = cc.color(0xff, 0x00, 0x00);
-        aaa.topNode.addChild(this.designRect);
-
-        this.designRect2 = cc.LayerColor.create();
-        this.designRect2.setContentSize({ width: 240, height: 240 });
-        this.designRect2.ignoreAnchorPointForPosition(false);
-        this.designRect2.color = cc.color(0x00, 0xff, 0x00, 0x80);
-        this.centerNode2.addChild(this.designRect2);
-
-        this.map = cc.TMXTiledMap.create(res.map101_tmx);
-        aaa.topNode.addChild(this.map);
-
-        this.label1 = cc.LabelBMFont.create("ActScene", res.font_fnt);
-        this.label1.y = (scdSize.height - this.label1.height) / 2;
-        aaa.topNode.addChild(this.label1);
-
-        this.menu = (function () {
-            var closeItem = oskn.MenuItem.createByTitle("next", 120, 48, function () {
-                cc.log("Menu is clicked!");
-                cc.director.runScene(new TestScene());
-            }, _this);
-            closeItem.y = (240 - closeItem.height) / 2;
-
-            var menu = cc.Menu.create(closeItem);
-            menu.x = 0;
-            menu.y = 0;
-
-            return menu;
-        })();
-        this.centerNode2.addChild(this.menu);
-
-        var listener = cc.EventListener.create({
-            event: cc.EventListener.TOUCH_ONE_BY_ONE,
-            swallowTouches: true,
-            onTouchBegan: function (touch, event) {
-            },
-            onTouchMoved: function (touch, event) {
-            },
-            onTouchEnded: function (touch, event) {
-            },
-            onTouchCancelled: function (touch, event) {
-            }
-        });
-
-        cc.eventManager.addListener(listener, scene);
-        aaa.adjustAnchor();
-        this.scheduleUpdate();
-    },
-    onExit: function () {
-    },
-    update: function () {
-        this.aaa.checkAspect();
-    }
-});
-
-var HelloWorldLayer = cc.Layer.extend({
-    sprite: null,
-    ctor: function () {
-        this._super();
-
-        var size = cc.director.getWinSize();
-
-        var closeItem = cc.MenuItemImage.create(res.CloseNormal_png, res.CloseSelected_png, function () {
-            cc.log("Menu is clicked!");
-        }, this);
-        closeItem.attr({
-            x: size.width - 20,
-            y: 20,
-            anchorX: 0.5,
-            anchorY: 0.5
-        });
-
-        var menu = cc.Menu.create(closeItem);
-        menu.x = 0;
-        menu.y = 0;
-        this.addChild(menu, 1);
-
-        var helloLabel = cc.LabelTTF.create("Hello World", "Arial", 38);
-
-        helloLabel.x = size.width / 2;
-        helloLabel.y = 0;
-
-        this.addChild(helloLabel, 5);
-
-        this.sprite = cc.Sprite.create(res.HelloWorld_png);
-        this.sprite.attr({
-            x: size.width / 2,
-            y: size.height / 2,
-            scale: 0.5,
-            rotation: 180
-        });
-        this.addChild(this.sprite, 0);
-
-        var rotateToA = cc.RotateTo.create(2, 0);
-        var scaleToA = cc.ScaleTo.create(2, 1, 1);
-
-        this.sprite.runAction(cc.Sequence.create(rotateToA, scaleToA));
-        helloLabel.runAction(cc.Spawn.create(cc.MoveBy.create(2.5, cc.p(0, size.height - 40)), cc.TintTo.create(2.5, 255, 125, 0)));
-        return true;
-    }
-});
-
-var HelloWorldScene = cc.Scene.extend({
-    onEnter: function () {
-        this._super();
-
-        var wSize = cc.director.getWinSize();
-
-        var clippingNode = oskn.nodes.createRectClippingNode(0, 0, 320, 160);
-        clippingNode.setAnchorPoint(0.5, 0.5);
-        clippingNode.x = wSize.width * 0.5;
-        clippingNode.y = wSize.height * 0.5;
-
-        var layer = new HelloWorldLayer();
-        layer.x = -wSize.width * 0.5;
-        layer.y = -wSize.height * 0.5;
-
-        var node = cc.Node.create();
-        node.addChild(layer);
-
-        clippingNode.addChild(node);
-        this.addChild(clippingNode);
-    }
-});
+                return Env;
+            })();
+            kimiko.Env = Env;
+        })(osakana4242.kimiko || (osakana4242.kimiko = {}));
+        var kimiko = osakana4242.kimiko;
+    })(jp.osakana4242 || (jp.osakana4242 = {}));
+    var osakana4242 = jp.osakana4242;
+})(jp || (jp = {}));
 var jp;
 (function (jp) {
     (function (osakana4242) {
@@ -1579,30 +1206,6 @@ var jp;
     })(jp.osakana4242 || (jp.osakana4242 = {}));
     var osakana4242 = jp.osakana4242;
 })(jp || (jp = {}));
-var jp;
-(function (jp) {
-    (function (osakana4242) {
-        (function (kimiko) {
-            var Env = (function () {
-                function Env() {
-                    var ua = "";
-                    this.userAgent = ua;
-                    this.isIos = ((ua.indexOf('iPhone') > 0 && ua.indexOf('iPad') === -1) || ua.indexOf('iPod') > 0);
-                    this.isAndroid = (ua.indexOf('Android') > 0);
-                    this.isSp = this.isIos || this.isAndroid;
-                    this.isPc = !this.isSp;
-                    this.isTouchEnabled = this.isSp;
-                    this.isSoundEnabled = this.isPc;
-                    cc.log("Env: " + JSON.stringify(this));
-                }
-                return Env;
-            })();
-            kimiko.Env = Env;
-        })(osakana4242.kimiko || (osakana4242.kimiko = {}));
-        var kimiko = osakana4242.kimiko;
-    })(jp.osakana4242 || (jp.osakana4242 = {}));
-    var osakana4242 = jp.osakana4242;
-})(jp || (jp = {}));
 
 var jp;
 (function (jp) {
@@ -2441,6 +2044,513 @@ var jp;
     })(jp.osakana4242 || (jp.osakana4242 = {}));
     var osakana4242 = jp.osakana4242;
 })(jp || (jp = {}));
+var jp;
+(function (jp) {
+    (function (osakana4242) {
+        (function (kimiko) {
+            var g_app = jp.osakana4242.kimiko.g_app;
+            var DF = jp.osakana4242.kimiko.DF;
+
+            var SpriteLayouter = (function () {
+                function SpriteLayouter(parentNode) {
+                    this.sprites = {};
+                    this.scale = new osakana4242.utils.Vector2D(1.0, 1.0);
+                    this.node = cc.Node.create();
+                    parentNode.addChild(this.node);
+                }
+                SpriteLayouter.prototype.scalePosition = function (rect, origin, scale) {
+                    return rect;
+                };
+
+                SpriteLayouter.prototype.flipPosition = function (rect, origin, isFlipX, isFlipY) {
+                    return rect;
+                };
+
+                SpriteLayouter.prototype._transition = function (layoutName, isUseTl, scale) {
+                    cc.log("transition: " + layoutName);
+
+                    var rect = osakana4242.utils.Rect.alloc(0, 0, 320, 320);
+                    var sprRect = osakana4242.utils.Rect.alloc();
+
+                    var origin = rect.center;
+
+                    for (var i = 0, iNum = this.layout.length; i < iNum; ++i) {
+                        var l = this.layout[i];
+                        if (l.layoutName !== layoutName) {
+                            continue;
+                        }
+                        var spr = this.sprites[l.spriteName];
+                        if (!spr) {
+                            continue;
+                        }
+                        cc.log("spr:" + l.spriteName);
+
+                        sprRect.x = l.x;
+                        sprRect.y = l.y;
+                        sprRect.width = spr.width;
+                        sprRect.height = spr.height;
+                        this.scalePosition(sprRect, origin, scale);
+
+                        if (isUseTl) {
+                            var tl = [];
+                            if (0 < l.delay) {
+                                tl.push(cc.DelayTime.create(l.delay));
+                            }
+                            if (l.visible) {
+                                tl.push(cc.CallFunc.create(function () {
+                                    cc.log("move start. " + this.x + " " + this.y);
+                                    this.visible = true;
+                                }, spr));
+                            }
+                            tl.push(cc.MoveTo.create(0.2, sprRect));
+                            if (!l.visible) {
+                                tl.push(cc.CallFunc.create(function () {
+                                    this.visible = false;
+                                }, spr));
+                            }
+                            tl.push(cc.CallFunc.create(function () {
+                                cc.log("move ok. " + this.x + " " + this.y);
+                            }, spr));
+                            spr.runAction(cc.Sequence.create(tl));
+                        } else {
+                            spr.x = sprRect.x;
+                            spr.y = sprRect.y;
+                            spr.visible = l.visible;
+                        }
+                    }
+
+                    osakana4242.utils.Rect.free(rect);
+                    osakana4242.utils.Rect.free(sprRect);
+                };
+
+                SpriteLayouter.prototype.transition = function (layoutName, isUseTl) {
+                    var _this = this;
+                    var scale = new osakana4242.utils.Vector2D(this.scale.x, this.scale.y);
+                    if (!g_app.storage.root.userConfig.isUiRight) {
+                    }
+
+                    if (!isUseTl && this.node.getNumberOfRunningActions() <= 0) {
+                        this._transition(layoutName, isUseTl, scale);
+                        return;
+                    }
+
+                    this.node.runAction(cc.Sequence.create(cc.CallFunc.create(function () {
+                        _this._transition(layoutName, isUseTl, scale);
+                    }), oskn.WaitUntil.create(function () {
+                        for (var key in _this.sprites) {
+                            var spr = _this.sprites[key];
+                            if (0 < spr.getNumberOfRunningActions()) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    })));
+                };
+                return SpriteLayouter;
+            })();
+            kimiko.SpriteLayouter = SpriteLayouter;
+        })(osakana4242.kimiko || (osakana4242.kimiko = {}));
+        var kimiko = osakana4242.kimiko;
+    })(jp.osakana4242 || (jp.osakana4242 = {}));
+    var osakana4242 = jp.osakana4242;
+})(jp || (jp = {}));
+var oskn;
+(function (oskn) {
+    var Conf = (function () {
+        function Conf() {
+            this.scdSize = {
+                width: 320,
+                height: 480
+            };
+        }
+        return Conf;
+    })();
+    oskn.Conf = Conf;
+    oskn.conf = new Conf();
+
+    var Plane = (function () {
+        function Plane() {
+        }
+        Plane.create = function (color, width, height) {
+            var self = cc.LayerColor.create(color, width, height);
+            self.ignoreAnchorPointForPosition(false);
+            return self;
+        };
+        return Plane;
+    })();
+    oskn.Plane = Plane;
+
+    var LabelWithBg = (function () {
+        function LabelWithBg() {
+        }
+        LabelWithBg.create = function (title, bgColor, width, height) {
+            var bg = Plane.create(bgColor, width, height);
+            var label = cc.LabelBMFont.create(title, res.font_fnt);
+            label.x = bg.width / 2;
+            label.y = bg.height / 2;
+            bg.addChild(label);
+            return bg;
+        };
+        return LabelWithBg;
+    })();
+    oskn.LabelWithBg = LabelWithBg;
+
+    var MenuItem = (function () {
+        function MenuItem() {
+        }
+        MenuItem.createByTitle = function (title, width, height, onClick, targetNode) {
+            var btnIdle = oskn.LabelWithBg.create("[" + title + "]", cc.color(0x60, 0x60, 0x60, 0xff), width, height);
+            var btnActive = oskn.LabelWithBg.create("[" + title + "]", cc.color(0x80, 0x80, 0x80, 0xff), width, height);
+            var btnDisabled = oskn.LabelWithBg.create(title, cc.color(0x60, 0x60, 0x60, 0xff), width, height);
+
+            btnActive.y = -2;
+
+            var item = cc.MenuItemSprite.create(btnIdle, btnActive, btnDisabled, onClick, targetNode);
+
+            item.attr({
+                x: 0,
+                y: 0,
+                anchorX: 0.5,
+                anchorY: 0.5
+            });
+            return item;
+        };
+        return MenuItem;
+    })();
+    oskn.MenuItem = MenuItem;
+
+    (function (WaitUntil) {
+        var funcs = {
+            isDone: function () {
+                return this._isWaitEnd;
+            },
+            execute: function () {
+                if (this._callFunc != null)
+                    this._isWaitEnd = this._callFunc.call(this._selectorTarget, this.target, this._data);
+                else if (this._function)
+                    this._isWaitEnd = this._function.call(null, this.target);
+            }
+        };
+
+        function create(selector, selectorTarget, data) {
+            var ret = cc.CallFunc.create(selector, selectorTarget, data);
+
+            ret._isWaitEnd = false;
+            for (var key in funcs) {
+                ret[key] = funcs[key];
+            }
+
+            return ret;
+        }
+        WaitUntil.create = create;
+    })(oskn.WaitUntil || (oskn.WaitUntil = {}));
+    var WaitUntil = oskn.WaitUntil;
+})(oskn || (oskn = {}));
+
+var oskn;
+(function (oskn) {
+    (function (ObjectUtils) {
+        function defineProperty(obj, name, props) {
+            props["enumerable"] = true;
+            props["configurable"] = true;
+            cc.log("defineProperty:" + JSON.stringify(props));
+            Object.defineProperty(obj, name, props);
+        }
+        ObjectUtils.defineProperty = defineProperty;
+
+        function defineProperties(obj, props) {
+            if (!props) {
+                return;
+            }
+            for (var key in props) {
+                if (!props.hasOwnProperty(key)) {
+                    continue;
+                }
+                var p = props[key];
+                if (!p || (!p["get"] && !p["set"])) {
+                    continue;
+                }
+                oskn.ObjectUtils.defineProperty(obj, key, p);
+            }
+        }
+        ObjectUtils.defineProperties = defineProperties;
+    })(oskn.ObjectUtils || (oskn.ObjectUtils = {}));
+    var ObjectUtils = oskn.ObjectUtils;
+})(oskn || (oskn = {}));
+
+var oskn;
+(function (oskn) {
+    (function (NodeUtils) {
+        function visitNodes(node, visitor) {
+            var children = node.children;
+            for (var i = children.length - 1; 0 <= i; --i) {
+                oskn.NodeUtils.visitNodes(children[i], visitor);
+            }
+            visitor(node);
+        }
+        NodeUtils.visitNodes = visitNodes;
+    })(oskn.NodeUtils || (oskn.NodeUtils = {}));
+    var NodeUtils = oskn.NodeUtils;
+})(oskn || (oskn = {}));
+
+var oskn;
+(function (oskn) {
+    (function (nodes) {
+        function createRectClippingNode(x, y, w, h) {
+            if (false) {
+                var stencil = null;
+
+                if (false) {
+                    stencil = cc.LayerColor.create(cc.color(0xff, 0xff, 0xff, 0xff), w, h);
+                    stencil.setAnchorPoint(0.0, 0.0);
+                    stencil.x = x - w * 0.5;
+                    stencil.y = y - h * 0.5;
+                } else {
+                    stencil = cc.Sprite.create(res.clip_png);
+                    stencil.width = 128;
+                    stencil.height = 128;
+                    stencil.scaleX = w / stencil.width;
+                    stencil.scaleY = h / stencil.height;
+                }
+
+                var clip = cc.ClippingNode.create(stencil);
+
+                clip.setAlphaThreshold(0.1);
+
+                return clip;
+            } else {
+                return cc.Node.create();
+            }
+        }
+        nodes.createRectClippingNode = createRectClippingNode;
+    })(oskn.nodes || (oskn.nodes = {}));
+    var nodes = oskn.nodes;
+})(oskn || (oskn = {}));
+
+var hoge = {
+    nodeLog: function (node, name) {
+        var p = node.getPosition();
+        cc.log(JSON.stringify({
+            "name": name,
+            "position": p,
+            "world": node.parent ? node.parent.convertToWorldSpace(p) : node.convertToWorldSpace(p),
+            "contentSize": node.getContentSize()
+        }));
+    }
+};
+
+var TestScene = cc.Scene.extend({
+    onEnter: function () {
+        var _this = this;
+        this._super();
+        var scene = this;
+
+        var scdSize = oskn.conf.scdSize;
+
+        var aaa = this.aaa = new oskn.AspectAnchorAdjuster();
+        aaa.addToScene(scene);
+
+        var clip = oskn.nodes.createRectClippingNode(0, 0, 32, 32);
+        clip.inverted = true;
+        aaa.topNode.addChild(clip);
+
+        this.label1 = cc.LabelBMFont.create("TitleScene", res.font_fnt);
+        this.label1.y = (scdSize.height - this.label1.height) / 2;
+        clip.addChild(this.label1);
+
+        this.designRect = cc.LayerColor.create();
+        this.designRect.setContentSize(scdSize);
+        this.designRect.ignoreAnchorPointForPosition(false);
+        this.designRect.color = cc.color(0xff, 0x00, 0x00, 0xff);
+        aaa.centerNode.addChild(this.designRect);
+
+        this.designRect2 = cc.LayerColor.create();
+        this.designRect2.setContentSize({ width: 240, height: 240 });
+        this.designRect2.ignoreAnchorPointForPosition(false);
+        this.designRect2.color = cc.color(0x00, 0xff, 0x00, 0x80);
+        aaa.centerNode.addChild(this.designRect2);
+
+        this.menu = (function () {
+            var closeItem = oskn.MenuItem.createByTitle("next", 120, 48, function () {
+                cc.log("Menu is clicked!");
+                cc.director.runScene(new ActScene());
+            }, _this);
+            closeItem.y = (240 - closeItem.height) / 2;
+
+            var menu = cc.Menu.create(closeItem);
+            menu.x = 0;
+            menu.y = 0;
+
+            return menu;
+        })();
+        aaa.centerNode.addChild(this.menu);
+
+        var listener = cc.EventListener.create({
+            event: cc.EventListener.TOUCH_ONE_BY_ONE,
+            swallowTouches: true,
+            onTouchBegan: function (touch, event) {
+            },
+            onTouchMoved: function (touch, event) {
+            },
+            onTouchEnded: function (touch, event) {
+            },
+            onTouchCancelled: function (touch, event) {
+            }
+        });
+
+        cc.eventManager.addListener(listener, scene);
+        aaa.adjustAnchor();
+        this.scheduleUpdate();
+    },
+    onExit: function () {
+    },
+    update: function () {
+        this.aaa.checkAspect();
+    }
+});
+
+var ActScene = cc.Scene.extend({
+    onEnter: function () {
+        var _this = this;
+        this._super();
+        var scene = this;
+
+        var scdSize = oskn.conf.scdSize;
+
+        this.centerNode2 = cc.Node.create();
+        this.addChild(this.centerNode2);
+
+        var aaa = this.aaa = new oskn.AspectAnchorAdjuster();
+        aaa.addToScene(scene);
+        aaa.addAnchor(this.centerNode2, "center");
+
+        this.designRect = cc.LayerColor.create();
+        this.designRect.setContentSize(scdSize);
+        this.designRect.ignoreAnchorPointForPosition(false);
+        this.designRect.color = cc.color(0xff, 0x00, 0x00);
+        aaa.topNode.addChild(this.designRect);
+
+        this.designRect2 = cc.LayerColor.create();
+        this.designRect2.setContentSize({ width: 240, height: 240 });
+        this.designRect2.ignoreAnchorPointForPosition(false);
+        this.designRect2.color = cc.color(0x00, 0xff, 0x00, 0x80);
+        this.centerNode2.addChild(this.designRect2);
+
+        this.map = cc.TMXTiledMap.create(res.map101_tmx);
+        aaa.topNode.addChild(this.map);
+
+        this.label1 = cc.LabelBMFont.create("ActScene", res.font_fnt);
+        this.label1.y = (scdSize.height - this.label1.height) / 2;
+        aaa.topNode.addChild(this.label1);
+
+        this.menu = (function () {
+            var closeItem = oskn.MenuItem.createByTitle("next", 120, 48, function () {
+                cc.log("Menu is clicked!");
+                cc.director.runScene(new TestScene());
+            }, _this);
+            closeItem.y = (240 - closeItem.height) / 2;
+
+            var menu = cc.Menu.create(closeItem);
+            menu.x = 0;
+            menu.y = 0;
+
+            return menu;
+        })();
+        this.centerNode2.addChild(this.menu);
+
+        var listener = cc.EventListener.create({
+            event: cc.EventListener.TOUCH_ONE_BY_ONE,
+            swallowTouches: true,
+            onTouchBegan: function (touch, event) {
+            },
+            onTouchMoved: function (touch, event) {
+            },
+            onTouchEnded: function (touch, event) {
+            },
+            onTouchCancelled: function (touch, event) {
+            }
+        });
+
+        cc.eventManager.addListener(listener, scene);
+        aaa.adjustAnchor();
+        this.scheduleUpdate();
+    },
+    onExit: function () {
+    },
+    update: function () {
+        this.aaa.checkAspect();
+    }
+});
+
+var HelloWorldLayer = cc.Layer.extend({
+    sprite: null,
+    ctor: function () {
+        this._super();
+
+        var size = cc.director.getWinSize();
+
+        var closeItem = cc.MenuItemImage.create(res.CloseNormal_png, res.CloseSelected_png, function () {
+            cc.log("Menu is clicked!");
+        }, this);
+        closeItem.attr({
+            x: size.width - 20,
+            y: 20,
+            anchorX: 0.5,
+            anchorY: 0.5
+        });
+
+        var menu = cc.Menu.create(closeItem);
+        menu.x = 0;
+        menu.y = 0;
+        this.addChild(menu, 1);
+
+        var helloLabel = cc.LabelTTF.create("Hello World", "Arial", 38);
+
+        helloLabel.x = size.width / 2;
+        helloLabel.y = 0;
+
+        this.addChild(helloLabel, 5);
+
+        this.sprite = cc.Sprite.create(res.HelloWorld_png);
+        this.sprite.attr({
+            x: size.width / 2,
+            y: size.height / 2,
+            scale: 0.5,
+            rotation: 180
+        });
+        this.addChild(this.sprite, 0);
+
+        var rotateToA = cc.RotateTo.create(2, 0);
+        var scaleToA = cc.ScaleTo.create(2, 1, 1);
+
+        this.sprite.runAction(cc.Sequence.create(rotateToA, scaleToA));
+        helloLabel.runAction(cc.Spawn.create(cc.MoveBy.create(2.5, cc.p(0, size.height - 40)), cc.TintTo.create(2.5, 255, 125, 0)));
+        return true;
+    }
+});
+
+var HelloWorldScene = cc.Scene.extend({
+    onEnter: function () {
+        this._super();
+
+        var wSize = cc.director.getWinSize();
+
+        var clippingNode = oskn.nodes.createRectClippingNode(0, 0, 320, 160);
+        clippingNode.setAnchorPoint(0.5, 0.5);
+        clippingNode.x = wSize.width * 0.5;
+        clippingNode.y = wSize.height * 0.5;
+
+        var layer = new HelloWorldLayer();
+        layer.x = -wSize.width * 0.5;
+        layer.y = -wSize.height * 0.5;
+
+        var node = cc.Node.create();
+        node.addChild(layer);
+
+        clippingNode.addChild(node);
+        this.addChild(clippingNode);
+    }
+});
 var jp;
 (function (jp) {
     (function (osakana4242) {
@@ -3357,6 +3467,22 @@ var jp;
                 game.GameMapLayer = GameMapLayer;
             })(kimiko.game || (kimiko.game = {}));
             var game = kimiko.game;
+        })(osakana4242.kimiko || (osakana4242.kimiko = {}));
+        var kimiko = osakana4242.kimiko;
+    })(jp.osakana4242 || (jp.osakana4242 = {}));
+    var osakana4242 = jp.osakana4242;
+})(jp || (jp = {}));
+
+var jp;
+(function (jp) {
+    (function (osakana4242) {
+        (function (kimiko) {
+            (function (scenes) {
+                var g_app = jp.osakana4242.kimiko.g_app;
+
+                scenes.GameOver = cc.Scene.extend({});
+            })(kimiko.scenes || (kimiko.scenes = {}));
+            var scenes = kimiko.scenes;
         })(osakana4242.kimiko || (osakana4242.kimiko = {}));
         var kimiko = osakana4242.kimiko;
     })(jp.osakana4242 || (jp.osakana4242 = {}));
@@ -4702,6 +4828,38 @@ var jp;
     })(jp.osakana4242 || (jp.osakana4242 = {}));
     var osakana4242 = jp.osakana4242;
 })(jp || (jp = {}));
+
+var jp;
+(function (jp) {
+    (function (osakana4242) {
+        (function (kimiko) {
+            (function (scenes) {
+                var g_app = jp.osakana4242.kimiko.g_app;
+
+                scenes.GameClear = cc.Scene.extend({});
+            })(kimiko.scenes || (kimiko.scenes = {}));
+            var scenes = kimiko.scenes;
+        })(osakana4242.kimiko || (osakana4242.kimiko = {}));
+        var kimiko = osakana4242.kimiko;
+    })(jp.osakana4242 || (jp.osakana4242 = {}));
+    var osakana4242 = jp.osakana4242;
+})(jp || (jp = {}));
+
+var jp;
+(function (jp) {
+    (function (osakana4242) {
+        (function (kimiko) {
+            (function (scenes) {
+                var g_app = jp.osakana4242.kimiko.g_app;
+
+                scenes.GameEndMenu = cc.Scene.extend({});
+            })(kimiko.scenes || (kimiko.scenes = {}));
+            var scenes = kimiko.scenes;
+        })(osakana4242.kimiko || (osakana4242.kimiko = {}));
+        var kimiko = osakana4242.kimiko;
+    })(jp.osakana4242 || (jp.osakana4242 = {}));
+    var osakana4242 = jp.osakana4242;
+})(jp || (jp = {}));
 var jp;
 (function (jp) {
     (function (osakana4242) {
@@ -5472,54 +5630,6 @@ var jp;
             (function (scenes) {
                 var g_app = jp.osakana4242.kimiko.g_app;
 
-                scenes.GameClear = cc.Scene.extend({});
-            })(kimiko.scenes || (kimiko.scenes = {}));
-            var scenes = kimiko.scenes;
-        })(osakana4242.kimiko || (osakana4242.kimiko = {}));
-        var kimiko = osakana4242.kimiko;
-    })(jp.osakana4242 || (jp.osakana4242 = {}));
-    var osakana4242 = jp.osakana4242;
-})(jp || (jp = {}));
-
-var jp;
-(function (jp) {
-    (function (osakana4242) {
-        (function (kimiko) {
-            (function (scenes) {
-                var g_app = jp.osakana4242.kimiko.g_app;
-
-                scenes.GameEndMenu = cc.Scene.extend({});
-            })(kimiko.scenes || (kimiko.scenes = {}));
-            var scenes = kimiko.scenes;
-        })(osakana4242.kimiko || (osakana4242.kimiko = {}));
-        var kimiko = osakana4242.kimiko;
-    })(jp.osakana4242 || (jp.osakana4242 = {}));
-    var osakana4242 = jp.osakana4242;
-})(jp || (jp = {}));
-
-var jp;
-(function (jp) {
-    (function (osakana4242) {
-        (function (kimiko) {
-            (function (scenes) {
-                var g_app = jp.osakana4242.kimiko.g_app;
-
-                scenes.GameOver = cc.Scene.extend({});
-            })(kimiko.scenes || (kimiko.scenes = {}));
-            var scenes = kimiko.scenes;
-        })(osakana4242.kimiko || (osakana4242.kimiko = {}));
-        var kimiko = osakana4242.kimiko;
-    })(jp.osakana4242 || (jp.osakana4242 = {}));
-    var osakana4242 = jp.osakana4242;
-})(jp || (jp = {}));
-
-var jp;
-(function (jp) {
-    (function (osakana4242) {
-        (function (kimiko) {
-            (function (scenes) {
-                var g_app = jp.osakana4242.kimiko.g_app;
-
                 scenes.GameStart = cc.Scene.extend({
                     ctor: function () {
                         this._super();
@@ -5808,116 +5918,6 @@ var jp;
                 });
             })(kimiko.scenes || (kimiko.scenes = {}));
             var scenes = kimiko.scenes;
-        })(osakana4242.kimiko || (osakana4242.kimiko = {}));
-        var kimiko = osakana4242.kimiko;
-    })(jp.osakana4242 || (jp.osakana4242 = {}));
-    var osakana4242 = jp.osakana4242;
-})(jp || (jp = {}));
-var jp;
-(function (jp) {
-    (function (osakana4242) {
-        (function (kimiko) {
-            var g_app = jp.osakana4242.kimiko.g_app;
-            var DF = jp.osakana4242.kimiko.DF;
-
-            var SpriteLayouter = (function () {
-                function SpriteLayouter(parentNode) {
-                    this.sprites = {};
-                    this.scale = new osakana4242.utils.Vector2D(1.0, 1.0);
-                    this.node = cc.Node.create();
-                    parentNode.addChild(this.node);
-                }
-                SpriteLayouter.prototype.scalePosition = function (rect, origin, scale) {
-                    return rect;
-                };
-
-                SpriteLayouter.prototype.flipPosition = function (rect, origin, isFlipX, isFlipY) {
-                    return rect;
-                };
-
-                SpriteLayouter.prototype._transition = function (layoutName, isUseTl, scale) {
-                    cc.log("transition: " + layoutName);
-
-                    var rect = osakana4242.utils.Rect.alloc(0, 0, 320, 320);
-                    var sprRect = osakana4242.utils.Rect.alloc();
-
-                    var origin = rect.center;
-
-                    for (var i = 0, iNum = this.layout.length; i < iNum; ++i) {
-                        var l = this.layout[i];
-                        if (l.layoutName !== layoutName) {
-                            continue;
-                        }
-                        var spr = this.sprites[l.spriteName];
-                        if (!spr) {
-                            continue;
-                        }
-                        cc.log("spr:" + l.spriteName);
-
-                        sprRect.x = l.x;
-                        sprRect.y = l.y;
-                        sprRect.width = spr.width;
-                        sprRect.height = spr.height;
-                        this.scalePosition(sprRect, origin, scale);
-
-                        if (isUseTl) {
-                            var tl = [];
-                            if (0 < l.delay) {
-                                tl.push(cc.DelayTime.create(l.delay));
-                            }
-                            if (l.visible) {
-                                tl.push(cc.CallFunc.create(function () {
-                                    cc.log("move start. " + this.x + " " + this.y);
-                                    this.visible = true;
-                                }, spr));
-                            }
-                            tl.push(cc.MoveTo.create(0.2, sprRect));
-                            if (!l.visible) {
-                                tl.push(cc.CallFunc.create(function () {
-                                    this.visible = false;
-                                }, spr));
-                            }
-                            tl.push(cc.CallFunc.create(function () {
-                                cc.log("move ok. " + this.x + " " + this.y);
-                            }, spr));
-                            spr.runAction(cc.Sequence.create(tl));
-                        } else {
-                            spr.x = sprRect.x;
-                            spr.y = sprRect.y;
-                            spr.visible = l.visible;
-                        }
-                    }
-
-                    osakana4242.utils.Rect.free(rect);
-                    osakana4242.utils.Rect.free(sprRect);
-                };
-
-                SpriteLayouter.prototype.transition = function (layoutName, isUseTl) {
-                    var _this = this;
-                    var scale = new osakana4242.utils.Vector2D(this.scale.x, this.scale.y);
-                    if (!g_app.storage.root.userConfig.isUiRight) {
-                    }
-
-                    if (!isUseTl && this.node.getNumberOfRunningActions() <= 0) {
-                        this._transition(layoutName, isUseTl, scale);
-                        return;
-                    }
-
-                    this.node.runAction(cc.Sequence.create(cc.CallFunc.create(function () {
-                        _this._transition(layoutName, isUseTl, scale);
-                    }), oskn.WaitUntil.create(function () {
-                        for (var key in _this.sprites) {
-                            var spr = _this.sprites[key];
-                            if (0 < spr.getNumberOfRunningActions()) {
-                                return false;
-                            }
-                        }
-                        return true;
-                    })));
-                };
-                return SpriteLayouter;
-            })();
-            kimiko.SpriteLayouter = SpriteLayouter;
         })(osakana4242.kimiko || (osakana4242.kimiko = {}));
         var kimiko = osakana4242.kimiko;
     })(jp.osakana4242 || (jp.osakana4242 = {}));
