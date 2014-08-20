@@ -116,6 +116,31 @@ module oskn {
 	}
 }
 
+module oskn.ObjectUtils {
+	export function defineProperty(obj: Object, name: string, props: any) {
+		props["enumerable"] = true;
+		props["configurable"] = true;
+		cc.log("defineProperty:" + JSON.stringify(props));
+		Object.defineProperty(obj, name, props);
+	}
+
+	export function defineProperties(obj: Object, props: any) {
+		if (!props) {
+			return;
+		}
+		for (var key in props) {
+			if (!props.hasOwnProperty(key)) {
+				continue;
+			}
+			var p = props[key];
+			if (!p || (!p["get"] && !p["set"])) {
+				continue;
+			}
+			oskn.ObjectUtils.defineProperty(obj, key, p);
+		}
+	}
+}
+
 module oskn.NodeUtils {
 	export function visitNodes(node, visitor: ( n ) => void) {
 		var children = node.children;

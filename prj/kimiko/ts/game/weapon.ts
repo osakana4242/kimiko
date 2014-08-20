@@ -10,8 +10,8 @@ module jp.osakana4242.kimiko.game {
 		fireCount: number;
 		fireIntervalCounter: number;
 		fireInterval: number;
-		reloadFrameCounter: number;
-		reloadFrameCount: number;
+		reloadSecCounter: number;
+		reloadSecCount: number;
 		wayNum: number;
 		speed: number;
 		parent: any;
@@ -27,8 +27,9 @@ module jp.osakana4242.kimiko.game {
 			this.state = this.stateNeutral;
 			this.wayNum = 1;
 			this.fireCount = 1;
-			this.fireInterval = g_app.secToFrame(0.2);
-			this.reloadFrameCount = g_app.secToFrame(3.0);
+			this.fireInterval = 0.2;
+			this.fireIntervalCounter = 0;
+			this.reloadSecCount = 3.0;
 			this.dir = new utils.Vector2D(1, 0);
 			this.targetPos = new utils.Vector2D();
 			this.speed = g_app.dpsToDpf(60 * 1.0);
@@ -46,7 +47,7 @@ module jp.osakana4242.kimiko.game {
 
 		private stateFire(): void {
 			if (this.fireIntervalCounter < this.fireInterval) {
-				++this.fireIntervalCounter;
+				this.fireIntervalCounter += cc.director.getDeltaTime();
 				return;
 			}
 			this.fireIntervalCounter = 0;
@@ -56,7 +57,7 @@ module jp.osakana4242.kimiko.game {
 				return;
 			}
 			this.fireCounter = 0;
-			this.reloadFrameCounter = 0;
+			this.reloadSecCounter = 0;
 			this.state = this.stateNeutral;
 	}
 
@@ -70,7 +71,7 @@ module jp.osakana4242.kimiko.game {
 			var degInterval = 90 / wayNum;
 			var startDeg = -degInterval * ((wayNum - 1) / 2);
 			for (var i = 0, iNum = wayNum; i < iNum; ++i) {
-				var bullet = parent.scene.newEnemyBullet();
+				var bullet = cc.director.getRunningScene().newEnemyBullet();
 				if (!bullet) {
 					continue;
 				}
@@ -79,17 +80,17 @@ module jp.osakana4242.kimiko.game {
 				var speed = this.speed;
 				bullet.force.x = (this.dir.x * Math.cos(rad) - (this.dir.y * Math.sin(rad))) * speed;
 				bullet.force.y = (this.dir.y * Math.cos(rad) + (this.dir.x * Math.sin(rad))) * speed;
-				bullet.center.set(parent.center);
+				bullet.rect.center = parent.rect.center;
 				if (true) {
 					var v1 = utils.Vector2D.alloc();
 					var v2 = utils.Vector2D.alloc();
 	
 					v1.set(this.targetPos);
-					v1.x -= parent.center.x;
-					v1.y -= parent.center.y;
+					v1.x -= parent.rect.center.x;
+					v1.y -= parent.rect.center.y;
 					v1.rotate(rad);
-					v1.x += parent.center.x;
-					v1.y += parent.center.y;
+					v1.x += parent.rect.center.x;
+					v1.y += parent.rect.center.y;
 					this.fireFunc(bullet, v1, speed);
 
 					utils.Vector2D.free(v1);
@@ -104,19 +105,18 @@ module jp.osakana4242.kimiko.game {
 			bullet.force.x = 0;
 			bullet.force.y = 0;
 			var d = utils.Vector2D.alloc();
-			d.x = tpos.x - bullet.center.x;
-			d.y = tpos.y - bullet.center.y;
+			d.x = tpos.x - bullet.rect.center.x;
+			d.y = tpos.y - bullet.rect.center.y;
 			var mag = utils.Vector2D.magnitude(d);
 			var d2 = 480;
 			d.x = d.x * d2 / mag;
 			d.y = d.y * d2 / mag;
 			var frame = Math.floor(d2 / speed);
 			
-			bullet.tl.
-				moveBy(d.x, d.y, frame).
-				then(function () {
-					this.miss();
-				});
+			bullet.runAction(cc.Sequence.create(
+				cc.MoveBy.create(g_app.frameToSec(frame), cc.p(d.x, d.y)),
+				cc.CallFunc.create(bullet.miss, bullet)
+			));
 			utils.Vector2D.free(d);
 		}
 
@@ -125,8 +125,8 @@ module jp.osakana4242.kimiko.game {
 			bullet.force.x = 0;
 			bullet.force.y = 0;
 			var d = utils.Vector2D.alloc();
-			d.x = tpos.x - bullet.center.x;
-			d.y = tpos.y - bullet.center.y;
+			d.x = tpos.x - bullet.rect.center.x;
+			d.y = tpos.y - bullet.rect.center.y;
 			var m = utils.Vector2D.magnitude(d);
 			var d2 = 480;
 			var dx = d.x * d2 / m;
@@ -134,14 +134,14 @@ module jp.osakana4242.kimiko.game {
 			var frame1 = Math.floor(d2 * 0.2 / g_app.dpsToDpf(4 * 60));
 			var frame2 = Math.floor(d2 * 0.8 / g_app.dpsToDpf(1 * 60));
 	
-			bullet.tl.
+			bullet.runAction(cc.Sequence.create(
 				// 早く移動.
-				moveBy(dx * 0.2, dy * 0.2, frame1).
+				cc.MoveBy.create(g_app.frameToSec(frame1), cc.p(dx * 0.2, dy * 0.2)),
 				// 遅く移動.
-				moveBy(dx * 0.8, dy * 0.8, frame2).
-				then(function () {
-					this.miss();
-				});
+				cc.MoveBy.create(g_app.frameToSec(frame2), cc.p(dx * 0.8, dy * 0.8)),
+				cc.CallFunc.create(bullet.miss, bullet)
+			));
+
 			utils.Vector2D.free(d);
 		}
 
@@ -150,37 +150,37 @@ module jp.osakana4242.kimiko.game {
 		public static fireB(bullet: any, tpos: utils.Vector2D, speed: number): void {
 			bullet.force.x = 0;
 			bullet.force.y = 0;
-			var dx = tpos.x - bullet.center.x;
-			var dy = tpos.y - bullet.center.y;
-			var frameNum = g_app.secToFrame(1.0);
-			bullet.tl.
-				moveBy(dx * 0.25, dy * 0.25 - 64 * 0.7, frameNum * 0.25).
-				moveBy(dx * 0.25, dy * 0.25 - 64 * 0.3, frameNum * 0.25).
-				moveBy(dx * 0.25, dy * 0.25 + 64 * 0.3, frameNum * 0.25).
-				moveBy(dx * 0.25, dy * 0.25 + 64 * 0.7, frameNum * 0.25).
-				moveBy(dx       , 320                 , frameNum).
-				then(function () {
-					this.miss();
-				});
+			var dx = tpos.x - bullet.rect.center.x;
+			var dy = tpos.y - bullet.rect.center.y;
+			var sec = 1.0;
+
+			bullet.runAction(cc.Sequence.create(
+				cc.MoveBy.create(sec * 0.25, cc.p(dx * 0.25, dy * 0.25 + VecY.U * 64 * 0.7)),
+				cc.MoveBy.create(sec * 0.25, cc.p(dx * 0.25, dy * 0.25 + VecY.U * 64 * 0.3)),
+				cc.MoveBy.create(sec * 0.25, cc.p(dx * 0.25, dy * 0.25 + VecY.D * 64 * 0.3)),
+				cc.MoveBy.create(sec * 0.25, cc.p(dx * 0.25, dy * 0.25 + VecY.D * 64 * 0.7)),
+				cc.MoveBy.create(sec       , cc.p(dx       , VecY.D * 320                 )),
+				cc.CallFunc.create(bullet.miss, bullet)
+			));
 		}
 
 		public lookAtPlayer(): void {
-			var player = this.parent.scene.player;
-			this.dir.x = player.center.x - this.parent.center.x;
-			this.dir.y = player.center.y - this.parent.center.y;
-			this.targetPos.set(player.center);
+			var player = cc.director.getRunningScene().player;
+			this.dir.x = player.rect.center.x - this.parent.rect.center.x;
+			this.dir.y = player.rect.center.y - this.parent.rect.center.y;
+			this.targetPos.set(player.rect.center);
 			utils.Vector2D.normalize(this.dir);
 		}
 
 		public lookAtFront(): void {
-			this.targetPos.x = this.parent.center.x + this.dir.x * 320;
-			this.targetPos.y = this.parent.center.y + this.dir.y * 320;
+			this.targetPos.x = this.parent.rect.center.x + this.dir.x * 320;
+			this.targetPos.y = this.parent.rect.center.y + this.dir.y * 320;
 		}
 
 		public startFire(): void {
 			this.fireCounter = 0;
 			this.fireIntervalCounter = this.fireInterval;
-			this.reloadFrameCounter = this.reloadFrameCount;
+			this.reloadSecCounter = this.reloadSecCount;
 			this.state = this.stateFire;
 		}
 

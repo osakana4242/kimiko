@@ -230,6 +230,37 @@ var oskn;
 
 var oskn;
 (function (oskn) {
+    (function (ObjectUtils) {
+        function defineProperty(obj, name, props) {
+            props["enumerable"] = true;
+            props["configurable"] = true;
+            cc.log("defineProperty:" + JSON.stringify(props));
+            Object.defineProperty(obj, name, props);
+        }
+        ObjectUtils.defineProperty = defineProperty;
+
+        function defineProperties(obj, props) {
+            if (!props) {
+                return;
+            }
+            for (var key in props) {
+                if (!props.hasOwnProperty(key)) {
+                    continue;
+                }
+                var p = props[key];
+                if (!p || (!p["get"] && !p["set"])) {
+                    continue;
+                }
+                oskn.ObjectUtils.defineProperty(obj, key, p);
+            }
+        }
+        ObjectUtils.defineProperties = defineProperties;
+    })(oskn.ObjectUtils || (oskn.ObjectUtils = {}));
+    var ObjectUtils = oskn.ObjectUtils;
+})(oskn || (oskn = {}));
+
+var oskn;
+(function (oskn) {
     (function (NodeUtils) {
         function visitNodes(node, visitor) {
             var children = node.children;
@@ -934,6 +965,10 @@ var jp;
                         this._center.y = this.centerY;
                         return this._center;
                     },
+                    set: function (value) {
+                        this.centerX = value.x;
+                        this.centerY = value.y;
+                    },
                     enumerable: true,
                     configurable: true
                 });
@@ -1483,25 +1518,25 @@ var jp;
                 DF.MAP_ID_MAX = 104;
 
                 DF.MAP_OPTIONS = osakana4242.utils.ObjectUtil.makeObjectMapFromLabeldValues([
-                    ["id", "resName", "title", "backgroundColor", "nextMapId", "exitType"],
-                    [101, "map101_tmx", "tutorial", "rgb(196,196,196)", 102, "door"],
-                    [102, "map102_tmx", "tutorial", "rgb(16,16,32)", 103, "door"],
-                    [103, "map103_tmx", "tutorial", "rgb(196,196,196)", 201, "door"],
-                    [201, "map201_tmx", "station", "rgb(32,196,255)", 202, "door"],
-                    [202, "map202_tmx", "station", "rgb(32,196,255)", 203, "door"],
-                    [203, "map203_tmx", "station", "rgb(196,128,32)", 204, "door"],
-                    [204, "map204_tmx", "boss", "rgb(196,32,32)", 0, "enemy_zero"],
-                    [900102, "map900102_tmx", "trace", "rgb(32,32,32)", 0, "door"],
-                    [900103, "map900103_tmx", "jump up", "rgb(32,32,32)", 0, "door"],
-                    [900104, "map900104_tmx", "jump down", "rgb(32,32,32)", 0, "door"],
-                    [900105, "map900105_tmx", "front back", "rgb(32,32,32)", 0, "door"],
-                    [900106, "map900106_tmx", "bunbun", "rgb(32,32,32)", 0, "door"],
-                    [900107, "map900107_tmx", "hovering", "rgb(32,32,32)", 0, "door"],
-                    [900108, "map900108_tmx", "horizontal move", "rgb(32,32,32)", 0, "door"],
-                    [900109, "map900109_tmx", "horizontal trace", "rgb(32,32,32)", 0, "door"],
-                    [900201, "map900201_tmx", "test", "rgb(32,32,32)", 0, "door"],
-                    [900202, "map900202_tmx", "test", "rgb(32,32,32)", 0, "door"],
-                    [900203, "map900203_tmx", "test", "rgb(32,32,32)", 0, "door"]
+                    ["id", "resName", "title", "backgroundColor", "nextMapId", "exitType", "bgm"],
+                    [101, "map101_tmx", "tutorial", "rgb(196,196,196)", 102, "door", "snd_bgm_02_mp3"],
+                    [102, "map102_tmx", "tutorial", "rgb(16,16,32)", 103, "door", "snd_bgm_02_mp3"],
+                    [103, "map103_tmx", "tutorial", "rgb(196,196,196)", 201, "door", "snd_bgm_02_mp3"],
+                    [201, "map201_tmx", "station", "rgb(32,196,255)", 202, "door", "snd_bgm_02_mp3"],
+                    [202, "map202_tmx", "station", "rgb(32,196,255)", 203, "door", "snd_bgm_02_mp3"],
+                    [203, "map203_tmx", "station", "rgb(196,128,32)", 204, "door", "snd_bgm_02_mp3"],
+                    [204, "map204_tmx", "boss", "rgb(196,32,32)", 0, "enemy_zero", "snd_bgm_03_mp3"],
+                    [900102, "map900102_tmx", "trace", "rgb(32,32,32)", 0, "door", "snd_bgm_02_mp3"],
+                    [900103, "map900103_tmx", "jump up", "rgb(32,32,32)", 0, "door", "snd_bgm_02_mp3"],
+                    [900104, "map900104_tmx", "jump down", "rgb(32,32,32)", 0, "door", "snd_bgm_02_mp3"],
+                    [900105, "map900105_tmx", "front back", "rgb(32,32,32)", 0, "door", "snd_bgm_02_mp3"],
+                    [900106, "map900106_tmx", "bunbun", "rgb(32,32,32)", 0, "door", "snd_bgm_02_mp3"],
+                    [900107, "map900107_tmx", "hovering", "rgb(32,32,32)", 0, "door", "snd_bgm_02_mp3"],
+                    [900108, "map900108_tmx", "horizontal move", "rgb(32,32,32)", 0, "door", "snd_bgm_02_mp3"],
+                    [900109, "map900109_tmx", "horizontal trace", "rgb(32,32,32)", 0, "door", "snd_bgm_02_mp3"],
+                    [900201, "map900201_tmx", "test", "rgb(32,32,32)", 0, "door", "snd_bgm_02_mp3"],
+                    [900202, "map900202_tmx", "test", "rgb(32,32,32)", 0, "door", "snd_bgm_02_mp3"],
+                    [900203, "map900203_tmx", "test", "rgb(32,32,32)", 0, "door", "snd_bgm_02_mp3"]
                 ], function (record) {
                     return record.id;
                 });
@@ -1812,17 +1847,15 @@ var jp;
                     };
                     this.assetCache = {};
                     this.soundInfos = {};
+                    this.bgmName = "";
                 }
                 Sound.prototype.playBgm = function (assetName, isReplay) {
                     if (!this.channels["bgm"].isEnabled) {
                         return;
                     }
-                    cc.audioEngine.playMusic(assetName, true);
-                    return;
-
-                    var channel = this.channels["bgm"];
-                    if (isReplay || !channel.isPlaying || channel.soundInfo.assetName !== assetName) {
-                        this.play("bgm", assetName);
+                    if (isReplay || !cc.audioEngine.isMusicPlaying() || this.bgmName !== assetName) {
+                        this.bgmName = assetName;
+                        cc.audioEngine.playMusic(assetName, true);
                     }
                 };
 
@@ -2832,15 +2865,20 @@ var jp;
                             return !sprite.weapon.isStateFire();
                         };
 
-                        function runup() {
-                            return sprite.tl.delay(kimiko.g_app.secToFrame(1.0)).moveBy(0, -24, kimiko.g_app.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, 24, kimiko.g_app.secToFrame(0.2), Easing.CUBIC_EASEOUT).moveBy(0, -8, kimiko.g_app.secToFrame(0.1), Easing.CUBIC_EASEOUT).moveBy(0, 8, kimiko.g_app.secToFrame(0.1), Easing.CUBIC_EASEOUT);
+                        function runup(seq) {
+                            seq.push(cc.DelayTime(1.0));
+                            seq.push(cc.EaseSineIn.create(cc.MoveBy.create(0.2, cc.p(0, kimiko.VecY.U * 24))));
+                            seq.push(cc.EaseSineIn.create(cc.MoveBy.create(0.2, cc.p(0, kimiko.VecY.D * 24))));
+                            seq.push(cc.EaseSineIn.create(cc.MoveBy.create(0.1, cc.p(0, kimiko.VecY.U * 8))));
+                            seq.push(cc.EaseSineIn.create(cc.MoveBy.create(0.1, cc.p(0, kimiko.VecY.D * 8))));
+                            return seq;
                         }
 
                         function fireToPlayer() {
                             var wp = sprite.weapons[0];
                             wp.fireCount = 5;
                             wp.wayNum = 2;
-                            wp.fireInterval = kimiko.g_app.secToFrame(0.5);
+                            wp.fireInterval = 0.5;
                             wp.speed = kimiko.g_app.dpsToDpf(3 * kimiko.DF.BASE_FPS);
                             wp.fireFunc = game.WeaponA.fireC;
                             wp.isTracePlayer = true;
@@ -2850,7 +2888,7 @@ var jp;
                             wp = sprite.weapons[1];
                             wp.fireCount = 3;
                             wp.wayNum = 1;
-                            wp.fireInterval = kimiko.g_app.secToFrame(0.75);
+                            wp.fireInterval = 0.75;
                             wp.speed = kimiko.g_app.dpsToDpf(2 * kimiko.DF.BASE_FPS);
                             wp.fireFunc = game.WeaponA.fireA;
                             wp.isTracePlayer = true;
@@ -2861,7 +2899,7 @@ var jp;
                             var wp = sprite.weapon;
                             wp.fireCount = 9;
                             wp.wayNum = 1;
-                            wp.fireInterval = kimiko.g_app.secToFrame(0.5);
+                            wp.fireInterval = 0.5;
                             wp.speed = kimiko.g_app.dpsToDpf(3 * kimiko.DF.BASE_FPS);
                             wp.fireFunc = game.WeaponA.fireB;
                             wp.isTracePlayer = true;
@@ -2871,7 +2909,7 @@ var jp;
                             wp = sprite.weapons[1];
                             wp.fireCount = 1;
                             wp.wayNum = 1;
-                            wp.fireInterval = kimiko.g_app.secToFrame(1.5);
+                            wp.fireInterval = 1.5;
                             wp.speed = kimiko.g_app.dpsToDpf(1 * kimiko.DF.BASE_FPS);
                             wp.fireFunc = game.WeaponA.fireA;
                             wp.isTracePlayer = true;
@@ -2882,7 +2920,7 @@ var jp;
                             var wp = sprite.weapons[0];
                             wp.fireCount = 1;
                             wp.wayNum = 4;
-                            wp.fireInterval = kimiko.g_app.secToFrame(0.5);
+                            wp.fireInterval = 0.5;
                             wp.speed = kimiko.g_app.dpsToDpf(1 * kimiko.DF.BASE_FPS);
                             wp.fireFunc = game.WeaponA.fireA;
                             wp.isTracePlayer = false;
@@ -2892,42 +2930,82 @@ var jp;
                             wp = sprite.weapons[1];
                             wp.fireCount = 2;
                             wp.wayNum = 1;
-                            wp.fireInterval = kimiko.g_app.secToFrame(0.2);
+                            wp.fireInterval = 0.2;
                             wp.speed = kimiko.g_app.dpsToDpf(3 * kimiko.DF.BASE_FPS);
                             wp.fireFunc = game.WeaponA.fireA;
                             wp.isTracePlayer = true;
                             wp.startFire();
                         }
 
-                        function fire1() {
-                            return runup().then(fireToPlayer).delay(kimiko.g_app.secToFrame(0.5)).waitUntil(waitFire);
+                        function fire1(seq) {
+                            runup(seq);
+                            seq.push(cc.CallFunc.create(fireToPlayer));
+                            seq.push(cc.DelayTime.create(0.5));
+                            seq.push(oskn.WaitUntil.create(waitFire));
+                            return seq;
                         }
 
-                        function fire2() {
-                            return runup().then(fireToPlayer2).waitUntil(waitFire);
+                        function fire2(seq) {
+                            runup(seq);
+                            seq.push(cc.CallFunc.create(fireToPlayer2));
+                            seq.push(oskn.WaitUntil.create((waitFire)));
+                            return seq;
                         }
 
-                        function fire3() {
-                            return runup().then(fireToPlayer3).delay(kimiko.g_app.secToFrame(0.5)).waitUntil(waitFire);
+                        function fire3(seq) {
+                            runup(seq);
+                            seq.push(cc.CallFunc.create(fireToPlayer3));
+                            seq.push(cc.DelayTime.create(0.5));
+                            seq.push(oskn.WaitUntil.create(waitFire));
+                            return seq;
                         }
 
-                        var top = sprite.anchor.y - 96;
+                        var top = sprite.anchor.y + kimiko.VecY.U * 96;
                         var bottom = sprite.anchor.y;
-                        var left = sprite.anchor.x - 224;
+                        var left = sprite.anchor.x + kimiko.VecX.L * 224;
                         var right = sprite.anchor.x + 0;
                         sprite.x = right;
                         sprite.y = top;
-                        sprite.tl.then(sprite.lookAtPlayer).delay(kimiko.g_app.secToFrame(1.0)).moveTo(right, bottom, kimiko.g_app.secToFrame(2.0)).scaleTo(-1.0, 1.0, 1).delay(kimiko.g_app.secToFrame(0.5)).then(function () {
-                            sprite.tl.moveBy(32, 0, kimiko.g_app.secToFrame(1.0), Easing.CUBIC_EASEIN).moveTo(left, bottom, kimiko.g_app.secToFrame(0.5), Easing.CUBIC_EASEIN).scaleTo(1.0, 1.0, 1);
-                            fire2().moveTo(left, top, kimiko.g_app.secToFrame(1.0));
-                            fire1().moveBy(-32, 0, kimiko.g_app.secToFrame(1.0), Easing.CUBIC_EASEIN).moveTo(right, top, kimiko.g_app.secToFrame(0.5), Easing.CUBIC_EASEIN).scaleTo(-1.0, 1.0, 1);
-                            fire2().moveTo(right, bottom, kimiko.g_app.secToFrame(1.0));
-                            fire1().moveTo(left, top, kimiko.g_app.secToFrame(2.0)).then(sprite.lookAtRight);
-                            fire3().moveBy(-32, 0, kimiko.g_app.secToFrame(1.0), Easing.CUBIC_EASEIN).moveTo(right, top, kimiko.g_app.secToFrame(0.5), Easing.CUBIC_EASEIN).then(sprite.lookAtLeft);
-                            fire3().moveBy(32, 0, kimiko.g_app.secToFrame(1.0), Easing.CUBIC_EASEIN).moveTo(left, top, kimiko.g_app.secToFrame(0.5), Easing.CUBIC_EASEIN).then(sprite.lookAtRight);
-                            fire3().moveBy(-32, 0, kimiko.g_app.secToFrame(1.0), Easing.CUBIC_EASEIN).moveTo(right, top, kimiko.g_app.secToFrame(0.5)).then(sprite.lookAtLeft);
-                            fire3().delay(kimiko.g_app.secToFrame(1.0)).moveTo(right, bottom, kimiko.g_app.secToFrame(2.0)).loop();
-                        });
+                        var seq1 = [];
+                        seq1.push(cc.CallFunc.create(sprite.lookAtPlayer, sprite));
+                        seq1.push(cc.DelayTime.create(1.0));
+                        seq1.push(cc.MoveTo.create(2.0, cc.p(right, bottom)));
+                        seq1.push(cc.ScaleTo.create(0.1, kimiko.VecX.L, 1.0));
+                        seq1.push(cc.DelayTime.create(0.5));
+                        seq1.push(cc.CallFunc.create(function () {
+                            var seq2 = [];
+                            seq2.push(cc.EaseSineIn.create(cc.MoveBy.create(1.0, cc.p(kimiko.VecX.R * 32, 0))));
+                            seq2.push(cc.EaseSineIn.create(cc.MoveTo.create(0.5, cc.p(left, bottom))));
+                            seq2.push(cc.ScaleTo.create(0.1, kimiko.VecX.R, 1.0));
+                            fire2(seq2);
+                            seq2.push(cc.EaseSineIn.create(cc.MoveTo.create(1.0, cc.p(left, top))));
+                            fire1(seq2);
+                            seq2.push(cc.EaseSineIn.create(cc.MoveBy.create(1.0, cc.p(kimiko.VecX.L * 32, 0))));
+                            seq2.push(cc.EaseSineIn.create(cc.MoveTo.create(0.5, cc.p(left, bottom))));
+                            seq2.push(cc.ScaleTo.create(0.1, kimiko.VecX.R, 1.0));
+                            fire2(seq2);
+                            seq2.push(cc.EaseSineIn.create(cc.MoveTo.create(1.0, cc.p(right, bottom))));
+                            fire1(seq2);
+                            seq2.push(cc.EaseSineIn.create(cc.MoveTo.create(2.0, cc.p(left, top))));
+                            seq2.push(cc.CallFunc.create(sprite.lookAtRight, sprite));
+                            fire3(seq2);
+                            seq2.push(cc.EaseSineIn.create(cc.MoveBy.create(1.0, cc.p(kimiko.VecX.L * 32, 0))));
+                            seq2.push(cc.EaseSineIn.create(cc.MoveTo.create(0.5, cc.p(right, top))));
+                            seq2.push(cc.CallFunc.create(sprite.lookAtLeft, sprite));
+                            fire3(seq2);
+                            seq2.push(cc.EaseSineIn.create(cc.MoveBy.create(1.0, cc.p(kimiko.VecX.R * 32, 0))));
+                            seq2.push(cc.EaseSineIn.create(cc.MoveTo.create(0.5, cc.p(left, top))));
+                            seq2.push(cc.CallFunc.create(sprite.lookAtRight, sprite));
+                            fire3(seq2);
+                            seq2.push(cc.EaseSineIn.create(cc.MoveBy.create(1.0, cc.p(kimiko.VecX.L * 32, 0))));
+                            seq2.push(cc.EaseSineIn.create(cc.MoveTo.create(0.5, cc.p(right, top))));
+                            seq2.push(cc.CallFunc.create(sprite.lookAtLeft, sprite));
+                            fire3(seq2);
+                            seq2.push(cc.DelayTime.create(1.0));
+                            seq2.push(cc.EaseSineIn.create(cc.MoveTo.create(2.0, cc.p(right, bottom))));
+                            sprite.runAction(cc.RepeatForever.create(cc.Sequence.create(seq2)));
+                        }, sprite));
+                        sprite.runAction(cc.Sequence.create(seq1));
                     }
                     EnemyBrains.brainBoss = brainBoss;
                 })(game.EnemyBrains || (game.EnemyBrains = {}));
@@ -3048,6 +3126,8 @@ var jp;
                     ctor: function () {
                         this._super();
 
+                        oskn.ObjectUtils.defineProperties(this, this.__proto__);
+
                         this.rect = new osakana4242.utils.NodeRect(this);
                         this.anim = new osakana4242.utils.AnimSequencer(this);
                         this.weapons = [];
@@ -3125,6 +3205,7 @@ var jp;
                         this.width = 16;
                         this.height = 16;
 
+                        this.rect = new osakana4242.utils.NodeRect(this);
                         this.anim = new osakana4242.utils.AnimSequencer(this);
                         this.anim.sequence = g_app.getAnimFrames(DF.ANIM_ID_BULLET002);
                         this.ageMax = 0;
@@ -3140,11 +3221,12 @@ var jp;
                         })();
                     },
                     onenterframe: function () {
+                        var scene = cc.director.getRunningScene();
                         this.force.x = this.x - this.oldPos.x;
                         this.force.y = this.y - this.oldPos.y;
                         osakana4242.utils.Vector2D.copyFrom(this.oldPos, this);
 
-                        var camera = this.scene.camera;
+                        var camera = scene.camera;
 
                         if (this.ageMax < this.age) {
                             this.miss();
@@ -3156,19 +3238,21 @@ var jp;
                             return;
                         }
 
-                        if (!this.scene.intersectActiveArea(this)) {
+                        if (!scene.intersectActiveArea(this)) {
                             this.miss();
                             return;
                         }
 
-                        this.scene.checkMapCollision(this, this.miss);
+                        scene.checkMapCollision(this, this.miss);
                     },
                     miss: function () {
-                        this.scene.addEffect(DF.ANIM_ID_MISS, this.center);
+                        var scene = cc.director.getRunningScene();
+                        scene.addEffect(DF.ANIM_ID_MISS, this.rect.center);
                         this.free();
                     },
                     free: function () {
-                        this.scene.enemyBulletPool.free(this);
+                        var scene = cc.director.getRunningScene();
+                        scene.enemyBulletPool.free(this);
                     }
                 });
             })(kimiko.game || (kimiko.game = {}));
@@ -3425,9 +3509,7 @@ var jp;
                         var arr = this.actives;
                         for (var i = arr.length - 1; 0 <= i; --i) {
                             var chara = arr.pop();
-                            if (chara.parentNode) {
-                                chara.parentNode.removeChild(chara);
-                            }
+                            chara.removeFromParent(false);
                         }
                         this.actives.length = 0;
                         this.deads.length = 0;
@@ -3488,9 +3570,7 @@ var jp;
                             }
                             arr.splice(i, 1);
                             this.sleeps.push(chara);
-                            if (chara.parentNode) {
-                                chara.parentNode.removeChild(chara);
-                            }
+                            chara.removeFromParent(false);
                         }
                     };
                     return MapCharaManager;
@@ -4105,8 +4185,9 @@ var jp;
                         this.state = this.stateNeutral;
                         this.wayNum = 1;
                         this.fireCount = 1;
-                        this.fireInterval = kimiko.g_app.secToFrame(0.2);
-                        this.reloadFrameCount = kimiko.g_app.secToFrame(3.0);
+                        this.fireInterval = 0.2;
+                        this.fireIntervalCounter = 0;
+                        this.reloadSecCount = 3.0;
                         this.dir = new osakana4242.utils.Vector2D(1, 0);
                         this.targetPos = new osakana4242.utils.Vector2D();
                         this.speed = kimiko.g_app.dpsToDpf(60 * 1.0);
@@ -4122,7 +4203,7 @@ var jp;
 
                     WeaponA.prototype.stateFire = function () {
                         if (this.fireIntervalCounter < this.fireInterval) {
-                            ++this.fireIntervalCounter;
+                            this.fireIntervalCounter += cc.director.getDeltaTime();
                             return;
                         }
                         this.fireIntervalCounter = 0;
@@ -4132,7 +4213,7 @@ var jp;
                             return;
                         }
                         this.fireCounter = 0;
-                        this.reloadFrameCounter = 0;
+                        this.reloadSecCounter = 0;
                         this.state = this.stateNeutral;
                     };
 
@@ -4146,7 +4227,7 @@ var jp;
                         var degInterval = 90 / wayNum;
                         var startDeg = -degInterval * ((wayNum - 1) / 2);
                         for (var i = 0, iNum = wayNum; i < iNum; ++i) {
-                            var bullet = parent.scene.newEnemyBullet();
+                            var bullet = cc.director.getRunningScene().newEnemyBullet();
                             if (!bullet) {
                                 continue;
                             }
@@ -4155,17 +4236,17 @@ var jp;
                             var speed = this.speed;
                             bullet.force.x = (this.dir.x * Math.cos(rad) - (this.dir.y * Math.sin(rad))) * speed;
                             bullet.force.y = (this.dir.y * Math.cos(rad) + (this.dir.x * Math.sin(rad))) * speed;
-                            bullet.center.set(parent.center);
+                            bullet.rect.center = parent.rect.center;
                             if (true) {
                                 var v1 = osakana4242.utils.Vector2D.alloc();
                                 var v2 = osakana4242.utils.Vector2D.alloc();
 
                                 v1.set(this.targetPos);
-                                v1.x -= parent.center.x;
-                                v1.y -= parent.center.y;
+                                v1.x -= parent.rect.center.x;
+                                v1.y -= parent.rect.center.y;
                                 v1.rotate(rad);
-                                v1.x += parent.center.x;
-                                v1.y += parent.center.y;
+                                v1.x += parent.rect.center.x;
+                                v1.y += parent.rect.center.y;
                                 this.fireFunc(bullet, v1, speed);
 
                                 osakana4242.utils.Vector2D.free(v1);
@@ -4178,17 +4259,15 @@ var jp;
                         bullet.force.x = 0;
                         bullet.force.y = 0;
                         var d = osakana4242.utils.Vector2D.alloc();
-                        d.x = tpos.x - bullet.center.x;
-                        d.y = tpos.y - bullet.center.y;
+                        d.x = tpos.x - bullet.rect.center.x;
+                        d.y = tpos.y - bullet.rect.center.y;
                         var mag = osakana4242.utils.Vector2D.magnitude(d);
                         var d2 = 480;
                         d.x = d.x * d2 / mag;
                         d.y = d.y * d2 / mag;
                         var frame = Math.floor(d2 / speed);
 
-                        bullet.tl.moveBy(d.x, d.y, frame).then(function () {
-                            this.miss();
-                        });
+                        bullet.runAction(cc.Sequence.create(cc.MoveBy.create(kimiko.g_app.frameToSec(frame), cc.p(d.x, d.y)), cc.CallFunc.create(bullet.miss, bullet)));
                         osakana4242.utils.Vector2D.free(d);
                     };
 
@@ -4196,8 +4275,8 @@ var jp;
                         bullet.force.x = 0;
                         bullet.force.y = 0;
                         var d = osakana4242.utils.Vector2D.alloc();
-                        d.x = tpos.x - bullet.center.x;
-                        d.y = tpos.y - bullet.center.y;
+                        d.x = tpos.x - bullet.rect.center.x;
+                        d.y = tpos.y - bullet.rect.center.y;
                         var m = osakana4242.utils.Vector2D.magnitude(d);
                         var d2 = 480;
                         var dx = d.x * d2 / m;
@@ -4205,40 +4284,38 @@ var jp;
                         var frame1 = Math.floor(d2 * 0.2 / kimiko.g_app.dpsToDpf(4 * 60));
                         var frame2 = Math.floor(d2 * 0.8 / kimiko.g_app.dpsToDpf(1 * 60));
 
-                        bullet.tl.moveBy(dx * 0.2, dy * 0.2, frame1).moveBy(dx * 0.8, dy * 0.8, frame2).then(function () {
-                            this.miss();
-                        });
+                        bullet.runAction(cc.Sequence.create(cc.MoveBy.create(kimiko.g_app.frameToSec(frame1), cc.p(dx * 0.2, dy * 0.2)), cc.MoveBy.create(kimiko.g_app.frameToSec(frame2), cc.p(dx * 0.8, dy * 0.8)), cc.CallFunc.create(bullet.miss, bullet)));
+
                         osakana4242.utils.Vector2D.free(d);
                     };
 
                     WeaponA.fireB = function (bullet, tpos, speed) {
                         bullet.force.x = 0;
                         bullet.force.y = 0;
-                        var dx = tpos.x - bullet.center.x;
-                        var dy = tpos.y - bullet.center.y;
-                        var frameNum = kimiko.g_app.secToFrame(1.0);
-                        bullet.tl.moveBy(dx * 0.25, dy * 0.25 - 64 * 0.7, frameNum * 0.25).moveBy(dx * 0.25, dy * 0.25 - 64 * 0.3, frameNum * 0.25).moveBy(dx * 0.25, dy * 0.25 + 64 * 0.3, frameNum * 0.25).moveBy(dx * 0.25, dy * 0.25 + 64 * 0.7, frameNum * 0.25).moveBy(dx, 320, frameNum).then(function () {
-                            this.miss();
-                        });
+                        var dx = tpos.x - bullet.rect.center.x;
+                        var dy = tpos.y - bullet.rect.center.y;
+                        var sec = 1.0;
+
+                        bullet.runAction(cc.Sequence.create(cc.MoveBy.create(sec * 0.25, cc.p(dx * 0.25, dy * 0.25 + kimiko.VecY.U * 64 * 0.7)), cc.MoveBy.create(sec * 0.25, cc.p(dx * 0.25, dy * 0.25 + kimiko.VecY.U * 64 * 0.3)), cc.MoveBy.create(sec * 0.25, cc.p(dx * 0.25, dy * 0.25 + kimiko.VecY.D * 64 * 0.3)), cc.MoveBy.create(sec * 0.25, cc.p(dx * 0.25, dy * 0.25 + kimiko.VecY.D * 64 * 0.7)), cc.MoveBy.create(sec, cc.p(dx, kimiko.VecY.D * 320)), cc.CallFunc.create(bullet.miss, bullet)));
                     };
 
                     WeaponA.prototype.lookAtPlayer = function () {
-                        var player = this.parent.scene.player;
-                        this.dir.x = player.center.x - this.parent.center.x;
-                        this.dir.y = player.center.y - this.parent.center.y;
-                        this.targetPos.set(player.center);
+                        var player = cc.director.getRunningScene().player;
+                        this.dir.x = player.rect.center.x - this.parent.rect.center.x;
+                        this.dir.y = player.rect.center.y - this.parent.rect.center.y;
+                        this.targetPos.set(player.rect.center);
                         osakana4242.utils.Vector2D.normalize(this.dir);
                     };
 
                     WeaponA.prototype.lookAtFront = function () {
-                        this.targetPos.x = this.parent.center.x + this.dir.x * 320;
-                        this.targetPos.y = this.parent.center.y + this.dir.y * 320;
+                        this.targetPos.x = this.parent.rect.center.x + this.dir.x * 320;
+                        this.targetPos.y = this.parent.rect.center.y + this.dir.y * 320;
                     };
 
                     WeaponA.prototype.startFire = function () {
                         this.fireCounter = 0;
                         this.fireIntervalCounter = this.fireInterval;
-                        this.reloadFrameCounter = this.reloadFrameCount;
+                        this.reloadSecCounter = this.reloadSecCount;
                         this.state = this.stateFire;
                     };
 
@@ -4291,6 +4368,8 @@ var res = {
     common_bg_png: "res/common_bg.png",
     map_png: "res/map.png",
     SND_BGM_02: "res/snd/bgm_02.mp3",
+    snd_bgm_02_mp3: "res/snd/bgm_02.mp3",
+    snd_bgm_03_mp3: "res/snd/bgm_03.mp3",
     SND_SE_OK: "res/snd/se_ok.mp3",
     SND_SE_CURSOR: "res/snd/se_cursor.mp3",
     SND_SE_HIT: "res/snd/se_hit.mp3",
@@ -4928,7 +5007,7 @@ var jp;
 
                         scene.state = scene.stateNormal;
 
-                        g_app.sound.playBgm(kimiko.Assets.SOUND_BGM, false);
+                        g_app.sound.playBgm(res[scene.mapOption.bgm], false);
                     },
                     stateNormal: function () {
                         var player = this.player;

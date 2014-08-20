@@ -370,20 +370,20 @@ module jp.osakana4242.kimiko.game {
 			var waitFire = () => { return !sprite.weapon.isStateFire(); };
 
 			// 発砲の予備動作.
-			function runup() {
-				return sprite.tl.
-					delay(g_app.secToFrame(1.0)).
-					moveBy(0, -24, g_app.secToFrame(0.2), Easing.CUBIC_EASEOUT).
-					moveBy(0,  24, g_app.secToFrame(0.2), Easing.CUBIC_EASEOUT).
-					moveBy(0, -8, g_app.secToFrame(0.1), Easing.CUBIC_EASEOUT).
-					moveBy(0, 8, g_app.secToFrame(0.1), Easing.CUBIC_EASEOUT);
+			function runup(seq: any[]) {
+					seq.push(cc.DelayTime(1.0));
+					seq.push(cc.EaseSineIn.create(cc.MoveBy.create(0.2, cc.p(0, VecY.U * 24))));
+					seq.push(cc.EaseSineIn.create(cc.MoveBy.create(0.2, cc.p(0, VecY.D * 24))));
+					seq.push(cc.EaseSineIn.create(cc.MoveBy.create(0.1, cc.p(0, VecY.U *  8))));
+					seq.push(cc.EaseSineIn.create(cc.MoveBy.create(0.1, cc.p(0, VecY.D *  8))));
+					return seq;
 			}
 
 			function fireToPlayer() {
 				var wp: WeaponA = sprite.weapons[0];
 				wp.fireCount = 5;
 				wp.wayNum = 2;
-				wp.fireInterval = g_app.secToFrame(0.5);
+				wp.fireInterval = 0.5;
 				wp.speed = g_app.dpsToDpf(3 * DF.BASE_FPS);
 				wp.fireFunc = WeaponA.fireC;
 				wp.isTracePlayer = true;
@@ -393,7 +393,7 @@ module jp.osakana4242.kimiko.game {
 				wp = sprite.weapons[1];
 				wp.fireCount = 3;
 				wp.wayNum = 1;
-				wp.fireInterval = g_app.secToFrame(0.75);
+				wp.fireInterval = 0.75;
 				wp.speed = g_app.dpsToDpf(2 * DF.BASE_FPS);
 				wp.fireFunc = WeaponA.fireA;
 				wp.isTracePlayer = true;
@@ -405,7 +405,7 @@ module jp.osakana4242.kimiko.game {
 				var wp: WeaponA = sprite.weapon;
 				wp.fireCount = 9 
 				wp.wayNum = 1;
-				wp.fireInterval = g_app.secToFrame(0.5);
+				wp.fireInterval = 0.5;
 				wp.speed = g_app.dpsToDpf(3 * DF.BASE_FPS);
 				wp.fireFunc = WeaponA.fireB;
 				wp.isTracePlayer = true;
@@ -415,7 +415,7 @@ module jp.osakana4242.kimiko.game {
 				wp = sprite.weapons[1];
 				wp.fireCount = 1;
 				wp.wayNum = 1;
-				wp.fireInterval = g_app.secToFrame(1.5);
+				wp.fireInterval = 1.5;
 				wp.speed = g_app.dpsToDpf(1 * DF.BASE_FPS);
 				wp.fireFunc = WeaponA.fireA;
 				wp.isTracePlayer = true;
@@ -426,7 +426,7 @@ module jp.osakana4242.kimiko.game {
 				var wp: WeaponA = sprite.weapons[0];
 				wp.fireCount = 1;
 				wp.wayNum = 4;
-				wp.fireInterval = g_app.secToFrame(0.5);
+				wp.fireInterval = 0.5;
 				wp.speed = g_app.dpsToDpf(1 * DF.BASE_FPS);
 				wp.fireFunc = WeaponA.fireA;
 				wp.isTracePlayer = false;
@@ -436,78 +436,82 @@ module jp.osakana4242.kimiko.game {
 				wp = sprite.weapons[1];
 				wp.fireCount = 2;
 				wp.wayNum = 1;
-				wp.fireInterval = g_app.secToFrame(0.2);
+				wp.fireInterval = 0.2;
 				wp.speed = g_app.dpsToDpf(3 * DF.BASE_FPS);
 				wp.fireFunc = WeaponA.fireA;
 				wp.isTracePlayer = true;
 				wp.startFire();
 			}
 
-			function fire1() {
-				return runup().
-					then(fireToPlayer).
-					delay(g_app.secToFrame(0.5)).
-					waitUntil(waitFire);
+			function fire1(seq: any[]) {
+				runup(seq);
+				seq.push(cc.CallFunc.create(fireToPlayer));
+				seq.push(cc.DelayTime.create(0.5))
+				seq.push(oskn.WaitUntil.create(waitFire));
+				return seq;
 			}
 
-			function fire2() {
-				return runup().
-					then(fireToPlayer2).
-					waitUntil(waitFire);
+			function fire2(seq: any[]) {
+				runup(seq);
+				seq.push(cc.CallFunc.create(fireToPlayer2));
+				seq.push(oskn.WaitUntil.create((waitFire)));
+				return seq;
 			}
 
-			function fire3() {
-				return runup().
-					then(fireToPlayer3).
-					delay(g_app.secToFrame(0.5)).
-					waitUntil(waitFire);
+			function fire3(seq: any[]) {
+				runup(seq);
+				seq.push(cc.CallFunc.create(fireToPlayer3));
+				seq.push(cc.DelayTime.create(0.5));
+				seq.push(oskn.WaitUntil.create(waitFire));
+				return seq;
 			}
 
-			var top = sprite.anchor.y - 96;
+			var top = sprite.anchor.y + VecY.U * 96;
 			var bottom = sprite.anchor.y;
-			var left = sprite.anchor.x - 224;
+			var left = sprite.anchor.x + VecX.L * 224;
 			var right = sprite.anchor.x + 0;
 			sprite.x = right;
 			sprite.y = top;
-			sprite.tl.
-				then(sprite.lookAtPlayer).
-				delay(g_app.secToFrame(1.0)).
-				moveTo(right, bottom, g_app.secToFrame(2.0)).
-				scaleTo(-1.0, 1.0, 1).
-				delay(g_app.secToFrame(0.5)).
-				then(function () {
-					sprite.tl.
-						moveBy(   32,     0, g_app.secToFrame(1.0), Easing.CUBIC_EASEIN).
-						moveTo(left, bottom, g_app.secToFrame(0.5), Easing.CUBIC_EASEIN).
-						scaleTo(1.0, 1.0, 1);
-					fire2().
-						moveTo(left, top, g_app.secToFrame(1.0));
-					fire1().
-						moveBy(  -32,      0, g_app.secToFrame(1.0), Easing.CUBIC_EASEIN).
-						moveTo(right,    top, g_app.secToFrame(0.5), Easing.CUBIC_EASEIN).
-						scaleTo(-1.0, 1.0, 1);
-					fire2().
-						moveTo(right, bottom, g_app.secToFrame(1.0));
-					fire1().
-						moveTo(left,     top, g_app.secToFrame(2.0)).
-						then(sprite.lookAtRight);
-					fire3().
-						moveBy(  -32,      0, g_app.secToFrame(1.0), Easing.CUBIC_EASEIN).
-						moveTo(right,    top, g_app.secToFrame(0.5), Easing.CUBIC_EASEIN).
-						then(sprite.lookAtLeft);
-					fire3().
-						moveBy(   32,      0, g_app.secToFrame(1.0), Easing.CUBIC_EASEIN).
-						moveTo(left,     top, g_app.secToFrame(0.5), Easing.CUBIC_EASEIN).
-						then(sprite.lookAtRight);
-					fire3().
-						moveBy(  -32,      0, g_app.secToFrame(1.0), Easing.CUBIC_EASEIN).
-						moveTo(right,    top, g_app.secToFrame(0.5)).
-						then(sprite.lookAtLeft);
-					fire3().
-						delay(g_app.secToFrame(1.0)).
-						moveTo(right, bottom, g_app.secToFrame(2.0)).
-						loop();
-				});
+			var seq1= [];
+			seq1.push(cc.CallFunc.create(sprite.lookAtPlayer, sprite));
+			seq1.push(cc.DelayTime.create(1.0));
+			seq1.push(cc.MoveTo.create(2.0, cc.p(right, bottom)));
+			seq1.push(cc.ScaleTo.create(0.1, VecX.L, 1.0));
+			seq1.push(cc.DelayTime.create(0.5));
+			seq1.push(cc.CallFunc.create(function () {
+				var seq2 = [];
+				seq2.push(cc.EaseSineIn.create(cc.MoveBy.create(1.0, cc.p(VecX.R * 32, 0))));
+				seq2.push(cc.EaseSineIn.create(cc.MoveTo.create(0.5, cc.p(left, bottom))));
+				seq2.push(cc.ScaleTo.create(0.1, VecX.R, 1.0));
+				fire2(seq2);
+				seq2.push(cc.EaseSineIn.create(cc.MoveTo.create(1.0, cc.p(left, top))));
+				fire1(seq2);
+				seq2.push(cc.EaseSineIn.create(cc.MoveBy.create(1.0, cc.p(VecX.L * 32, 0))));
+				seq2.push(cc.EaseSineIn.create(cc.MoveTo.create(0.5, cc.p(left, bottom))));
+				seq2.push(cc.ScaleTo.create(0.1, VecX.R, 1.0));
+				fire2(seq2);
+				seq2.push(cc.EaseSineIn.create(cc.MoveTo.create(1.0, cc.p(right, bottom))));
+				fire1(seq2);
+				seq2.push(cc.EaseSineIn.create(cc.MoveTo.create(2.0, cc.p(left, top))));
+				seq2.push(cc.CallFunc.create(sprite.lookAtRight, sprite));
+				fire3(seq2);
+				seq2.push(cc.EaseSineIn.create(cc.MoveBy.create(1.0, cc.p(VecX.L * 32, 0))));
+				seq2.push(cc.EaseSineIn.create(cc.MoveTo.create(0.5, cc.p(right, top))));
+				seq2.push(cc.CallFunc.create(sprite.lookAtLeft, sprite));
+				fire3(seq2);
+				seq2.push(cc.EaseSineIn.create(cc.MoveBy.create(1.0, cc.p(VecX.R * 32, 0))));
+				seq2.push(cc.EaseSineIn.create(cc.MoveTo.create(0.5, cc.p(left, top))));
+				seq2.push(cc.CallFunc.create(sprite.lookAtRight, sprite));
+				fire3(seq2);
+				seq2.push(cc.EaseSineIn.create(cc.MoveBy.create(1.0, cc.p(VecX.L * 32, 0))));
+				seq2.push(cc.EaseSineIn.create(cc.MoveTo.create(0.5, cc.p(right, top))));
+				seq2.push(cc.CallFunc.create(sprite.lookAtLeft, sprite));
+				fire3(seq2);
+				seq2.push(cc.DelayTime.create(1.0));
+				seq2.push(cc.EaseSineIn.create(cc.MoveTo.create(2.0, cc.p(right, bottom))));
+				sprite.runAction(cc.RepeatForever.create(cc.Sequence.create(seq2)));
+			}, sprite));
+			sprite.runAction(cc.Sequence.create(seq1));
 		}
 
 	}
@@ -640,6 +644,8 @@ module jp.osakana4242.kimiko.game {
 
 		ctor: function () {
 			this._super();
+
+			oskn.ObjectUtils.defineProperties(this, this.__proto__);
 
 			this.rect = new utils.NodeRect(this);
 			this.anim = new utils.AnimSequencer(this);

@@ -410,6 +410,10 @@ module jp.osakana4242.utils {
 			this._center.y = this.centerY;
 			return this._center;
 		}
+		public set center(value: utils.IVector2D) {
+			this.centerX = value.x;
+			this.centerY = value.y;
+		}
 	}
 
 	/** 矩形の当たり判定 */

@@ -13,6 +13,7 @@ module jp.osakana4242.kimiko.game {
 			this.width = 16;
 			this.height = 16;
 
+			this.rect = new utils.NodeRect(this);
 			this.anim = new utils.AnimSequencer(this);
 			this.anim.sequence = g_app.getAnimFrames(DF.ANIM_ID_BULLET002);
 			this.ageMax = 0;
@@ -29,6 +30,7 @@ module jp.osakana4242.kimiko.game {
 		},
 
 		onenterframe: function () {
+			var scene = cc.director.getRunningScene();
 			this.force.x = this.x - this.oldPos.x;
 			this.force.y = this.y - this.oldPos.y;
 			utils.Vector2D.copyFrom(this.oldPos, this);
@@ -36,7 +38,7 @@ module jp.osakana4242.kimiko.game {
 			// this.x += this.force.x;
 			// this.y += this.force.y;
 
-			var camera = this.scene.camera;
+			var camera = scene.camera;
 			
 			if (this.ageMax < this.age) {
 				this.miss();
@@ -48,22 +50,24 @@ module jp.osakana4242.kimiko.game {
 				return;
 			}
 					
-			if (!this.scene.intersectActiveArea(this)) {
+			if (!scene.intersectActiveArea(this)) {
 				this.miss();
 				return;
 			}
 
-			this.scene.checkMapCollision(this, this.miss);
+			scene.checkMapCollision(this, this.miss);
 		},
 
 		miss: function () {
-			this.scene.addEffect(DF.ANIM_ID_MISS, this.center);
+			var scene = cc.director.getRunningScene();
+			scene.addEffect(DF.ANIM_ID_MISS, this.rect.center);
 			this.free();
 		},
 
 			
 		free: function () {
-			this.scene.enemyBulletPool.free(this);
+			var scene = cc.director.getRunningScene();
+			scene.enemyBulletPool.free(this);
 		},
 
 	});
