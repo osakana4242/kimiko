@@ -25,6 +25,7 @@ module.exports = function(grunt) {
 		typescript: {
 			base: {
 				src: [rootPath + '/ts/**/*.ts'],
+				// dest: rootPath + '/cocos/src/',
 				dest: rootPath + '/cocos/src/app.js',
 				options: {
 					module: 'amd', //or commonjs
