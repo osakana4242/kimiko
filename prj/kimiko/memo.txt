@@ -1,4 +1,6 @@
-﻿* _super(); は ctor, onEnter で呼ぶ必要がある. super のコンストラクタを余分じゃなくて、superの同名関数を呼ぶみたい.
+﻿* jsファイルのリストアップ
+find cocos/src -name "*.js" | sed -e s/cocos\\///
+* _super(); は ctor, onEnter で呼ぶ必要がある. super のコンストラクタを余分じゃなくて、superの同名関数を呼ぶみたい.
 * ios だと cc.getDesignResolutionSize が無い
 * cc.XXX 系統は new すると怒られる. cc.XXX.create を使う.
 * 物理演算はやっぱり固定フレームでやるべき？
